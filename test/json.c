@@ -49,7 +49,7 @@ object_with_multiple_elements() {
 	rv = NSON(&nson, {"a": 1, "b": 2});
 	assert(rv >= 0);
 
-	assert(nson_length(&nson) == 2);
+	assert(nson_len(&nson) == 2);
 
 	struct Nson *e1 = nson_get(&nson, 0);
 	assert(nson_int(e1) == 1);
@@ -66,7 +66,7 @@ access_str_as_arr() {
 	rv = NSON(&nson, {"a": 1});
 	assert(rv >= 0);
 
-	assert(nson_length(&nson) == 1);
+	assert(nson_len(&nson) == 1);
 
 	struct Nson *e1 = nson_get(&nson, 0);
 	ASSERT_ABRT(nson_get(e1, 0));
@@ -179,6 +179,20 @@ stringify_empty_object() {
 }
 
 static void
+stringify_object_with_hidden_item() {
+	int rv;
+	struct Nson nson;
+	char *result;
+
+	rv = NSON(&nson, { "\u001bhidden": 1 });
+
+	assert(rv >= 0);
+	nson_to_json(&nson, &result);
+	assert(strcmp("{}", result) == 0);
+	nson_clean(&nson);
+}
+
+static void
 stringify_object() {
 	int rv;
 	struct Nson nson;
@@ -207,4 +221,5 @@ TEST(utf8_FFFF);
 TEST(stringify_empty_array);
 TEST(stringify_empty_object);
 TEST(stringify_object);
+TEST(stringify_object_with_hidden_item);
 DEFINE_END

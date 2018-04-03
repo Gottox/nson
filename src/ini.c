@@ -65,16 +65,15 @@ nson_parse_ini(struct Nson *nson, char *doc) {
 	int rv = 0, i;
 	char *p, *line;
 	memset(nson, 0, sizeof(*nson));
+	nson_init(nson, NSON_OBJ);
 	nson->alloc_type = NSON_ALLOC_BUFFER;
 	nson->alloc.b = doc;
 
-	nson->type = NSON_ARR;
 	for(i = 0, p = line = doc; *p; line = ++p, i++) {
 		for(; *p != '\n' && *p; p++);
 		*p = '\0';
 		rv = parse_line(nson, line);
 	}
-	nson->type = NSON_OBJ;
 
 	return rv;
 }

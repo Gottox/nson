@@ -164,11 +164,14 @@ nson_parse_object(struct Nson *nson, char *doc) {
 	off_t i = 0;
 	int rv;
 
-	nson_init(nson, NSON_ARR);
 
 	if(doc[i] == '{') {
 		terminal = '}';
 		seperator = ",:";
+		nson_init(nson, NSON_OBJ);
+	}
+	else {
+		nson_init(nson, NSON_ARR);
 	}
 	for(doc[i] = seperator[0]; doc[i] == seperator[len % 2]; len++) {
 		i++;
@@ -185,9 +188,6 @@ nson_parse_object(struct Nson *nson, char *doc) {
 
 	if (doc[i] != terminal)
 		return -1;
-
-	if(terminal == '}')
-		nson->type = NSON_OBJ;
 
 	return i+1;
 }
@@ -291,12 +291,16 @@ nson_to_json_fd(const struct Nson *nson, FILE* fd) {
 				terminal = '}';
 			}
 
-			for(i = 0; i < nson_mem_length(nson); i++) {
+			for(i = 0; i < nson_mem_len(nson); i++) {
+				if(terminal == '}' && i % 2 == 0 && nson_str(nson_mem_get(nson, i))[0] == '\x1b') {
+					i+=2;
+					continue;
+				}
 				fputc(start, fd);
 				start = seperator[i % 2];
 				nson_to_json_fd(nson_mem_get(nson, i), fd);
 			}
-			if(i == 0)
+			if(start == '[' || start == '{')
 				fputc(start, fd);
 			fputc(terminal, fd);
 		default:

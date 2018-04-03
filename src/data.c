@@ -48,23 +48,28 @@ nson_compare(const void *a, const void *b) {
 	int rv;
 	enum NsonType type = nson_type(a);
 
-	if ((rv = type - nson_type(b)))
+	// Reverse sort as NSON_NONE needs to be last
+	if ((rv = nson_type(b) - type))
 		return rv;
 	switch(type) {
 	case NSON_STR:
-		rv = strcmp(nson_str(a), nson_str(b));
+		return strcmp(nson_str(a), nson_str(b));
 		break;
 	case NSON_REAL:
-		rv = SCAL_CMP(nson_real(a), nson_real(b));
+		return SCAL_CMP(nson_real(a), nson_real(b));
 		break;
 	case NSON_INT:
 	case NSON_BOOL:
-		rv = SCAL_CMP(nson_int(a), nson_int(b));
-		break;
+		return SCAL_CMP(nson_int(a), nson_int(b));
 	default:
-		rv = 0;
+		return 0;
 	}
-	return rv ? rv : SCAL_CMP(nson_real(a), nson_real(b));
+}
+
+static int
+nson_compare_stable(const void *a, const void *b) {
+	int rv = nson_compare(a, b);
+	return rv ? rv : SCAL_CMP(a, b);
 }
 
 int
@@ -85,7 +90,7 @@ nson_clean(struct Nson *nson) {
 	}
 
 	if(nson_type(nson) & (NSON_ARR | NSON_OBJ)) {
-		for (i = 0; i < nson_length(nson); i++) {
+		for (i = 0; i < nson_len(nson); i++) {
 			rv = nson_clean(nson_get(nson, i));
 			if(rv < 0)
 				break;
@@ -98,11 +103,11 @@ nson_clean(struct Nson *nson) {
 }
 
 size_t
-nson_length(const struct Nson *nson) {
+nson_len(const struct Nson *nson) {
 	if(nson_type(nson) == NSON_OBJ)
-		return nson_mem_length(nson) / 2;
+		return nson_mem_len(nson) / 2;
 	else
-		return nson_mem_length(nson);
+		return nson_mem_len(nson);
 }
 
 const char *
@@ -149,10 +154,10 @@ nson_get_by_key(const struct Nson *nson, const char *key) {
 	assert(nson_type(nson) == NSON_OBJ);
 	len = nson->val.a.len / 2;
 	size = sizeof(needle) * 2;
-	if (nson->val.a.sorted)
-		result = bsearch(&needle, nson->val.a.arr, len, size, nson_compare);
-	else
+	if (nson->val.a.messy)
 		result = lfind(&needle, nson->val.a.arr, &len, size, nson_compare);
+	else
+		result = bsearch(&needle, nson->val.a.arr, len, size, nson_compare);
 	return result;
 }
 
@@ -162,14 +167,14 @@ nson_sort(struct Nson *nson) {
 	size_t len = nson->val.a.len;
 	size_t size = sizeof(*nson);
 
-	if (nson->val.a.sorted)
+	if (!nson->val.a.messy)
 		return 0;
 	if (nson_type(nson) == NSON_OBJ) {
 		len = nson->val.a.len / 2;
 		size = sizeof(*nson) * 2;
 	}
-	qsort(nson->val.a.arr, len, size, nson_compare);
-	nson->val.a.sorted = true;
+	qsort(nson->val.a.arr, len, size, nson_compare_stable);
+	nson->val.a.messy = 0;
 	return 0;
 }
 
@@ -184,22 +189,31 @@ nson_get_key(const struct Nson *nson, off_t index) {
 
 int
 nson_add(struct Nson *nson, struct Nson *val) {
-	assert(nson_type(nson) == NSON_ARR);
-
+	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
 	struct Nson *elem = nson->val.a.arr;
+	size_t len = nson_mem_len(nson);
+
+	if(nson_type(nson) == NSON_OBJ && len % 2 == 0 && nson_type(val) != NSON_STR) {
+		return -1;
+	}
 
 	if(nson->val.a.len % BUFFER_SIZE == 0) {
 		elem = realloc(elem, sizeof(*elem) * (nson->val.a.len + BUFFER_SIZE));
 		if(!elem)
 			return -1;
-		memset(&elem[nson->val.a.len], 0, BUFFER_SIZE * sizeof(*elem));
+		memset(&elem[len], 0, BUFFER_SIZE * sizeof(*elem));
 		nson->val.a.arr = elem;
 	}
 
-	elem = &elem[nson->val.a.len];
+	elem = &elem[len];
 	nson->val.a.len++;
 
 	memcpy(elem, val, sizeof(*elem));
+
+	if(!nson->val.a.messy && len >= 1 &&
+			(nson_type(nson) == NSON_ARR || len % 2 == 0)) {
+		nson->val.a.messy = nson_compare(&elem[-1], elem) > 0;
+	}
 
 	return 0;
 }
@@ -232,12 +246,11 @@ int
 nson_insert(struct Nson *nson, const char *key,
 		struct Nson* val) {
 	assert(nson_type(nson) == NSON_OBJ);
-	nson->type = NSON_ARR;
+
 	if (nson_add_str(nson, key) < 0 || nson_add(nson, val) < 0) {
 		nson->val.a.len -= nson->val.a.len % 2;
 		return -1;
 	}
-	nson->type = NSON_OBJ;
 	return 0;
 }
 
@@ -363,7 +376,7 @@ nson_mem_get(const struct Nson *nson, off_t index) {
 }
 
 size_t
-nson_mem_length(const struct Nson *nson) {
+nson_mem_len(const struct Nson *nson) {
 	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
 
 	return nson->val.a.len;

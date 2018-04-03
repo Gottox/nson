@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 		_color_reset = "\x1b[0m";
 	}
 	signal(SIGABRT, _handle_abrt);
-	strcpy(_progname, basename(argv[0]));
+	strcpy(_progname, argv[0]);
 	chdir(dirname(argv[0]));
 	return _test_def(argc < 2 ? NULL : argv[1]);
 }

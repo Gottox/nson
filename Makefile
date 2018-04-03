@@ -3,7 +3,7 @@
 # tox, 2018-04-02 16:39
 #
 VERSION = 0.1
-CFLAGS = -Wall -Werror -Wpedantic
+CFLAGS = -Wall -Werror -Wpedantic -g
 
 SRC = src/data.c src/json.c src/ini.c
 OBJ = $(SRC:.c=.o)

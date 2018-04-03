@@ -55,7 +55,7 @@ union NsonValue {
 	struct {
 		struct Nson *arr;
 		size_t len;
-		bool sorted;
+		bool messy;
 	} a;
 };
 
@@ -86,7 +86,7 @@ typedef int (*NsonParser)(struct Nson *, char *);
 
 int nson_clean(struct Nson *nson);
 
-size_t nson_length(const struct Nson *nson);
+size_t nson_len(const struct Nson *nson);
 
 const char * nson_str(const struct Nson *nson);
 
@@ -135,7 +135,7 @@ int nson_load(NsonParser parser, struct Nson *nson, const char *file);
 
 struct Nson *nson_mem_get(const struct Nson *nson, off_t index);
 
-size_t nson_mem_length(const struct Nson *nson);
+size_t nson_mem_len(const struct Nson *nson);
 
 /* JSON */
 int nson_load_json(struct Nson *nson, const char *file);

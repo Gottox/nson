@@ -61,7 +61,7 @@ three_elements() {
 			));
 	assert(rv >= 0);
 
-	assert(nson_length(&config) == 3);
+	assert(nson_len(&config) == 3);
 
 	assert(strcmp("key1", nson_get_key(&config, 0)) == 0);
 	struct Nson *e1 = nson_get(&config, 0);
