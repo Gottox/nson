@@ -95,9 +95,63 @@ sort_object() {
 	assert(strcmp(nson_get_key(&nson, 4), "e") == 0);
 }
 
+static int
+filter_lesser_5(const struct Nson *nson) {
+	return nson_int(nson) < 5;
+}
+
+static void
+filter_array() {
+	int rv;
+	struct Nson nson;
+
+	rv = NSON(&nson, [ 1, 5, 2, 5, 5, 3, 5]);
+	assert(rv >= 0);
+
+	nson_filter(&nson, filter_lesser_5);
+
+	assert(nson_len(&nson) == 3);
+
+	assert(nson_int(nson_get(&nson, 0)) == 1);
+	assert(nson_int(nson_get(&nson, 1)) == 2);
+	assert(nson_int(nson_get(&nson, 2)) == 3);
+}
+
+static void
+filter_object() {
+	int rv;
+	struct Nson nson;
+
+	rv = NSON(&nson, {
+			"a": 1,
+			"b": 5,
+			"c": 2,
+			"d": 5,
+			"e": 5,
+			"f": 3,
+			"g": 5
+	});
+
+	assert(rv >= 0);
+
+	nson_filter(&nson, filter_lesser_5);
+
+	assert(nson_len(&nson) == 3);
+
+	assert(nson_int(nson_get(&nson, 0)) == 1);
+	assert(nson_int(nson_get(&nson, 1)) == 2);
+	assert(nson_int(nson_get(&nson, 2)) == 3);
+
+	assert(strcmp(nson_get_key(&nson, 0), "a") == 0);
+	assert(strcmp(nson_get_key(&nson, 1), "c") == 0);
+	assert(strcmp(nson_get_key(&nson, 2), "f") == 0);
+}
+
 DEFINE
 TEST(create_array);
 TEST(add_int_to_array);
 TEST(sort_array);
 TEST(sort_object);
+TEST(filter_array);
+TEST(filter_object);
 DEFINE_END

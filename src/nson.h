@@ -26,6 +26,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/**
+ * @file nson.h
+ * @author Enno Boland <mail@eboland.de>
+ * @date 3 Apr 2018
+ * @brief File Containing all public symbols of JSON
+ *
+ * @see https://github.com/Gottox/nson
+ */
+
 #ifndef NSON_H
 #define NSON_H
 
@@ -35,6 +44,9 @@
 
 #define NSON(n, ...) nson_parse_json(n, strdup(#__VA_ARGS__))
 
+/**
+ * @brief type of an Nson Element
+ */
 enum NsonType {
 	NSON_NONE = 0,
 
@@ -48,6 +60,9 @@ enum NsonType {
 	NSON_ERR  = 1 << 6,
 };
 
+/**
+ * @brief union holding the value of an Nson Element
+ */
 union NsonValue {
 	int64_t i;
 	double r;
@@ -59,12 +74,22 @@ union NsonValue {
 	} a;
 };
 
+/**
+ * @brief allocation type of an Nson Element
+ *
+ * this type describes how nson should clean up the resources
+ * belonging to a Nson Element
+ */
 enum NsonAllocType {
 	NSON_ALLOC_NONE,
-	NSON_ALLOC_BUFFER,
+	NSON_ALLOC_BUF,
 	NSON_ALLOC_MMAP,
+	NSON_ALLOC_REF,
 };
 
+/**
+ * @brief allocation information of an Nson Element
+ */
 union NsonAlloc {
 	struct {
 		void* map;
@@ -73,6 +98,9 @@ union NsonAlloc {
 	char *b;
 };
 
+/**
+ * @brief Data Container
+ */
 struct Nson {
 	enum NsonType type;
 	union NsonValue val;
@@ -80,75 +108,282 @@ struct Nson {
 	union NsonAlloc alloc;
 };
 
+/**
+ * @brief function pointer that is used to parse a buffer
+ */
 typedef int (*NsonParser)(struct Nson *, char *);
+
+/**
+ * @brief function pointer that is used to map a Nson element
+ */
+typedef int (*NsonMapper)(off_t index, struct Nson *);
+
+/**
+ * @brief function pointer that is used to filter a Nson element
+ */
+typedef int (*NsonFilter)(const struct Nson *);
 
 /* DATA */
 
+/**
+ * @brief invalidates @p nson
+ *
+ * frees all resources belonging to @p nson and NULLs
+ * @p nson. Does not free @p nson itself.
+ *
+ * @p nson can be resident on the stack and on the heap.
+ *
+ * @return 0 on success, < 0 on error
+ */
 int nson_clean(struct Nson *nson);
 
+/**
+ * @brief returns the number of child elements of @p nson
+ *
+ * For NSON_ARR the function returns the number of elements
+ * in the array.
+ *
+ * For NSON_OBJ the function returns the number of key value
+ * pairs in the object.
+ *
+ * @return the number of child elements of @p nson
+ */
 size_t nson_len(const struct Nson *nson);
 
+/**
+ * @brief
+ * @return
+ */
 const char * nson_str(const struct Nson *nson);
 
+/**
+ * @brief
+ * @return
+ */
 enum NsonType nson_type(const struct Nson *nson);
 
+/**
+ * @brief
+ * @return
+ */
 int64_t nson_int(const struct Nson *nson);
 
+/**
+ * @brief
+ * @return
+ */
 double nson_real(const struct Nson *nson);
 
+/**
+ * @brief
+ * @return
+ */
 struct Nson * nson_get(const struct Nson *nson, off_t index);
 
+/**
+ * @brief
+ * @return
+ */
 struct Nson * nson_get_by_key(const struct Nson *nson, const char *key);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_sort(struct Nson *nson);
 
+/**
+ * @brief
+ * @return
+ */
 const char * nson_get_key(const struct Nson *nson, off_t index);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_add(struct Nson *nson, struct Nson *val);
 
+/**
+ * @brief
+ * @return
+ */
+int nson_clone(struct Nson *nson, struct Nson *src);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_add_all(struct Nson *nson, struct Nson *suff);
+
+/**
+ * @brief
+ * @return
+ */
 int nson_add_ptr(struct Nson *nson, const char *val);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_add_str(struct Nson *nson, const char *val);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_add_int(struct Nson *nson, int64_t val);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_insert(struct Nson *nson, const char *key,
 		struct Nson* val);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_insert_str(struct Nson *nson, const char *key,
 		const char *val);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_insert_int(struct Nson *nson, const char *key,
 		int64_t val);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_init(struct Nson *nson, const enum NsonType type);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_init_ptr(struct Nson *nson, const char *val);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_init_str(struct Nson *nson, const char *val);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_init_int(struct Nson *nson, const int64_t val);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_init_real(struct Nson *nson, const double val);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_load(NsonParser parser, struct Nson *nson, const char *file);
 
+/**
+ * @brief
+ * @return
+ */
 struct Nson *nson_mem_get(const struct Nson *nson, off_t index);
 
+/**
+ * @brief
+ * @return
+ */
 size_t nson_mem_len(const struct Nson *nson);
 
+/**
+ * @brief
+ * @return
+ */
+int nson_map(struct Nson *nson, NsonMapper mapper);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_remove(struct Nson *nson, off_t index, size_t size);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_filter(struct Nson *nson, NsonFilter mapper);
+
 /* JSON */
+
+/**
+ * @brief
+ * @return
+ */
 int nson_load_json(struct Nson *nson, const char *file);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_parse_json(struct Nson *nson, char *doc);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_to_json(const struct Nson *nson, char **str);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_to_json_fd(const struct Nson *nson, FILE* fd);
 
 /* INI */
+
+/**
+ * @brief
+ * @return
+ */
 int nson_parse_ini(struct Nson *nson, char *doc);
 
+/**
+ * @brief
+ * @return
+ */
 int nson_load_ini(struct Nson *nson, const char *file);
+
+/* POOL */
+
+struct NsonPool {
+	int worker;
+};
+
+/**
+ * @brief
+ * @return
+ */
+int nson_pool_init(struct NsonPool *pool);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_pool_filter(struct Nson* nson, struct NsonPool *pool,
+		NsonFilter filter);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_pool_map(struct Nson* nson, struct NsonPool *pool, NsonMapper mapper);
 
 #endif /* !NSON_H */

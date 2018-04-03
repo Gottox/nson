@@ -5,7 +5,8 @@
 VERSION = 0.1
 CFLAGS = -Wall -Werror -Wpedantic -g
 
-SRC = src/data.c src/json.c src/ini.c
+HDR = src/nson.h
+SRC = src/data.c src/json.c src/ini.c src/pool.c
 OBJ = $(SRC:.c=.o)
 
 TST = test/data.c test/json.c test/ini.c
@@ -17,15 +18,20 @@ test/%-test: test/%.c $(OBJ)
 	@echo CCTEST $@
 	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< $(OBJ)
 
-src/%.o: src/%.c
+src/%.o: src/%.c $(HDR)
 	@echo CC $@
 	@$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $<
 
 check: $(TST_EXE)
 	@for i in $(TST_EXE); do ./$$i || break; done
 
+doc: doxygen.conf $(TST) $(SRC) $(HDR)
+	@sed -i "/^PROJECT_NUMBER\s/ s/=.*/= $(VERSION)/" $<
+	@doxygen $<
+
 clean:
-	rm -f $(TST_EXE) $(OBJ)
+	@rm -rf doc
+	@rm -f $(TST_EXE) $(OBJ)
 
 .PHONY: check all clean
 

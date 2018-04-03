@@ -27,58 +27,25 @@
  */
 
 #include <string.h>
-#include <ctype.h>
 
 #include "nson.h"
 
-static int
-parse_line(struct Nson *nson, char *line) {
-	off_t i = 0;
-	char *key, *val;
-
-	for(; isblank(line[i]) && line[i]; i++);
-
-	if (line[i] == '#' || line[i] == '\0') {
-		return 0;
-	}
-	key = &line[i];
-	for(; !isblank(line[i]) && line[i]; i++);
-	if(line[i] == '\0')
-		return -1;
-	line[i] = '\0';
-	i++;
-
-	for(; isblank(line[i]) && line[i]; i++);
-	val = &line[i];
-
-	for(i = strlen(line) - 1; isspace(line[i]) && i >= 0; i--)
-		line[i] = '\0';
-
-	nson_add_ptr(nson, key);
-	nson_add_ptr(nson, val);
-
-	return i+1;
+int nson_pool_init(struct NsonPool *pool) {
+	memset(pool, 0, sizeof(*pool));
+	return 0;
 }
 
 int
-nson_parse_ini(struct Nson *nson, char *doc) {
-	int rv = 0, i;
-	char *p, *line;
-	memset(nson, 0, sizeof(*nson));
-	nson_init(nson, NSON_OBJ);
-	nson->alloc_type = NSON_ALLOC_BUF;
-	nson->alloc.b = doc;
-
-	for(i = 0, p = line = doc; *p; line = ++p, i++) {
-		for(; *p != '\n' && *p; p++);
-		*p = '\0';
-		rv = parse_line(nson, line);
-	}
-
-	return rv;
+nson_pool_filter(struct Nson* nson, struct NsonPool *pool, NsonFilter filter) {
+	return nson_filter(nson, filter);
 }
 
 int
-nson_load_ini(struct Nson *nson, const char *file) {
-	return nson_load(nson_parse_ini, nson, file);
+nson_pool_map(struct Nson* nson, struct NsonPool *pool, NsonMapper mapper) {
+	return nson_map(nson, mapper);
+}
+
+int
+nson_pool_clean(struct NsonPool *nson) {
+	return 0;
 }
