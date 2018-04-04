@@ -97,7 +97,7 @@ static void run_test(void (*func)(), char *name) {
 	if (needle == NULL || strstr(#x, needle)) run_test(x, #x)
 
 #define DEFINE_END \
-	fprintf(stderr, "%s%s is OK!%s\n", \
+	fprintf(stderr, "%s%s is OK!%s\n\n", \
 			_color_good, _progname, _color_reset); \
 	return 0; }
 

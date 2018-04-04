@@ -285,6 +285,10 @@ nson_to_json_fd(const struct Nson *nson, FILE* fd) {
 			abort();
 			break;
 		case NSON_PTR:
+			fputc('"', fd);
+			nson_ptr_b64(nson, fd);
+			fputc('"', fd);
+			break;
 		case NSON_STR:
 			json_escape(nson, fd);
 			break;

@@ -408,7 +408,7 @@ int
 nson_ptr_b64(const struct Nson *nson, FILE *fd) {
 	int l;
 	off_t i;
-	char reminder;
+	char reminder = 0;
 	static const char mask = (1 << 6) - 1;
 
 	assert(nson_type(nson) & (NSON_PTR | NSON_STR));
