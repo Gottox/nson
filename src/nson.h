@@ -45,6 +45,11 @@
 #define NSON(n, ...) nson_parse_json(n, strdup(#__VA_ARGS__))
 
 /**
+ * @brief Alias for nson_ptr
+ */
+#define nson_str(n) nson_ptr(n)
+
+/**
  * @brief type of an Nson Element
  */
 enum NsonType {
@@ -53,11 +58,12 @@ enum NsonType {
 	NSON_ARR  = 1 << 0,
 	NSON_OBJ  = 1 << 1,
 	NSON_STR  = 1 << 2,
-	NSON_BOOL = 1 << 3,
-	NSON_INT  = 1 << 4,
-	NSON_REAL = 1 << 5,
+	NSON_PTR  = 1 << 3,
+	NSON_BOOL = 1 << 4,
+	NSON_INT  = 1 << 5,
+	NSON_REAL = 1 << 6,
 
-	NSON_ERR  = 1 << 6,
+	NSON_ERR  = 1 << 7,
 };
 
 /**
@@ -66,7 +72,12 @@ enum NsonType {
 union NsonValue {
 	int64_t i;
 	double r;
-	const char *c;
+
+	struct {
+		const char *b;
+		size_t len;
+	} c;
+
 	struct {
 		struct Nson *arr;
 		size_t len;
@@ -140,11 +151,11 @@ int nson_clean(struct Nson *nson);
 /**
  * @brief returns the number of child elements of @p nson
  *
- * For NSON_ARR the function returns the number of elements
- * in the array.
+ * * For NSON_ARR the function returns the number of elements
+ *   in the array.
  *
- * For NSON_OBJ the function returns the number of key value
- * pairs in the object.
+ * * For NSON_OBJ the function returns the number of key value
+ *   pairs in the object.
  *
  * @return the number of child elements of @p nson
  */
@@ -154,7 +165,7 @@ size_t nson_len(const struct Nson *nson);
  * @brief
  * @return
  */
-const char * nson_str(const struct Nson *nson);
+const char *nson_ptr(const struct Nson *nson);
 
 /**
  * @brief
@@ -220,7 +231,7 @@ int nson_add_all(struct Nson *nson, struct Nson *suff);
  * @brief
  * @return
  */
-int nson_add_ptr(struct Nson *nson, const char *val);
+int nson_add_ptr(struct Nson *nson, const char *val, size_t len);
 
 /**
  * @brief
@@ -245,8 +256,8 @@ int nson_insert(struct Nson *nson, const char *key,
  * @brief
  * @return
  */
-int nson_insert_str(struct Nson *nson, const char *key,
-		const char *val);
+int nson_insert_ptr(struct Nson *nson, const char *key,
+		const char *val, const size_t len);
 
 /**
  * @brief
@@ -265,7 +276,19 @@ int nson_init(struct Nson *nson, const enum NsonType type);
  * @brief
  * @return
  */
-int nson_init_ptr(struct Nson *nson, const char *val);
+int nson_init_ptr(struct Nson *nson, const char *val, size_t len);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_ptr_b64(const struct Nson *nson, FILE *fd);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_init_ptr_b64(struct Nson *nson, char *buf);
 
 /**
  * @brief
@@ -360,6 +383,33 @@ int nson_parse_ini(struct Nson *nson, char *doc);
  * @return
  */
 int nson_load_ini(struct Nson *nson, const char *file);
+
+/* PLIST */
+
+/**
+ * @brief
+ * @return
+ */
+int nson_load_plist(struct Nson *nson, const char *file);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_parse_plist(struct Nson *nson, char *doc);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_to_plist(const struct Nson *nson, char **str);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_to_plist_fd(const struct Nson *nson, FILE* fd);
+
 
 /* POOL */
 

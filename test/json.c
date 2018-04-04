@@ -124,7 +124,7 @@ static void
 utf8_0080() {
 	int rv;
 	struct Nson nson;
-	rv = NSON(&nson, "\u0024");
+	rv = nson_init_str(&nson, "\u0024");
 
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "$") == 0);
@@ -134,7 +134,7 @@ static void
 utf8_0800() {
 	int rv;
 	struct Nson nson;
-	rv = NSON(&nson, "\u00A2");
+	rv = nson_init_str(&nson, "\u00A2");
 
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "¢") == 0);
@@ -144,10 +144,35 @@ static void
 utf8_FFFF() {
 	int rv;
 	struct Nson nson;
-	rv = NSON(&nson, "\u20AC");
+	rv = nson_init_str(&nson, "\u20AC");
 
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "€") == 0);
+}
+
+void stringify_utf8() {
+	int rv;
+	char *str;
+	struct Nson nson;
+	rv = NSON(&nson, "€");
+
+	assert(rv >= 0);
+	rv = nson_to_json(&nson, &str);
+	assert(rv >= 0);
+	assert(strcmp(str, "\"€\"") == 0);
+}
+
+void stringify_nullbyte() {
+	int rv;
+	char *str;
+	struct Nson nson;
+	nson_init_ptr(&nson, "a\0b", 3);
+
+	assert(rv >= 0);
+	rv = nson_to_json(&nson, &str);
+	assert(rv >= 0);
+	assert(strcmp(nson_str(&nson), "a") == 0);
+	assert(strcmp(str, "\"a\\u0000b\"") == 0);
 }
 
 static void
@@ -206,6 +231,20 @@ stringify_object() {
 	nson_clean(&nson);
 }
 
+void stringify_data() {
+	int rv;
+	struct Nson nson;
+	char *result;
+
+	rv = nson_init_ptr(&nson, "Hello World", 11);
+
+	assert(rv >= 0);
+	nson_to_json(&nson, &result);
+	puts(result);
+	assert(strcmp("\"Hello World\"", result) == 0);
+	nson_clean(&nson);
+}
+
 DEFINE
 TEST(parse_from_memory);
 TEST(object_with_multiple_elements);
@@ -218,8 +257,11 @@ TEST(huge_file);
 TEST(utf8_0080);
 TEST(utf8_0800);
 TEST(utf8_FFFF);
+TEST(stringify_utf8);
+TEST(stringify_nullbyte);
 TEST(stringify_empty_array);
 TEST(stringify_empty_object);
 TEST(stringify_object);
 TEST(stringify_object_with_hidden_item);
+TEST(stringify_data);
 DEFINE_END

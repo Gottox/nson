@@ -33,13 +33,13 @@
 
 #include "nson.h"
 
-#define SKIP_SPACES for(; doc[i] && isspace(doc[i]); i++);
+#define SKIP_SPACES { for(; doc[i] && isspace(doc[i]); i++); }
 
 static int
-nson_parse_object(struct Nson *nson, char *doc);
+json_parse_object(struct Nson *nson, char *doc);
 
 static int
-parse_utf8(char *dest, const char *doc) {
+json_parse_utf8(char *dest, const char *doc) {
 	off_t i = 0;
 	uint16_t chr = 0;
 
@@ -70,14 +70,16 @@ parse_utf8(char *dest, const char *doc) {
 }
 
 static int
-nson_unescape(struct Nson* nson, char *doc) {
+json_unescape(struct Nson* nson, char *doc) {
 	off_t i = 0, j;
 	int rv;
+	const char *str;
 	if(doc[i] != '"')
 		return -1;
 	i++;
 
-	nson_init_ptr(nson, &doc[i]);
+	str = &doc[i];
+
 	for(; doc[i] && doc[i] != '\\' && doc[i] != '"'; i++);
 
 	for(j = i; doc[i] && doc[i] != '"'; i++, j++) {
@@ -97,7 +99,7 @@ nson_unescape(struct Nson* nson, char *doc) {
 			doc[j] = '\r';
 			break;
 		case 'u':
-			rv = parse_utf8(&doc[j], &doc[i]);
+			rv = json_parse_utf8(&doc[j], &doc[i]);
 			if(rv < 0)
 				return -1;
 			j += rv - 1;
@@ -111,11 +113,13 @@ nson_unescape(struct Nson* nson, char *doc) {
 	if(doc[i] != '"')
 		return -1;
 	doc[j] = '\0';
+	nson_init_ptr(nson, str, j - 1);
+	nson->type = NSON_STR;
 	return i + 1;
 }
 
 static int
-nson_parse_type(struct Nson *nson, char *doc) {
+json_parse_type(struct Nson *nson, char *doc) {
 	int rv;
 	int64_t val;
 	double r_val;
@@ -125,11 +129,11 @@ nson_parse_type(struct Nson *nson, char *doc) {
 
 	switch(doc[i]) {
 	case '"':
-		return nson_unescape(nson, &doc[i]);
+		return json_unescape(nson, &doc[i]);
 		break;
 	case '{':
 	case '[':
-		return nson_parse_object(nson, &doc[i]);
+		return json_parse_object(nson, &doc[i]);
 		break;
 	default:
 		if (strncmp("true", &doc[i], 4) == 0) {
@@ -156,7 +160,7 @@ nson_parse_type(struct Nson *nson, char *doc) {
 }
 
 static int
-nson_parse_object(struct Nson *nson, char *doc) {
+json_parse_object(struct Nson *nson, char *doc) {
 	struct Nson elem;
 	char terminal = ']';
 	const char *seperator = ",,";
@@ -178,7 +182,7 @@ nson_parse_object(struct Nson *nson, char *doc) {
 		SKIP_SPACES;
 		if(doc[i] == terminal)
 			break;
-		rv = nson_parse_type(&elem, &doc[i]);
+		rv = json_parse_type(&elem, &doc[i]);
 		if(rv < 0)
 			return rv;
 		i += rv;
@@ -193,9 +197,10 @@ nson_parse_object(struct Nson *nson, char *doc) {
 }
 
 static int
-nson_escape(const char *str, FILE *fd) {
+json_escape(const struct Nson *nson, FILE *fd) {
 	off_t i = 0, last_write = 0;
 	char c[] = { '\\', 0 };
+	const char *str = nson_ptr(nson);
 
 	if(str == NULL) {
 		fputs("null", fd);
@@ -203,7 +208,7 @@ nson_escape(const char *str, FILE *fd) {
 	}
 
 	fputc('"', fd);
-	for(; str[i]; i++) {
+	for(; i < nson_len(nson); i++) {
 		switch(str[i]) {
 		case '\t':
 			c[1] = 't';
@@ -226,9 +231,17 @@ nson_escape(const char *str, FILE *fd) {
 			last_write = i+1;
 			c[1] = 0;
 		}
+		else if(iscntrl(str[i])) {
+			if(fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0)
+				return -1;
+			if(fprintf(fd, "\\u%04x", str[i]) == 0)
+				return -1;
+			last_write = i+1;
+		}
 	}
 
-	if(fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0)
+	if(i != last_write &&
+			fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0)
 		return -1;
 	fputc('"', fd);
 
@@ -246,7 +259,7 @@ nson_parse_json(struct Nson *nson, char *doc) {
 	nson->alloc_type = NSON_ALLOC_BUF;
 	nson->alloc.b = doc;
 
-	return nson_parse_type(nson, doc);
+	return json_parse_type(nson, doc);
 }
 
 int
@@ -271,8 +284,9 @@ nson_to_json_fd(const struct Nson *nson, FILE* fd) {
 		case NSON_NONE:
 			abort();
 			break;
+		case NSON_PTR:
 		case NSON_STR:
-			nson_escape(nson_str(nson), fd);
+			json_escape(nson, fd);
 			break;
 		case NSON_REAL:
 			fprintf(fd, "%f", nson_real(nson));
@@ -292,7 +306,7 @@ nson_to_json_fd(const struct Nson *nson, FILE* fd) {
 			}
 
 			for(i = 0; i < nson_mem_len(nson); i++) {
-				if(terminal == '}' && i % 2 == 0 && nson_str(nson_mem_get(nson, i))[0] == '\x1b') {
+				if(terminal == '}' && i % 2 == 0 && nson_ptr(nson_mem_get(nson, i))[0] == '\x1b') {
 					i+=2;
 					continue;
 				}

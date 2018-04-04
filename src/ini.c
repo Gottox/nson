@@ -35,6 +35,7 @@ static int
 parse_line(struct Nson *nson, char *line) {
 	off_t i = 0;
 	char *key, *val;
+	struct Nson elem;
 
 	for(; isblank(line[i]) && line[i]; i++);
 
@@ -54,8 +55,12 @@ parse_line(struct Nson *nson, char *line) {
 	for(i = strlen(line) - 1; isspace(line[i]) && i >= 0; i--)
 		line[i] = '\0';
 
-	nson_add_ptr(nson, key);
-	nson_add_ptr(nson, val);
+	nson_init_ptr(&elem, key, strlen(key));
+	elem.type = NSON_STR;
+	nson_add(nson, &elem);
+	nson_init_ptr(&elem, val, strlen(key));
+	elem.type = NSON_STR;
+	nson_add(nson, &elem);
 
 	return i+1;
 }

@@ -71,4 +71,5 @@ tags
 # End of https://www.gitignore.io/api/c,vim
 
 test/*-test
+bench/*-bench
 doc
