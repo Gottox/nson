@@ -51,6 +51,23 @@
  */
 #define nson_str(n) nson_data(n)
 
+struct Nson;
+
+/**
+ * @brief function pointer that is used to parse a buffer
+ */
+typedef int (*NsonParser)(struct Nson *, char *, size_t);
+
+/**
+ * @brief function pointer that is used to map a Nson element
+ */
+typedef int (*NsonMapper)(off_t index, struct Nson *);
+
+/**
+ * @brief function pointer that is used to filter a Nson element
+ */
+typedef int (*NsonFilter)(const struct Nson *);
+
 /**
  * @brief type of an Nson Element
  */
@@ -85,6 +102,7 @@ union NsonValue {
 		const char *b;
 		size_t len;
 		enum NsonEnc enc;
+		NsonMapper mapper;
 	} d;
 
 	struct {
@@ -127,21 +145,6 @@ struct Nson {
 	enum NsonAllocType alloc_type;
 	union NsonAlloc alloc;
 };
-
-/**
- * @brief function pointer that is used to parse a buffer
- */
-typedef int (*NsonParser)(struct Nson *, char *, size_t);
-
-/**
- * @brief function pointer that is used to map a Nson element
- */
-typedef int (*NsonMapper)(off_t index, struct Nson *);
-
-/**
- * @brief function pointer that is used to filter a Nson element
- */
-typedef int (*NsonFilter)(const struct Nson *);
 
 /* DATA */
 
