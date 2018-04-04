@@ -3,7 +3,7 @@
 # tox, 2018-04-02 16:39
 #
 VERSION = 0.1
-CFLAGS = -Wall -Wpedantic -O0 -g
+CFLAGS = -Wall -Werror -Wpedantic -O0 -g
 #CFLAGS += -DNDEBUG
 ## Comment this in for profiling
 #CFLAGS += -pg -no-pie

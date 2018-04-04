@@ -78,7 +78,7 @@ plist_mapper_string(off_t index, struct Nson *nson) {
 	len = nson_len(nson);
 	dest = strndup(nson_data(nson), len);
 
-	for(p = dest; p = strchr(p, '&'); p++) {
+	for(p = dest; (p = strchr(p, '&')); p++) {
 		if(strncmp("lt;", &p[1], 3) == 0) {
 			t_len = 4;
 			*p = '<';
@@ -113,7 +113,7 @@ plist_mapper_string(off_t index, struct Nson *nson) {
 static int
 plist_parse_string(struct Nson *nson, const char *start_tag, char *doc) {
 	int rv;
-	off_t i = 0, end = 0, len;
+	off_t end = 0, len;
 	char *p;
 	const char *tag;
 

@@ -73,16 +73,14 @@ json_parse_utf8(char *dest, const char *src) {
 static int
 json_mapper_unescape(off_t index, struct Nson* nson) {
 	size_t t_len = 0, len;
-	off_t i = 0, j;
 	char *p;
 	int rv;
-	const char *str;
 	char *dest;
 
 	len = nson_len(nson);
 	dest = strndup(nson_data(nson), len);
 
-	for(p = dest; p = strchr(p, '\\'); p++) {
+	for(p = dest; (p = strchr(p, '\\')); p++) {
 		t_len = 1;
 		switch(p[1]) {
 		case 't':
@@ -121,7 +119,7 @@ static int json_parse_string(struct Nson *nson, char *doc) {
 	int rv;
 	const char *p;
 
-	for(p = doc + 1; p = strchr(p, '"'); p++) {
+	for(p = doc + 1; (p = strchr(p, '"')); p++) {
 		if(p[-1] != '\\')
 			break;
 		if(p[-2] == '\\')
@@ -217,10 +215,10 @@ json_parse_object(struct Nson *nson, char *doc) {
 }
 
 static int
-json_escape(struct Nson *nson, FILE *fd) {
+json_escape(const struct Nson *nson, FILE *fd) {
 	off_t i = 0, last_write = 0;
 	char c[] = { '\\', 0 };
-	const char *str = nson_data(nson);
+	const char *str = nson_data_const(nson);
 
 	if(str == NULL) {
 		fputs("null", fd);

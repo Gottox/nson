@@ -177,7 +177,19 @@ size_t nson_len(const struct Nson *nson);
  * @brief
  * @return
  */
+const char *nson_data_const(const struct Nson *nson);
+
+/**
+ * @brief
+ * @return
+ */
 const char *nson_data(struct Nson *nson);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_cmp(const void *a, const void *b);
 
 /**
  * @brief

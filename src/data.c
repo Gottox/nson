@@ -27,7 +27,6 @@
  */
 
 #include <string.h>
-#include <search.h>
 #include <assert.h>
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -48,54 +47,6 @@
 
 static const char base64_table[] =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-static int
-nson_parse_b64(char *dest, const char *src, size_t *dest_len, size_t src_len) {
-	char *p;
-	int8_t v;
-	off_t i, j;
-
-	for(i = j = 0; i < src_len && src[i] != '='; i++) {
-		p = strchr(base64_table, src[i]);
-		if(p == NULL)
-			break;
-		v = p - base64_table;
-
-		switch(i % 4) {
-		case 0:
-			dest[j] = v << 2;
-			break;
-		case 1:
-			dest[j++] |= v >> 4;
-			dest[j] = v << 4;
-			break;
-		case 2:
-			dest[j++] |= v >> 2;
-			dest[j] = v << 6;
-			break;
-		case 3:
-			dest[j++] |= v;
-			break;
-		}
-	}
-
-	for(; i % 4 != 0 && i < src_len && src[i] == '='; i++)
-		j--;
-
-	if(i % 4 != 0)
-		return -1;
-
-	*dest_len = j + 1;
-
-	return i;
-}
-
-static const char *
-nson_data_const(const struct Nson *nson) {
-	assert(nson_type(nson) & (NSON_DATA | NSON_STR));
-
-	return nson->val.d.b;
-}
 
 static int
 nson_cmp_data(const void *a, const void *b) {
@@ -121,7 +72,7 @@ nson_cmp_data(const void *a, const void *b) {
 	return rv;
 }
 
-static int
+int
 nson_cmp(const void *a, const void *b) {
 	int rv;
 	enum NsonType type = nson_type(a);
@@ -143,10 +94,11 @@ nson_cmp(const void *a, const void *b) {
 	}
 }
 
-static int
-nson_cmp_stable(const void *a, const void *b) {
-	int rv = nson_cmp(a, b);
-	return rv ? rv : SCAL_CMP(a, b);
+const char *
+nson_data_const(const struct Nson *nson) {
+	assert(nson_type(nson) & (NSON_DATA | NSON_STR));
+
+	return nson->val.d.b;
 }
 
 static int
@@ -253,39 +205,6 @@ nson_get(const struct Nson *nson, off_t index) {
 	if(nson_type(nson) == NSON_OBJ)
 		index = index * 2 + 1;
 	return nson_mem_get(nson, index);
-}
-
-struct Nson *
-nson_get_by_key(const struct Nson *nson, const char *key) {
-	struct Nson needle = { .val.d.b = (char *)key, .val.d.len = strlen(key) };
-	struct Nson *result;
-	size_t len, size;
-
-	assert(nson_type(nson) == NSON_OBJ);
-	len = nson->val.a.len / 2;
-	size = sizeof(needle) * 2;
-	if (nson->val.a.messy)
-		result = lfind(&needle, nson->val.a.arr, &len, size, nson_cmp);
-	else
-		result = bsearch(&needle, nson->val.a.arr, len, size, nson_cmp);
-	return result;
-}
-
-int
-nson_sort(struct Nson *nson) {
-	assert(nson->type == NSON_OBJ || nson->type == NSON_ARR);
-	size_t len = nson->val.a.len;
-	size_t size = sizeof(*nson);
-
-	if (!nson->val.a.messy)
-		return 0;
-	if (nson_type(nson) == NSON_OBJ) {
-		len = nson->val.a.len / 2;
-		size = sizeof(*nson) * 2;
-	}
-	qsort(nson->val.a.arr, len, size, nson_cmp_stable);
-	nson->val.a.messy = 0;
-	return 0;
 }
 
 const char *
