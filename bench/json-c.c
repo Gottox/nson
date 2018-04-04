@@ -10,18 +10,14 @@
 
 #include "../src/nson.h"
 
-#include <ucl.h>
+#include <json.h>
 
 void ucl() {
 	void *doc = 0;
 	size_t len, f_len = 0;
-	struct ucl_parser *parser = NULL;
 
 	assert(mmap_file("./json/pkgdb-0.38.json", &doc, &len, &f_len));
-	parser = ucl_parser_new (0);
-	ucl_parser_add_chunk (parser, doc, f_len);
-
-	assert(ucl_parser_get_error (parser) == NULL);
+	assert(json_tokener_parse(doc));
 }
 
 DEFINE

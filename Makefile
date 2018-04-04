@@ -3,7 +3,7 @@
 # tox, 2018-04-02 16:39
 #
 VERSION = 0.1
-CFLAGS = -Wall -Werror -Wpedantic -O2
+CFLAGS = -Wall -Werror -Wpedantic -g
 
 HDR = src/nson.h
 
@@ -25,13 +25,14 @@ TST = \
 TST_EXE = $(TST:.c=-test)
 
 BCH = \
+			bench/json-c.c \
 			bench/ucl.c \
-			bench/nson_json.c \
 			bench/proplib.c \
+			bench/nson_json.c \
 			bench/nson_plist.c \
 
 BCH_EXE = $(BCH:.c=-bench)
-BCH_CFLAGS = -O2 `pkg-config --cflags --libs proplib libucl`
+BCH_CFLAGS = $(shell pkg-config --cflags --libs proplib libucl json-c)
 
 all: $(OBJ)
 
