@@ -40,19 +40,19 @@ static int
 json_parse_object(struct Nson *nson, char *doc);
 
 static int
-json_parse_utf8(char *dest, const char *doc) {
+json_parse_utf8(char *dest, const char *src) {
 	off_t i = 0;
 	uint16_t chr = 0;
 
-	if(doc[i] != 'u')
+	if(src[i] != 'u')
 		return -1;
 	i++;
 
 	for (; i < 5; i++) {
-		if(isdigit(doc[i]))
-			chr = (16 * chr) + doc[i] - '0';
-		else if(isxdigit(doc[i]))
-			chr = (16 * chr) + tolower(doc[i]) - 'a' + 10;
+		if(isdigit(src[i]))
+			chr = (16 * chr) + src[i] - '0';
+		else if(isxdigit(src[i]))
+			chr = (16 * chr) + tolower(src[i]) - 'a' + 10;
 	}
 
 	if (chr < 0x0080) {
@@ -71,52 +71,71 @@ json_parse_utf8(char *dest, const char *doc) {
 }
 
 static int
-json_unescape(struct Nson* nson, char *doc) {
+json_mapper_unescape(off_t index, struct Nson* nson) {
+	size_t t_len = 0, len;
 	off_t i = 0, j;
+	char *p;
 	int rv;
 	const char *str;
-	if(doc[i] != '"')
-		return -1;
-	i++;
+	char *dest;
 
-	str = &doc[i];
+	len = nson_len(nson);
+	dest = strndup(nson_data(nson), len);
 
-	for(; doc[i] && doc[i] != '\\' && doc[i] != '"'; i++);
-
-	for(j = i; doc[i] && doc[i] != '"'; i++, j++) {
-		if(doc[i] != '\\') {
-			doc[j] = doc[i];
-			continue;
-		}
-		i++;
-		switch(doc[i]) {
+	for(p = dest; p = strchr(p, '\\'); p++) {
+		t_len = 1;
+		switch(p[1]) {
 		case 't':
-			doc[j] = '\t';
+			*p = '\t';
 			break;
 		case 'n':
-			doc[j] = '\n';
+			*p = '\n';
 			break;
 		case 'r':
-			doc[j] = '\r';
+			*p = '\r';
+			break;
+		case '\\':
 			break;
 		case 'u':
-			rv = json_parse_utf8(&doc[j], &doc[i]);
+			rv = json_parse_utf8(p, &p[1]);
 			if(rv < 0)
 				return -1;
-			j += rv - 1;
-			i += 4;
-			break;
-		default:
-			doc[j] = doc[i];
+			t_len = rv;
 			break;
 		}
+		memmove(p + 1, p + t_len, len - (p - dest) - t_len);
+		len -= t_len - 1;
 	}
-	if(doc[i] != '"')
-		return -1;
-	doc[j] = '\0';
-	rv = nson_init_data(nson, str, j - 1, NSON_UTF8);
+	dest[len] = 0;
+
+	nson_clean(nson);
+	nson_init_data(nson, dest, len, NSON_PLAIN);
 	nson->type = NSON_STR;
-	return i + 1;
+	nson->alloc_type = NSON_ALLOC_BUF;
+	nson->alloc.b = dest;
+
+	return 0;
+}
+
+static int json_parse_string(struct Nson *nson, char *doc) {
+	int rv;
+	const char *p;
+
+	for(p = doc + 1; p = strchr(p, '"'); p++) {
+		if(p[-1] != '\\')
+			break;
+		if(p[-2] == '\\')
+			break;
+	}
+	if(p == NULL)
+		return -1;
+	rv = nson_init_data(nson, doc + 1, p - doc - 1, NSON_UTF8);
+	if (rv < 0)
+		return rv;
+	nson->type = NSON_STR;
+	nson->val.d.mapper = json_mapper_unescape;
+
+	return p - doc + 1;
 }
 
 static int
@@ -130,7 +149,7 @@ json_parse_type(struct Nson *nson, char *doc) {
 
 	switch(doc[i]) {
 	case '"':
-		return json_unescape(nson, &doc[i]);
+		return json_parse_string(nson, &doc[i]);
 		break;
 	case '{':
 	case '[':
@@ -198,10 +217,10 @@ json_parse_object(struct Nson *nson, char *doc) {
 }
 
 static int
-json_escape(const struct Nson *nson, FILE *fd) {
+json_escape(struct Nson *nson, FILE *fd) {
 	off_t i = 0, last_write = 0;
 	char c[] = { '\\', 0 };
-	const char *str = nson->val.d.b;
+	const char *str = nson_data(nson);
 
 	if(str == NULL) {
 		fputs("null", fd);
@@ -286,14 +305,12 @@ nson_to_json_fd(const struct Nson *nson, FILE* fd) {
 			abort();
 			break;
 		case NSON_STR:
+			json_escape(nson, fd);
+			break;
 		case NSON_DATA:
-			if(nson->val.d.enc == NSON_PLAIN) {
-				fputc('"', fd);
-				nson_data_b64(nson, fd);
-				fputc('"', fd);
-			} else {
-				json_escape(nson, fd);
-			}
+			fputc('"', fd);
+			nson_data_b64(nson, fd);
+			fputc('"', fd);
 			break;
 		case NSON_REAL:
 			fprintf(fd, "%f", nson_real(nson));

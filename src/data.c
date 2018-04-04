@@ -217,10 +217,11 @@ nson_len(const struct Nson *nson) {
 const char *
 nson_data(struct Nson *nson) {
 	assert(nson_type(nson) & (NSON_DATA | NSON_STR));
+	NsonMapper mapper = nson->val.d.mapper;
 
-	if(nson->val.d.mapper) {
-		nson->val.d.mapper(0, nson);
+	if(mapper) {
 		nson->val.d.mapper = NULL;
+		mapper(0, nson);
 	}
 	return nson->val.d.b;
 }

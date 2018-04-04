@@ -75,10 +75,8 @@ plist_mapper_string(off_t index, struct Nson *nson) {
 	char *p;
 	assert(nson_type(nson) & NSON_STR);
 
-	// Don't use nson_len and nson_data here, might call
-	// a recurson.
-	len = nson->val.d.len;
-	dest = strndup(nson->val.d.b, len);
+	len = nson_len(nson);
+	dest = strndup(nson_data(nson), len);
 
 	for(p = dest; p = strchr(p, '&'); p++) {
 		if(strncmp("lt;", &p[1], 3) == 0) {

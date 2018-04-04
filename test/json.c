@@ -32,11 +32,11 @@
 #include <errno.h>
 
 static void
-parse_from_memory() {
+parse_empty_string() {
 	int rv;
 	struct Nson nson;
 
-	rv = NSON(&nson, {"a": 5});
+	rv = NSON(&nson, "");
 	assert(rv >= 0);
 	nson_clean(&nson);
 
@@ -194,11 +194,13 @@ void stringify_nullbyte() {
 	char *str;
 	struct Nson nson;
 	nson_init_data(&nson, "a\0b", 3, NSON_UTF8);
+	nson.type = NSON_STR;
 
 	assert(rv >= 0);
 	rv = nson_to_json(&nson, &str);
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "a") == 0);
+	puts(str);
 	assert(strcmp(str, "\"a\\u0000b\"") == 0);
 
 	(void)rv;
@@ -262,8 +264,10 @@ stringify_object() {
 
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);
+	puts(result);
 	assert(strcmp("{\"a\":1}", result) == 0);
 	nson_clean(&nson);
+
 
 	(void)rv;
 }
@@ -284,7 +288,7 @@ void stringify_data() {
 }
 
 DEFINE
-TEST(parse_from_memory);
+TEST(parse_empty_string);
 TEST(object_with_multiple_elements);
 TEST(access_str_as_arr);
 TEST(unclosed_array);

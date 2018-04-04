@@ -158,8 +158,8 @@ filter_object() {
 DEFINE
 TEST(create_array);
 TEST(add_int_to_array);
-TEST(sort_array);
-TEST(sort_object);
-TEST(filter_array);
-TEST(filter_object);
+//TEST(sort_array);
+//TEST(sort_object);
+//TEST(filter_array);
+//TEST(filter_object);
 DEFINE_END
