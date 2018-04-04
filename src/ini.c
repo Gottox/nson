@@ -57,8 +57,10 @@ parse_line(struct Nson *nson, char *line) {
 		line[i] = '\0';
 
 	nson_init_data(&elem, key, strlen(key), NSON_UTF8);
+	elem.type = NSON_STR;
 	nson_add(nson, &elem);
 	nson_init_data(&elem, val, strlen(key), NSON_UTF8);
+	elem.type = NSON_STR;
 	nson_add(nson, &elem);
 
 	return i+1;

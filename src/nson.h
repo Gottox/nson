@@ -324,6 +324,14 @@ size_t nson_mem_len(const struct Nson *nson);
  * @brief
  * @return
  */
+int nson_filter(struct Nson *nson, NsonFilter mapper);
+
+/* MAP */
+
+/**
+ * @brief
+ * @return
+ */
 int nson_map(struct Nson *nson, NsonMapper mapper);
 
 /**
@@ -336,7 +344,13 @@ int nson_remove(struct Nson *nson, off_t index, size_t size);
  * @brief
  * @return
  */
-int nson_filter(struct Nson *nson, NsonFilter mapper);
+int nson_mapper_b64_enc(off_t index, struct Nson *nson);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_mapper_b64_dec(off_t index, struct Nson *nson);
 
 /* JSON */
 

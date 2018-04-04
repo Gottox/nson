@@ -114,7 +114,8 @@ json_unescape(struct Nson* nson, char *doc) {
 	if(doc[i] != '"')
 		return -1;
 	doc[j] = '\0';
-	nson_init_data(nson, str, j - 1, NSON_UTF8);
+	rv = nson_init_data(nson, str, j - 1, NSON_UTF8);
+	nson->type = NSON_STR;
 	return i + 1;
 }
 
@@ -284,6 +285,7 @@ nson_to_json_fd(const struct Nson *nson, FILE* fd) {
 		case NSON_NONE:
 			abort();
 			break;
+		case NSON_STR:
 		case NSON_DATA:
 			if(nson->val.d.enc == NSON_PLAIN) {
 				fputc('"', fd);
