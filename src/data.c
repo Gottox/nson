@@ -540,14 +540,14 @@ nson_load(NsonParser parser, struct Nson *nson, const char *file) {
 		need_guard = 1;
 
 	mf = mmap(NULL, need_guard ? mapsize + pgsize : mapsize,
-	    PROT_READ, MAP_PRIVATE, fd, 0);
+	    PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 	(void)close(fd);
 	if (mf == MAP_FAILED) {
 		(void)munmap(mf, mapsize);
 		return -1;
 	}
 
-	int rv = parser(nson, (char *)mf);
+	int rv = parser(nson, (char *)mf, st.st_size);
 
 	nson->alloc.m.map = mf;
 	nson->alloc.m.len = mapsize;

@@ -85,7 +85,7 @@ static void
 unclosed_array() {
 	int rv;
 	struct Nson nson;
-	rv = nson_parse_json(&nson, strdup("["));
+	rv = nson_parse_json(&nson, NSON_P("["));
 	assert(rv < 0);
 	nson_clean(&nson);
 
@@ -96,7 +96,7 @@ static void
 unclosed_string() {
 	int rv;
 	struct Nson nson;
-	rv = nson_parse_json(&nson, strdup("\"aaa"));
+	rv = nson_parse_json(&nson, NSON_P("\"aaa"));
 	assert(rv < 0);
 	nson_clean(&nson);
 
@@ -107,7 +107,7 @@ static void
 unclosed_array_with_one_element() {
 	int rv;
 	struct Nson nson;
-	rv = nson_parse_json(&nson, strdup("[ 1 , "));
+	rv = nson_parse_json(&nson, NSON_P("[ 1 , "));
 	assert(rv < 0);
 	nson_clean(&nson);
 

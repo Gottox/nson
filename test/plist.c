@@ -30,7 +30,7 @@
 
 #include "../src/nson.h"
 
-#define PLIST(x) strdup("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
+#define PLIST(x) NSON_P("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" \
 	"<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n" \
 	"<plist>\n" x "\n</plist>\n")
 

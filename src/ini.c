@@ -65,7 +65,7 @@ parse_line(struct Nson *nson, char *line) {
 }
 
 int
-nson_parse_ini(struct Nson *nson, char *doc) {
+nson_parse_ini(struct Nson *nson, char *doc, size_t len) {
 	int rv = 0, i;
 	char *p, *line;
 	memset(nson, 0, sizeof(*nson));

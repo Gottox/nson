@@ -254,7 +254,7 @@ nson_load_json(struct Nson *nson, const char *file) {
 }
 
 int
-nson_parse_json(struct Nson *nson, char *doc) {
+nson_parse_json(struct Nson *nson, char *doc, size_t len) {
 	memset(nson, 0, sizeof(*nson));
 	nson->alloc_type = NSON_ALLOC_BUF;
 	nson->alloc.b = doc;

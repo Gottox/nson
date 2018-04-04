@@ -47,7 +47,7 @@ static void
 syntax_error() {
 	int rv;
 	struct Nson config;
-	rv = nson_parse_ini(&config, strdup("value_missing\n"));
+	rv = nson_parse_ini(&config, NSON_P("value_missing\n"));
 	assert(rv < 0);
 	nson_clean(&config);
 
@@ -58,7 +58,7 @@ static void
 three_elements() {
 	int rv;
 	struct Nson config;
-	rv = nson_parse_ini(&config, strdup(
+	rv = nson_parse_ini(&config, NSON_P(
 			"key1 value1\n"
 			"key2 value2\n"
 			"key2 value3\n"

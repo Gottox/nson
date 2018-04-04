@@ -42,7 +42,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define NSON(n, ...) nson_parse_json(n, strdup(#__VA_ARGS__))
+#define NSON(n, ...) nson_parse_json(n, strdup(#__VA_ARGS__), strlen(#__VA_ARGS__))
+
+#define NSON_P(s) strdup(s), strlen(s)
 
 /**
  * @brief Alias for nson_data
@@ -58,11 +60,12 @@ enum NsonType {
 	NSON_ARR  = 1 << 0,
 	NSON_OBJ  = 1 << 1,
 	NSON_DATA = 1 << 2,
-	NSON_BOOL = 1 << 3,
-	NSON_INT  = 1 << 4,
-	NSON_REAL = 1 << 5,
+	NSON_STR  = 1 << 3,
+	NSON_BOOL = 1 << 4,
+	NSON_INT  = 1 << 5,
+	NSON_REAL = 1 << 6,
 
-	NSON_ERR  = 1 << 6,
+	NSON_ERR  = 1 << 7,
 };
 
 enum NsonEnc {
@@ -128,7 +131,7 @@ struct Nson {
 /**
  * @brief function pointer that is used to parse a buffer
  */
-typedef int (*NsonParser)(struct Nson *, char *);
+typedef int (*NsonParser)(struct Nson *, char *, size_t);
 
 /**
  * @brief function pointer that is used to map a Nson element
@@ -344,7 +347,7 @@ int nson_load_json(struct Nson *nson, const char *file);
  * @brief
  * @return
  */
-int nson_parse_json(struct Nson *nson, char *doc);
+int nson_parse_json(struct Nson *nson, char *doc, size_t len);
 
 /**
  * @brief
@@ -364,7 +367,7 @@ int nson_to_json_fd(const struct Nson *nson, FILE* fd);
  * @brief
  * @return
  */
-int nson_parse_ini(struct Nson *nson, char *doc);
+int nson_parse_ini(struct Nson *nson, char *doc, size_t len);
 
 /**
  * @brief
@@ -384,7 +387,7 @@ int nson_load_plist(struct Nson *nson, const char *file);
  * @brief
  * @return
  */
-int nson_parse_plist(struct Nson *nson, char *doc);
+int nson_parse_plist(struct Nson *nson, char *doc, size_t len);
 
 /**
  * @brief
