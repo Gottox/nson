@@ -13,15 +13,21 @@
 #include <ucl.h>
 
 void ucl() {
+	bool rv;
 	void *doc = 0;
+	const char *err;
 	size_t len, f_len = 0;
 	struct ucl_parser *parser = NULL;
 
-	assert(mmap_file("./json/pkgdb-0.38.json", &doc, &len, &f_len));
+	rv = mmap_file("./json/pkgdb-0.38.json", &doc, &len, &f_len);
+	assert(rv);
 	parser = ucl_parser_new (0);
 	ucl_parser_add_chunk (parser, doc, f_len);
 
-	assert(ucl_parser_get_error (parser) == NULL);
+	err = ucl_parser_get_error (parser);
+	assert(err == NULL);
+	(void)rv;
+	(void)err;
 }
 
 DEFINE

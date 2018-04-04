@@ -15,7 +15,7 @@ void nson_plist() {
 
 	rv = nson_load_plist(&nson, "./plist/pkgdb-0.38.plist");
 	assert(rv >= 0);
-	nson_clean(&nson);
+	(void)rv;
 }
 
 DEFINE

@@ -64,6 +64,8 @@ sort_array() {
 	assert(nson_int(nson_get(&nson, 2)) == 3);
 	assert(nson_int(nson_get(&nson, 3)) == 4);
 	assert(nson_int(nson_get(&nson, 4)) == 5);
+
+	(void)rv;
 }
 
 static void
@@ -93,6 +95,8 @@ sort_object() {
 	assert(strcmp(nson_get_key(&nson, 2), "c") == 0);
 	assert(strcmp(nson_get_key(&nson, 3), "d") == 0);
 	assert(strcmp(nson_get_key(&nson, 4), "e") == 0);
+
+	(void)rv;
 }
 
 static int
@@ -115,6 +119,8 @@ filter_array() {
 	assert(nson_int(nson_get(&nson, 0)) == 1);
 	assert(nson_int(nson_get(&nson, 1)) == 2);
 	assert(nson_int(nson_get(&nson, 2)) == 3);
+
+	(void)rv;
 }
 
 static void
@@ -145,6 +151,8 @@ filter_object() {
 	assert(strcmp(nson_get_key(&nson, 0), "a") == 0);
 	assert(strcmp(nson_get_key(&nson, 1), "c") == 0);
 	assert(strcmp(nson_get_key(&nson, 2), "f") == 0);
+
+	(void)rv;
 }
 
 DEFINE

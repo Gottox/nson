@@ -45,9 +45,9 @@
 #define NSON(n, ...) nson_parse_json(n, strdup(#__VA_ARGS__))
 
 /**
- * @brief Alias for nson_ptr
+ * @brief Alias for nson_data
  */
-#define nson_str(n) nson_ptr(n)
+#define nson_str(n) nson_data(n)
 
 /**
  * @brief type of an Nson Element
@@ -57,13 +57,18 @@ enum NsonType {
 
 	NSON_ARR  = 1 << 0,
 	NSON_OBJ  = 1 << 1,
-	NSON_STR  = 1 << 2,
-	NSON_PTR  = 1 << 3,
-	NSON_BOOL = 1 << 4,
-	NSON_INT  = 1 << 5,
-	NSON_REAL = 1 << 6,
+	NSON_DATA = 1 << 2,
+	NSON_BOOL = 1 << 3,
+	NSON_INT  = 1 << 4,
+	NSON_REAL = 1 << 5,
 
-	NSON_ERR  = 1 << 7,
+	NSON_ERR  = 1 << 6,
+};
+
+enum NsonEnc {
+	NSON_PLAIN,
+	NSON_UTF8,
+	NSON_BASE64
 };
 
 /**
@@ -76,7 +81,8 @@ union NsonValue {
 	struct {
 		const char *b;
 		size_t len;
-	} c;
+		enum NsonEnc enc;
+	} d;
 
 	struct {
 		struct Nson *arr;
@@ -165,7 +171,7 @@ size_t nson_len(const struct Nson *nson);
  * @brief
  * @return
  */
-const char *nson_ptr(const struct Nson *nson);
+const char *nson_data(struct Nson *nson);
 
 /**
  * @brief
@@ -219,19 +225,13 @@ int nson_add(struct Nson *nson, struct Nson *val);
  * @brief
  * @return
  */
-int nson_clone(struct Nson *nson, struct Nson *src);
+int nson_clone(struct Nson *nson, const struct Nson *src);
 
 /**
  * @brief
  * @return
  */
 int nson_add_all(struct Nson *nson, struct Nson *suff);
-
-/**
- * @brief
- * @return
- */
-int nson_add_ptr(struct Nson *nson, const char *val, size_t len);
 
 /**
  * @brief
@@ -256,13 +256,6 @@ int nson_insert(struct Nson *nson, const char *key,
  * @brief
  * @return
  */
-int nson_insert_ptr(struct Nson *nson, const char *key,
-		const char *val, const size_t len);
-
-/**
- * @brief
- * @return
- */
 int nson_insert_int(struct Nson *nson, const char *key,
 		int64_t val);
 
@@ -276,19 +269,14 @@ int nson_init(struct Nson *nson, const enum NsonType type);
  * @brief
  * @return
  */
-int nson_init_ptr(struct Nson *nson, const char *val, size_t len);
+int nson_init_data(struct Nson *nson, const char *val, size_t len,
+		enum NsonEnc enc);
 
 /**
  * @brief
  * @return
  */
-int nson_ptr_b64(const struct Nson *nson, FILE *fd);
-
-/**
- * @brief
- * @return
- */
-int nson_init_ptr_b64(struct Nson *nson, char *buf);
+int nson_data_b64(const struct Nson *nson, FILE *fd);
 
 /**
  * @brief

@@ -39,6 +39,8 @@ no_such_file() {
 	assert(rv < 0);
 	assert(errno == ENOENT);
 	nson_clean(&config);
+
+	(void)rv;
 }
 
 static void
@@ -48,6 +50,8 @@ syntax_error() {
 	rv = nson_parse_ini(&config, strdup("value_missing\n"));
 	assert(rv < 0);
 	nson_clean(&config);
+
+	(void)rv;
 }
 
 static void
@@ -75,6 +79,11 @@ three_elements() {
 	struct Nson *e3 = nson_get(&config, 2);
 	assert(strcmp("value3", nson_str(e3)) == 0);
 	nson_clean(&config);
+
+	(void)rv;
+	(void)e1;
+	(void)e2;
+	(void)e3;
 }
 
 DEFINE

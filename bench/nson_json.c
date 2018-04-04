@@ -15,7 +15,7 @@ void nson_json() {
 
 	rv = nson_load_json(&nson, "./json/pkgdb-0.38.json");
 	assert(rv >= 0);
-	nson_clean(&nson);
+	(void)rv;
 }
 
 DEFINE

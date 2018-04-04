@@ -31,6 +31,7 @@
 #include <search.h>
 #include <inttypes.h>
 
+#include "config.h"
 #include "nson.h"
 
 #define SKIP_SPACES { for(; doc[i] && isspace(doc[i]); i++); }
@@ -113,8 +114,7 @@ json_unescape(struct Nson* nson, char *doc) {
 	if(doc[i] != '"')
 		return -1;
 	doc[j] = '\0';
-	nson_init_ptr(nson, str, j - 1);
-	nson->type = NSON_STR;
+	nson_init_data(nson, str, j - 1, NSON_UTF8);
 	return i + 1;
 }
 
@@ -200,7 +200,7 @@ static int
 json_escape(const struct Nson *nson, FILE *fd) {
 	off_t i = 0, last_write = 0;
 	char c[] = { '\\', 0 };
-	const char *str = nson_ptr(nson);
+	const char *str = nson->val.d.b;
 
 	if(str == NULL) {
 		fputs("null", fd);
@@ -284,13 +284,14 @@ nson_to_json_fd(const struct Nson *nson, FILE* fd) {
 		case NSON_NONE:
 			abort();
 			break;
-		case NSON_PTR:
-			fputc('"', fd);
-			nson_ptr_b64(nson, fd);
-			fputc('"', fd);
-			break;
-		case NSON_STR:
-			json_escape(nson, fd);
+		case NSON_DATA:
+			if(nson->val.d.enc == NSON_PLAIN) {
+				fputc('"', fd);
+				nson_data_b64(nson, fd);
+				fputc('"', fd);
+			} else {
+				json_escape(nson, fd);
+			}
 			break;
 		case NSON_REAL:
 			fprintf(fd, "%f", nson_real(nson));
@@ -310,7 +311,8 @@ nson_to_json_fd(const struct Nson *nson, FILE* fd) {
 			}
 
 			for(i = 0; i < nson_mem_len(nson); i++) {
-				if(terminal == '}' && i % 2 == 0 && nson_ptr(nson_mem_get(nson, i))[0] == '\x1b') {
+				if(terminal == '}' && i % 2 == 0
+						&& nson_data(nson_mem_get(nson, i))[0] == '\x1b') {
 					i+=2;
 					continue;
 				}

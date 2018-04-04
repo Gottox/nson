@@ -29,6 +29,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "config.h"
 #include "nson.h"
 
 static int
@@ -55,11 +56,9 @@ parse_line(struct Nson *nson, char *line) {
 	for(i = strlen(line) - 1; isspace(line[i]) && i >= 0; i--)
 		line[i] = '\0';
 
-	nson_init_ptr(&elem, key, strlen(key));
-	elem.type = NSON_STR;
+	nson_init_data(&elem, key, strlen(key), NSON_UTF8);
 	nson_add(nson, &elem);
-	nson_init_ptr(&elem, val, strlen(key));
-	elem.type = NSON_STR;
+	nson_init_data(&elem, val, strlen(key), NSON_UTF8);
 	nson_add(nson, &elem);
 
 	return i+1;

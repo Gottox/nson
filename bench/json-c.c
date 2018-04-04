@@ -13,11 +13,18 @@
 #include <json.h>
 
 void ucl() {
+	bool rv;
+	struct json_object *json;
 	void *doc = 0;
 	size_t len, f_len = 0;
 
-	assert(mmap_file("./json/pkgdb-0.38.json", &doc, &len, &f_len));
-	assert(json_tokener_parse(doc));
+	rv = mmap_file("./json/pkgdb-0.38.json", &doc, &len, &f_len);
+	assert(rv);
+	json = json_tokener_parse(doc);
+	assert(json);
+
+	(void)json;
+	(void)rv;
 }
 
 DEFINE

@@ -39,6 +39,8 @@ parse_from_memory() {
 	rv = NSON(&nson, {"a": 5});
 	assert(rv >= 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -56,6 +58,10 @@ object_with_multiple_elements() {
 	struct Nson *e2 = nson_get(&nson, 1);
 	assert(nson_int(e2) == 2);
 	nson_clean(&nson);
+
+	(void)rv;
+	(void)e1;
+	(void)e2;
 }
 
 static void
@@ -71,6 +77,8 @@ access_str_as_arr() {
 	struct Nson *e1 = nson_get(&nson, 0);
 	ASSERT_ABRT(nson_get(e1, 0));
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -80,6 +88,8 @@ unclosed_array() {
 	rv = nson_parse_json(&nson, strdup("["));
 	assert(rv < 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -89,6 +99,8 @@ unclosed_string() {
 	rv = nson_parse_json(&nson, strdup("\"aaa"));
 	assert(rv < 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -98,6 +110,8 @@ unclosed_array_with_one_element() {
 	rv = nson_parse_json(&nson, strdup("[ 1 , "));
 	assert(rv < 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -108,6 +122,8 @@ huge_file() {
 	assert(rv < 0);
 	assert(errno == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -118,6 +134,8 @@ page_sized() {
 	assert(rv < 0);
 	assert(errno == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -128,6 +146,8 @@ utf8_0080() {
 
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "$") == 0);
+
+	(void)rv;
 }
 
 static void
@@ -138,6 +158,8 @@ utf8_0800() {
 
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "¢") == 0);
+
+	(void)rv;
 }
 
 static void
@@ -148,6 +170,8 @@ utf8_FFFF() {
 
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "€") == 0);
+
+	(void)rv;
 }
 
 void stringify_utf8() {
@@ -159,21 +183,25 @@ void stringify_utf8() {
 	assert(rv >= 0);
 	rv = nson_to_json(&nson, &str);
 	assert(rv >= 0);
+	puts(str);
 	assert(strcmp(str, "\"€\"") == 0);
+
+	(void)rv;
 }
 
 void stringify_nullbyte() {
 	int rv;
 	char *str;
 	struct Nson nson;
-	nson_init_ptr(&nson, "a\0b", 3);
-	nson.type = NSON_STR;
+	nson_init_data(&nson, "a\0b", 3, NSON_UTF8);
 
 	assert(rv >= 0);
 	rv = nson_to_json(&nson, &str);
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "a") == 0);
 	assert(strcmp(str, "\"a\\u0000b\"") == 0);
+
+	(void)rv;
 }
 
 static void
@@ -188,6 +216,8 @@ stringify_empty_array() {
 	nson_to_json(&nson, &result);
 	assert(strcmp("[]", result) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -202,6 +232,8 @@ stringify_empty_object() {
 	nson_to_json(&nson, &result);
 	assert(strcmp("{}", result) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -216,6 +248,8 @@ stringify_object_with_hidden_item() {
 	nson_to_json(&nson, &result);
 	assert(strcmp("{}", result) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -230,6 +264,8 @@ stringify_object() {
 	nson_to_json(&nson, &result);
 	assert(strcmp("{\"a\":1}", result) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 void stringify_data() {
@@ -237,12 +273,14 @@ void stringify_data() {
 	struct Nson nson;
 	char *result;
 
-	rv = nson_init_ptr(&nson, "Hello World", 11);
+	rv = nson_init_data(&nson, "Hello World", 11, NSON_PLAIN);
 
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);
 	assert(strcmp("\"SGVsbG8gV29ybGQ=\"", result) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 DEFINE

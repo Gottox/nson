@@ -30,6 +30,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 
+#include "config.h"
 #include "nson.h"
 
 #define SKIP_SPACES { for(; doc[i] && isspace(doc[i]); i++); }
@@ -105,14 +106,8 @@ plist_parse_string(struct Nson *nson, const char *start_tag, char *doc) {
 	}
 
 	doc[j] = 0;
-	if(start_tag[0] == 'd') {
-		rv = nson_init_ptr_b64(nson, doc);
-	} else {
-		rv = nson_init_ptr(nson, doc, strlen(doc));
-		if(rv < 0)
-			return rv;
-		nson->type = NSON_STR;
-	}
+	rv = nson_init_data(nson, doc, strlen(doc),
+			start_tag[0] == 'd' ? NSON_BASE64 : NSON_UTF8);
 	if(rv < 0)
 		return rv;
 
@@ -257,8 +252,8 @@ nson_parse_plist(struct Nson *nson, char *doc) {
 static int
 plist_escape(const struct Nson *nson, FILE *fd) {
 	off_t i = 0, last_write = 0;
-	char *c = NULL;
-	const char *str = nson_ptr(nson);
+	char *escape = NULL;
+	const char *str = nson->val.d.b;
 
 	if(str == NULL) {
 		return 0;
@@ -267,22 +262,23 @@ plist_escape(const struct Nson *nson, FILE *fd) {
 	for(; i < nson_len(nson); i++) {
 		switch(str[i]) {
 		case '<':
-			c = "&lt;";
+			escape = "&lt;";
 			break;
 		case '>':
-			c = "&gt;";
+			escape = "&gt;";
 			break;
 		case '&':
-			c = "&amp;";
+			escape = "&amp;";
 			break;
+		default:
+			escape = NULL;
 		}
-		if(c[1] != 0) {
+		if(escape) {
 			if(fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0)
 				return -1;
-			if(fputs(c, fd) == 0)
+			if(fputs(escape, fd) == 0)
 				return -1;
 			last_write = i+1;
-			c[1] = 0;
 		}
 		else if(iscntrl(str[i])) {
 			if(fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0)
@@ -320,14 +316,23 @@ to_plist(const struct Nson *nson, const char *string_overwrite, FILE *fd) {
 		rv = fputs(type == NSON_ARR ? "</array>" : "</dict>", fd);
 		if(rv <= 0)
 			return -1;
-	case NSON_STR:
-		fprintf(fd, "<%s>", string_overwrite);
-		plist_escape(nson, fd);
-		fprintf(fd, "</%s>", string_overwrite);
-	case NSON_PTR:
-		fputs("<data>", fd);
-		rv = nson_ptr_b64(nson, fd);
-		fputs("</data>", fd);
+	case NSON_DATA:
+		switch(nson->val.d.enc) {
+		case NSON_UTF8:
+			fprintf(fd, "<%s>", string_overwrite);
+			rv = plist_escape(nson, fd);
+			fprintf(fd, "</%s>", string_overwrite);
+			break;
+		case NSON_PLAIN:
+			fputs("<data>", fd);
+			rv = nson_data_b64(nson, fd);
+			fputs("</data>", fd);
+		case NSON_BASE64:
+			fputs("<data>", fd);
+			rv = plist_escape(nson, fd);
+			fputs("</data>", fd);
+			break;
+		}
 		break;
 	case NSON_BOOL:
 		fputs(nson_int(nson) ? "<true/>" : "<false/>", fd);

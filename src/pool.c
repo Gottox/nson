@@ -28,6 +28,7 @@
 
 #include <string.h>
 
+#include "config.h"
 #include "nson.h"
 
 int nson_pool_init(struct NsonPool *pool) {

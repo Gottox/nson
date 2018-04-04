@@ -42,6 +42,8 @@ parse_real() {
 	assert(rv >= 0);
 	assert(nson_real(&nson) == 2.3);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -52,6 +54,8 @@ parse_int() {
 	assert(rv >= 0);
 	assert(nson_int(&nson) == 42);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -62,6 +66,8 @@ parse_true() {
 	assert(rv >= 0);
 	assert(nson_int(&nson) == 1);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -72,6 +78,8 @@ parse_false() {
 	assert(rv >= 0);
 	assert(nson_int(&nson) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -82,6 +90,8 @@ parse_string() {
 	assert(rv >= 0);
 	assert(strcmp("abc", nson_str(&nson)) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -92,6 +102,8 @@ parse_string_escape_lt() {
 	assert(rv >= 0);
 	assert(strcmp("<", nson_str(&nson)) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -102,6 +114,8 @@ parse_string_escape_gt() {
 	assert(rv >= 0);
 	assert(strcmp(">", nson_str(&nson)) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -112,6 +126,8 @@ parse_string_escape_amp() {
 	assert(rv >= 0);
 	assert(strcmp("&", nson_str(&nson)) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -122,6 +138,8 @@ parse_string_escape_dec() {
 	assert(rv >= 0);
 	assert(strcmp("~", nson_str(&nson)) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -132,6 +150,8 @@ parse_array_empty() {
 	assert(rv >= 0);
 	assert(nson_len(&nson) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -143,6 +163,8 @@ parse_array_1() {
 	assert(nson_len(&nson) == 1);
 	assert(nson_int(nson_get(&nson, 0)) == 1);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -159,6 +181,8 @@ parse_array_2() {
 	assert(nson_int(nson_get(&nson, 0)) == 1);
 	assert(nson_int(nson_get(&nson, 1)) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -170,6 +194,8 @@ parse_array_spaces() {
 	assert(nson_len(&nson) == 1);
 	assert(nson_int(nson_get(&nson, 0)) == 1);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -180,6 +206,8 @@ parse_object_empty() {
 	assert(rv >= 0);
 	assert(nson_len(&nson) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -191,6 +219,8 @@ parse_object_1() {
 	assert(nson_len(&nson) == 1);
 	assert(strcmp("k", nson_get_key(&nson, 0)) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -207,6 +237,8 @@ parse_object_2() {
 	assert(strcmp("k", nson_get_key(&nson, 0)) == 0);
 	assert(strcmp("i", nson_get_key(&nson, 1)) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -218,6 +250,8 @@ parse_object_spaces() {
 	assert(nson_len(&nson) == 1);
 	assert(strcmp("k", nson_get_key(&nson, 0)) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -226,8 +260,13 @@ parse_data() {
 	struct Nson nson;
 	rv = nson_parse_plist(&nson, PLIST("<data>SGVsbG8gV29ybGQ=</data>"));
 	assert(rv >= 0);
-	assert(memcmp("Hello World", nson_str(&nson), nson_len(&nson)) == 0);
+	const char *data = nson_str(&nson);
+	int len = nson_len(&nson);
+	assert(len == 11);
+	assert(memcmp("Hello World", data, 11) == 0);
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 static void
@@ -236,11 +275,13 @@ stringify_data() {
 	struct Nson nson;
 	char *str;
 
-	rv = nson_init_ptr(&nson, "Hello World", 11);
+	rv = nson_init_data(&nson, "Hello World", 11, NSON_PLAIN);
 	assert(rv >= 0);
 	nson_to_plist(&nson, &str);
 	assert(strstr(str, "<data>SGVsbG8gV29ybGQ=</data>"));
 	nson_clean(&nson);
+
+	(void)rv;
 }
 
 DEFINE
