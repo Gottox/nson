@@ -103,7 +103,7 @@ plist_mapper_string(off_t index, struct Nson *nson) {
 	dest[len] = 0;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, len, NSON_DATA | NSON_MALLOC);
+	nson_init_data(nson, dest, len, NSON_BLOB | NSON_MALLOC);
 
 	return 0;
 }
@@ -126,7 +126,7 @@ plist_parse_string(struct Nson *nson, const char *start_tag, char *doc) {
 	end += rv;
 
 	if (start_tag[0] == 'd') {
-		rv = nson_init_data(nson, doc, len, NSON_DATA);
+		rv = nson_init_data(nson, doc, len, NSON_BLOB);
 		nson->val.d.mapper = nson_mapper_b64_dec;
 	} else {
 		rv = nson_init_data(nson, doc, len, NSON_STR);
@@ -367,7 +367,7 @@ to_plist(struct Nson *nson, const char *string_overwrite, FILE *fd) {
 		rv = plist_escape(nson, fd);
 		fprintf(fd, "</%s>", string_overwrite);
 		break;
-	case NSON_DATA:
+	case NSON_BLOB:
 		rv = plist_b64_enc(nson, fd);
 		break;
 	case NSON_BOOL:

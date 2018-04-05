@@ -50,7 +50,7 @@ nson_mapper_b64_dec(off_t index, struct Nson *nson) {
 	off_t i, j;
 	char *dest;
 	size_t dest_len;
-	assert(nson_type(nson) & NSON_PTR);
+	assert(nson_type(nson) & NSON_DATA);
 	const size_t src_len = nson_data_len(nson);
 	const char *src = nson_data(nson);
 
@@ -90,7 +90,7 @@ nson_mapper_b64_dec(off_t index, struct Nson *nson) {
 		return -1;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, j + 1, NSON_DATA);
+	nson_init_data(nson, dest, j + 1, NSON_BLOB);
 
 	return i;
 }
@@ -103,7 +103,7 @@ nson_mapper_b64_enc(off_t index, struct Nson *nson) {
 	char reminder = 0;
 	static const char mask = (1 << 6) - 1;
 	enum NsonInfo type = nson_type(nson);
-	assert(type & NSON_PTR);
+	assert(type & NSON_DATA);
 
 	if(nson->val.d.mapper == nson_mapper_b64_dec) {
 		nson->val.d.mapper = NULL;

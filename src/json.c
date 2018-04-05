@@ -160,7 +160,7 @@ json_parse_type(struct Nson *nson, const char *doc) {
 			nson_init_bool(nson, false);
 			return 5;
 		} else if (strncmp("null", &doc[i], 5) == 0) {
-			nson_init_data(nson, NULL, 0, NSON_DATA);
+			nson_init_data(nson, NULL, 0, NSON_BLOB);
 			return 5;
 		} else {
 			rv = -1;
@@ -351,7 +351,7 @@ nson_to_json_fd(const struct Nson *nson, FILE* fd) {
 		case NSON_STR:
 			json_escape(nson, fd);
 			break;
-		case NSON_DATA:
+		case NSON_BLOB:
 			json_b64_enc(nson, fd);
 			break;
 		case NSON_REAL:

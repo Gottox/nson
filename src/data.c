@@ -68,7 +68,7 @@ nson_cmp(const void *a, const void *b) {
 		return rv;
 	switch(type) {
 	case NSON_STR:
-	case NSON_DATA:
+	case NSON_BLOB:
 		return nson_cmp_data(a, b);
 	case NSON_REAL:
 		return SCAL_CMP(nson_real(a), nson_real(b));
@@ -134,7 +134,7 @@ nson_clean(struct Nson *nson) {
 
 size_t
 nson_data_len(struct Nson *nson) {
-	assert(nson_type(nson) & (NSON_DATA | NSON_STR));
+	assert(nson_type(nson) & (NSON_BLOB | NSON_STR));
 
 	if (nson->val.d.mapper)
 		nson_data(nson);
@@ -153,7 +153,7 @@ nson_len(const struct Nson *nson) {
 
 const char *
 nson_data(struct Nson *nson) {
-	assert(nson_type(nson) & (NSON_DATA | NSON_STR));
+	assert(nson_type(nson) & (NSON_BLOB | NSON_STR));
 	NsonMapper mapper = nson->val.d.mapper;
 
 	if(mapper) {
@@ -254,7 +254,7 @@ nson_mapper_clone(off_t index, struct Nson *nson) {
 			memcpy(nson->val.a.arr, arr, nson_mem_len(nson) * sizeof(*arr));
 			return nson_map(nson, nson_mapper_clone);
 		case NSON_STR:
-		case NSON_DATA:
+		case NSON_BLOB:
 			if(nson->val.d.mapper) {
 				nson_data(nson);
 				break;
@@ -365,7 +365,7 @@ nson_init_ptr(struct Nson *nson, const char *val, size_t len, enum NsonInfo info
 
 int
 nson_init_data(struct Nson *nson, char *val, size_t len, enum NsonInfo type) {
-	type &= NSON_PTR;
+	type &= NSON_DATA;
 	assert(type);
 	if(val == NULL)
 		return nson_init_ptr(nson, NULL, 0, type);

@@ -273,7 +273,7 @@ void stringify_data() {
 	struct Nson nson;
 	char *result;
 
-	rv = nson_init_data(&nson, "Hello World", 11, NSON_DATA);
+	rv = nson_init_data(&nson, "Hello World", 11, NSON_BLOB);
 
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);
