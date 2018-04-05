@@ -45,31 +45,19 @@
 
 #define MIN(a, b) (a < b ? a : b)
 
-static const char base64_table[] =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
 static int
-nson_cmp_data(const void *a, const void *b) {
-	int rv = 0;
-	struct Nson b64;
-	size_t sa = nson_len(a);
-	size_t sb = nson_len(b);
-	enum NsonEnc ea = ((struct Nson *)a)->val.d.enc;
-	enum NsonEnc eb = ((struct Nson *)b)->val.d.enc;
-
-	if(ea == eb || (ea != NSON_BASE64 && eb != NSON_BASE64)) {
-		return memcmp(nson_data_const(a), nson_data_const(b), MIN(sa, sb));
-	} else if(eb == NSON_BASE64) {
-		return nson_cmp_data(b, a) * -1;
+nson_cmp_data(const struct Nson *a, const struct Nson *b) {
+	int rv;
+	struct Nson tmp = { 0 };
+	if(a->val.d.mapper) {
+		nson_clone(&tmp, a);
+		nson_data(&tmp);
+		rv = nson_cmp_data(b, &tmp) * -1;
+		nson_clean(&tmp);
+		return rv;
 	}
 
-	nson_clone(&b64, a);
-	nson_data(&b64);
-	rv = nson_cmp_data(&b64, b);
-
-	nson_clean(&b64);
-
-	return rv;
+	return memcmp(a->val.d.b, b->val.d.b, MIN(a->val.d.len, b->val.d.len));
 }
 
 int
@@ -92,13 +80,6 @@ nson_cmp(const void *a, const void *b) {
 	default:
 		return 0;
 	}
-}
-
-const char *
-nson_data_const(const struct Nson *nson) {
-	assert(nson_type(nson) & (NSON_DATA | NSON_STR));
-
-	return nson->val.d.b;
 }
 
 static int
@@ -220,47 +201,70 @@ int
 nson_add(struct Nson *nson, struct Nson *val) {
 	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
 	struct Nson *arr;
-	size_t last = nson_mem_len(nson);
+	size_t len = nson_mem_len(nson);
 
 	assert(!(nson_type(nson) == NSON_OBJ
-			&& last % 2 == 0 && nson_type(val) != NSON_STR));
+			&& len % 2 == 0 && nson_type(val) != NSON_STR));
 
-	nson_set_len(nson, last+1);
+	nson_set_len(nson, len+1);
 
 	arr = nson_mem_get(nson, 0);
-	memcpy(&arr[last], val, sizeof(*arr));
+	memcpy(&arr[len], val, sizeof(*arr));
+	len++;
 
-	if(!nson->val.a.messy && last >= 1 &&
-			(nson_type(nson) == NSON_ARR || last % 2 == 0)) {
-		nson->val.a.messy = nson_cmp(&arr[last-1], &arr[last]) > 0;
+	if(nson->val.a.messy || len == 0) {
+	} else if(nson_type(nson) == NSON_ARR) {
+		nson->val.a.messy = nson_cmp(&arr[len-1], &arr[len]) < 0;
+	} else if(nson_type(nson) == NSON_OBJ && len % 2 == 0) {
+		nson->val.a.messy = nson_cmp(&arr[len-2], &arr[len]) < 0;
 	}
 
 	return 0;
 }
 
-int
-nson_clone(struct Nson *nson, const struct Nson *src) {
+static int
+nson_mapper_clone(off_t index, struct Nson *nson) {
 	int rv;
-	off_t i = 0;
+	size_t len;
+	struct Nson *arr;
+	char *data;
 
-	enum NsonType type = nson_type(src);
-	switch(type) {
+	nson->alloc_type = NSON_ALLOC_NONE;
+	switch(nson_type(nson)) {
 		case NSON_ARR:
 		case NSON_OBJ:
-			nson_init(nson, type);
-			rv = nson_set_len(nson, nson_mem_len(src));
-			for(i = 0; rv >= 0 && i < nson_mem_len(src); i++) {
-				rv = nson_clone(nson_mem_get(nson, i), nson_mem_get(src, i));
-			}
-			return rv;
+			arr = nson->val.a.arr;
+			nson->val.a.arr = NULL;
+			len = nson_mem_len(nson);
+
+			rv = nson_set_len(nson, nson_mem_len(nson));
+			if (rv < 0)
+				return rv;
+			memcpy(nson->val.a.arr, arr, nson_mem_len(nson) * sizeof(*arr));
+			return nson_map(nson, nson_mapper_clone);
+		case NSON_STR:
 		case NSON_DATA:
-			return nson_init_data(nson, nson_data_const(src), nson_len(src),
-				 	src->val.d.enc);
+			if(nson->val.d.mapper) {
+				nson_data(nson);
+				break;
+			}
+			len = nson_len(nson);
+			data = calloc(len, sizeof(char));
+
+			memcpy(data, nson_data(nson), len * sizeof(char));
+			nson->alloc_type = NSON_ALLOC_BUF;
+			nson->alloc.b = data;
+			break;
 		default:
-			nson_init(nson, type);
-			memcpy(&nson->val, &src->val, sizeof(src->val));
-			return 0;
+			break;
 	}
+	return 0;
+}
+
+int
+nson_clone(struct Nson *nson, const struct Nson *src) {
+	memcpy(nson, src, sizeof(*src));
+	return nson_mapper_clone(0, nson);
 }
 
 int
@@ -346,40 +350,6 @@ nson_init_data(struct Nson *nson, const char *val, size_t len,
 	nson->val.d.enc = enc;
 
 	return rv;
-}
-
-int
-nson_data_b64(const struct Nson *nson, FILE *fd) {
-	int l;
-	off_t i;
-	char reminder = 0;
-	static const char mask = (1 << 6) - 1;
-
-	assert(nson_type(nson) == NSON_DATA);
-	const char *buf = nson_data_const(nson);
-
-	for(l = i = 0; i < nson_len(nson); i++, l++) {
-		switch(i % 3) {
-		case 0:
-			fputc(base64_table[(buf[i] >> 2) & mask], fd);
-			reminder = buf[i] << 4;
-			break;
-		case 1:
-			fputc(base64_table[(buf[i] >> 4 | reminder) & mask], fd);
-			reminder = buf[i] << 2;
-			break;
-		case 2:
-			fputc(base64_table[(buf[i] >> 6 | reminder) & mask], fd);
-			fputc(base64_table[buf[i] & mask], fd);
-			l++;
-			break;
-		}
-	}
-	if(i % 3)
-		fputc(base64_table[reminder & mask], fd);
-	for(; i % 3 != 0; i++, l++)
-		fputc('=', fd);
-	return l;
 }
 
 int

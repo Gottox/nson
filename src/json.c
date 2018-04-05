@@ -216,18 +216,32 @@ json_parse_object(struct Nson *nson, char *doc) {
 
 static int
 json_escape(const struct Nson *nson, FILE *fd) {
+	int rv = 0;
 	off_t i = 0, last_write = 0;
 	char c[] = { '\\', 0 };
-	const char *str = nson_data_const(nson);
+	struct Nson tmp = { 0 };
+	const char *data;
+	size_t len;
 
-	if(str == NULL) {
-		fputs("null", fd);
-		return 4;
+	if(fputc('"', fd) < 0)
+		return -1;
+
+	if(nson->val.d.mapper == json_mapper_unescape) {
+		// Not escaped yet, we can dump it directly
+		len = nson->val.d.len;
+		if(fwrite(nson->val.d.b, sizeof(char), len, fd) != len)
+			return -1;
+		else if(fputc('"', fd) < 0)
+			return -1;
+		return len + 2;
 	}
+	nson_clone(&tmp, nson);
 
-	fputc('"', fd);
-	for(; i < nson_len(nson); i++) {
-		switch(str[i]) {
+	data = nson_data(&tmp);
+	len = nson_len(&tmp);
+
+	for(; i < len; i++) {
+		switch(data[i]) {
 		case '\t':
 			c[1] = 't';
 			break;
@@ -241,29 +255,35 @@ json_escape(const struct Nson *nson, FILE *fd) {
 			c[1] = '"';
 			break;
 		}
+
 		if(c[1] != 0) {
-			if(fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0)
-				return -1;
-			if(fwrite(c, sizeof(*str), 2, fd) == 0)
-				return -1;
+			rv = -1;
+			if(fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0)
+				goto cleanup;
+			if(fwrite(c, sizeof(*data), 2, fd) == 0)
+				goto cleanup;
 			last_write = i+1;
 			c[1] = 0;
 		}
-		else if(iscntrl(str[i])) {
-			if(fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0)
-				return -1;
-			if(fprintf(fd, "\\u%04x", str[i]) == 0)
-				return -1;
+		else if(iscntrl(data[i])) {
+			rv = -1;
+			if(fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0)
+				goto cleanup;
+			if(fprintf(fd, "\\u%04x", data[i]) == 0)
+				goto cleanup;
 			last_write = i+1;
 		}
 	}
 
 	if(i != last_write &&
-			fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0)
+			fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0)
 		return -1;
 	fputc('"', fd);
 
-	return i;
+	rv = i;
+cleanup:
+	nson_clean(&tmp);
+	return rv;
 }
 
 int
@@ -293,6 +313,25 @@ nson_to_json(const struct Nson *nson, char **str) {
 	return rv;
 }
 
+static int
+json_b64_enc(const struct Nson *nson, FILE* fd) {
+	int rv = 0;
+	struct Nson tmp;
+
+	if(nson_clone(&tmp, nson))
+		rv = -1;
+	if(nson_mapper_b64_enc(0, &tmp) < 0)
+		rv = -1;
+	else if(fputc('"', fd) < 0)
+		rv = -1;
+	else if(fwrite(nson_data(&tmp), sizeof(char), nson_len(&tmp), fd) == 0)
+		rv = -1;
+	else if(fputc('"', fd) < 0)
+		rv = -1;
+	nson_clean(&tmp);
+	return rv;
+}
+
 int
 nson_to_json_fd(const struct Nson *nson, FILE* fd) {
 	char start = '[', *seperator = ",,", terminal = ']';
@@ -306,9 +345,7 @@ nson_to_json_fd(const struct Nson *nson, FILE* fd) {
 			json_escape(nson, fd);
 			break;
 		case NSON_DATA:
-			fputc('"', fd);
-			nson_data_b64(nson, fd);
-			fputc('"', fd);
+			json_b64_enc(nson, fd);
 			break;
 		case NSON_REAL:
 			fprintf(fd, "%f", nson_real(nson));

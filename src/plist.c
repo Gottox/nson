@@ -327,6 +327,25 @@ plist_escape(const struct Nson *nson, FILE *fd) {
 
 
 static int
+plist_b64_enc(const struct Nson *nson, FILE* fd) {
+	int rv = 0;
+	struct Nson tmp;
+
+	if(nson_clone(&tmp, nson))
+		rv = -1;
+	if(nson_mapper_b64_enc(0, &tmp) < 0)
+		rv = -1;
+	else if(fputs("<data>", fd) < 0)
+		rv = -1;
+	else if(fwrite(nson_data(&tmp), sizeof(char), nson_len(&tmp), fd) == 0)
+		rv = -1;
+	else if(fputs("</data>", fd) < 0)
+		rv = -1;
+	nson_clean(&tmp);
+	return rv;
+}
+
+static int
 to_plist(const struct Nson *nson, const char *string_overwrite, FILE *fd) {
 	off_t i;
 	int rv;
@@ -353,9 +372,7 @@ to_plist(const struct Nson *nson, const char *string_overwrite, FILE *fd) {
 			fprintf(fd, "</%s>", string_overwrite);
 			break;
 		case NSON_PLAIN:
-			fputs("<data>", fd);
-			rv = nson_data_b64(nson, fd);
-			fputs("</data>", fd);
+			rv = plist_b64_enc(nson, fd);
 		case NSON_BASE64:
 			fputs("<data>", fd);
 			rv = plist_escape(nson, fd);

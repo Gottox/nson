@@ -177,12 +177,6 @@ size_t nson_len(const struct Nson *nson);
  * @brief
  * @return
  */
-const char *nson_data_const(const struct Nson *nson);
-
-/**
- * @brief
- * @return
- */
 const char *nson_data(struct Nson *nson);
 
 /**
@@ -289,12 +283,6 @@ int nson_init(struct Nson *nson, const enum NsonType type);
  */
 int nson_init_data(struct Nson *nson, const char *val, size_t len,
 		enum NsonEnc enc);
-
-/**
- * @brief
- * @return
- */
-int nson_data_b64(const struct Nson *nson, FILE *fd);
 
 /**
  * @brief

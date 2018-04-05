@@ -183,7 +183,6 @@ void stringify_utf8() {
 	assert(rv >= 0);
 	rv = nson_to_json(&nson, &str);
 	assert(rv >= 0);
-	puts(str);
 	assert(strcmp(str, "\"€\"") == 0);
 
 	(void)rv;
@@ -200,7 +199,6 @@ void stringify_nullbyte() {
 	rv = nson_to_json(&nson, &str);
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "a") == 0);
-	puts(str);
 	assert(strcmp(str, "\"a\\u0000b\"") == 0);
 
 	(void)rv;
@@ -264,7 +262,6 @@ stringify_object() {
 
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);
-	puts(result);
 	assert(strcmp("{\"a\":1}", result) == 0);
 	nson_clean(&nson);
 
