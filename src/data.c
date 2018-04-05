@@ -39,8 +39,6 @@
 #include "config.h"
 #include "nson.h"
 
-#define BUFFER_SIZE 16
-
 #define SCAL_CMP(a, b) (a > b ? 1 : (a < b ? -1 : 0))
 
 #define MIN(a, b) (a < b ? a : b)
@@ -83,14 +81,11 @@ nson_cmp(const void *a, const void *b) {
 }
 
 static int
-nson_set_len(struct Nson *nson, size_t size) {
+nson_realloc(struct Nson *nson, size_t size) {
 	struct Nson *arr;
 	size_t old = nson_mem_len(nson);
 
 	nson->val.a.len = size;
-
-	if(size % BUFFER_SIZE != 0)
-		size += BUFFER_SIZE - (size % BUFFER_SIZE);
 
 	if(old != size) {
 		arr = nson->val.a.arr;
@@ -105,6 +100,7 @@ nson_set_len(struct Nson *nson, size_t size) {
 
 	return nson_mem_len(nson);
 }
+
 int
 nson_clean(struct Nson *nson) {
 	off_t i;
@@ -206,11 +202,10 @@ nson_add(struct Nson *nson, struct Nson *val) {
 	assert(!(nson_type(nson) == NSON_OBJ
 			&& len % 2 == 0 && nson_type(val) != NSON_STR));
 
-	nson_set_len(nson, len+1);
+	nson_realloc(nson, len+1);
 
 	arr = nson_mem_get(nson, 0);
 	memcpy(&arr[len], val, sizeof(*arr));
-	len++;
 
 	if(nson->val.a.messy || len == 0) {
 	} else if(nson_type(nson) == NSON_ARR) {
@@ -218,6 +213,7 @@ nson_add(struct Nson *nson, struct Nson *val) {
 	} else if(nson_type(nson) == NSON_OBJ && len % 2 == 0) {
 		nson->val.a.messy = nson_cmp(&arr[len-2], &arr[len]) < 0;
 	}
+	len++;
 
 	return 0;
 }
@@ -237,7 +233,7 @@ nson_mapper_clone(off_t index, struct Nson *nson) {
 			nson->val.a.arr = NULL;
 			len = nson_mem_len(nson);
 
-			rv = nson_set_len(nson, nson_mem_len(nson));
+			rv = nson_realloc(nson, nson_mem_len(nson));
 			if (rv < 0)
 				return rv;
 			memcpy(nson->val.a.arr, arr, nson_mem_len(nson) * sizeof(*arr));
@@ -275,7 +271,7 @@ nson_add_all(struct Nson *nson, struct Nson *suff) {
 	const size_t suff_len = nson_mem_len(suff);
 	const size_t nson_len = nson_mem_len(nson);
 
-	nson_set_len(nson, nson_len + suff_len);
+	nson_realloc(nson, nson_len + suff_len);
 
 	memcpy(&nson->val.a.arr[nson_len], &suff->val.a.arr, suff_len);
 
@@ -466,6 +462,6 @@ nson_remove(struct Nson *nson, off_t index, size_t size) {
 	elem = nson_mem_get(nson, index);
 	nson_clean(elem);
 	memmove(elem, &elem[size], (len - index - size) * sizeof(*elem));
-	nson_set_len(nson, len - size);
+	nson_realloc(nson, len - size);
 	return 0;
 }

@@ -325,7 +325,6 @@ plist_escape(const struct Nson *nson, FILE *fd) {
 	return i;
 }
 
-
 static int
 plist_b64_enc(const struct Nson *nson, FILE* fd) {
 	int rv = 0;
