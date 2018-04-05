@@ -308,7 +308,6 @@ stringify_true() {
 	rv = NSON(&nson, true);
 	assert(rv >= 0);
 	nson_to_plist(&nson, &str);
-	puts(str);
 	assert(strstr(str, "<true/>"));
 	nson_clean(&nson);
 
