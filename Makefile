@@ -72,14 +72,15 @@ doc: doxygen.conf $(TST) $(SRC) $(HDR) README.md
 coverage: check
 	@printf "%s\n" $(CFLAGS) | grep -qx -- '-fprofile-arcs\|-ftest-coverage' || \
 		( echo "You need to enable coverage settings in the Makefile"; exit 1 )
-	@gcovr -r . --html --html-details -o coverage.html
+	@mkdir cov
+	@gcovr -r . --html --html-details -o cov/index.html
 
 clean:
-	@rm -rf doc
-	@rm -f *.gcnp *.gcda *.html
+	@rm -rf doc cov
+	@rm -f *.gcnp *.gcda
 	@rm -f $(TST_EXE) $(BCH_EXE) $(OBJ)
 
-.PHONY: check all clean speed
+.PHONY: check all clean speed coverage
 
 
 # vim:ft=make
