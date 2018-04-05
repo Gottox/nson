@@ -37,7 +37,7 @@
 #define SKIP_SPACES { for(; doc[i] && isspace(doc[i]); i++); }
 
 static int
-json_parse_object(struct Nson *nson, char *doc);
+json_parse_object(struct Nson *nson, const char *doc);
 
 static int
 json_parse_utf8(char *dest, const char *src) {
@@ -115,7 +115,7 @@ json_mapper_unescape(off_t index, struct Nson* nson) {
 	return 0;
 }
 
-static int json_parse_string(struct Nson *nson, char *doc) {
+static int json_parse_string(struct Nson *nson, const char *doc) {
 	int rv;
 	const char *p;
 
@@ -137,7 +137,7 @@ static int json_parse_string(struct Nson *nson, char *doc) {
 }
 
 static int
-json_parse_type(struct Nson *nson, char *doc) {
+json_parse_type(struct Nson *nson, const char *doc) {
 	int rv;
 	int64_t val;
 	double r_val;
@@ -178,7 +178,7 @@ json_parse_type(struct Nson *nson, char *doc) {
 }
 
 static int
-json_parse_object(struct Nson *nson, char *doc) {
+json_parse_object(struct Nson *nson, const char *doc) {
 	struct Nson elem;
 	char terminal = ']';
 	const char *seperator = ",,";
@@ -186,16 +186,18 @@ json_parse_object(struct Nson *nson, char *doc) {
 	off_t i = 0;
 	int rv;
 
-
 	if(doc[i] == '{') {
 		terminal = '}';
 		seperator = ",:";
 		nson_init(nson, NSON_OBJ);
-	}
-	else {
+	} else if (doc[i] == '['){
 		nson_init(nson, NSON_ARR);
+	} else {
+		return -1;
 	}
-	for(doc[i] = seperator[0]; doc[i] == seperator[len % 2]; len++) {
+	nson->val.a.messy = 1;
+
+	do {
 		i++;
 		SKIP_SPACES;
 		if(doc[i] == terminal)
@@ -206,7 +208,8 @@ json_parse_object(struct Nson *nson, char *doc) {
 		i += rv;
 		nson_add(nson, &elem);
 		SKIP_SPACES;
-	}
+		len++;
+	} while (doc[i] == seperator[len % 2]);
 
 	if (doc[i] != terminal)
 		return -1;
