@@ -381,6 +381,12 @@ int nson_remove(struct Nson *nson, off_t index, size_t size);
  * @brief
  * @return
  */
+int nson_mem_capacity(struct Nson *nson, size_t size);
+
+/**
+ * @brief
+ * @return
+ */
 int nson_mapper_b64_enc(off_t index, struct Nson *nson);
 
 /**

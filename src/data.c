@@ -80,8 +80,8 @@ nson_cmp(const void *a, const void *b) {
 	}
 }
 
-static int
-nson_realloc(struct Nson *nson, size_t size) {
+int
+nson_mem_capacity(struct Nson *nson, size_t size) {
 	struct Nson *arr;
 	size_t old = nson_mem_len(nson);
 
@@ -210,7 +210,7 @@ nson_add(struct Nson *nson, struct Nson *val) {
 	assert(!(nson_type(nson) == NSON_OBJ
 			&& len % 2 == 0 && nson_type(val) != NSON_STR));
 
-	nson_realloc(nson, len+1);
+	nson_mem_capacity(nson, len+1);
 
 	arr = nson_mem_get(nson, len);
 	nson_move(arr, val);
@@ -248,7 +248,7 @@ nson_mapper_clone(off_t index, struct Nson *nson) {
 			nson->val.a.arr = NULL;
 			len = nson_mem_len(nson);
 
-			rv = nson_realloc(nson, nson_mem_len(nson));
+			rv = nson_mem_capacity(nson, nson_mem_len(nson));
 			if (rv < 0)
 				return rv;
 			memcpy(nson->val.a.arr, arr, nson_mem_len(nson) * sizeof(*arr));
@@ -286,7 +286,7 @@ nson_add_all(struct Nson *nson, struct Nson *src) {
 	const size_t src_len = nson_mem_len(src);
 	const size_t nson_len = nson_mem_len(nson);
 
-	nson_realloc(nson, nson_len + src_len);
+	nson_mem_capacity(nson, nson_len + src_len);
 
 	memcpy(&nson->val.a.arr[nson_len], &src->val.a.arr, src_len);
 
@@ -494,6 +494,6 @@ nson_remove(struct Nson *nson, off_t index, size_t size) {
 	elem = nson_mem_get(nson, index);
 	nson_clean(elem);
 	memmove(elem, &elem[size], (len - index - size) * sizeof(*elem));
-	nson_realloc(nson, len - size);
+	nson_mem_capacity(nson, len - size);
 	return 0;
 }
