@@ -166,12 +166,19 @@ int nson_clean(struct Nson *nson);
  * * For NSON_ARR the function returns the number of elements
  *   in the array.
  *
+ * @return the number of child elements of @p nson
+ */
+size_t nson_len(const struct Nson *nson);
+
+/**
+ * @brief returns the number of child elements of @p nson
+ *
  * * For NSON_OBJ the function returns the number of key value
  *   pairs in the object.
  *
  * @return the number of child elements of @p nson
  */
-size_t nson_len(const struct Nson *nson);
+size_t nson_data_len(struct Nson *nson);
 
 /**
  * @brief
@@ -410,13 +417,13 @@ int nson_parse_plist(struct Nson *nson, char *doc, size_t len);
  * @brief
  * @return
  */
-int nson_to_plist(const struct Nson *nson, char **str);
+int nson_to_plist(struct Nson *nson, char **str);
 
 /**
  * @brief
  * @return
  */
-int nson_to_plist_fd(const struct Nson *nson, FILE* fd);
+int nson_to_plist_fd(struct Nson *nson, FILE* fd);
 
 
 /* POOL */

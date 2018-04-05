@@ -261,7 +261,7 @@ parse_data() {
 	rv = nson_parse_plist(&nson, PLIST("<data>SGVsbG8gV29ybGQ=</data>"));
 	assert(rv >= 0);
 	const char *data = nson_str(&nson);
-	int len = nson_len(&nson);
+	int len = nson_data_len(&nson);
 	assert(len == 11);
 	assert(memcmp("Hello World", data, 11) == 0);
 	nson_clean(&nson);
@@ -279,6 +279,37 @@ stringify_data() {
 	assert(rv >= 0);
 	nson_to_plist(&nson, &str);
 	assert(strstr(str, "<data>SGVsbG8gV29ybGQ=</data>"));
+	nson_clean(&nson);
+
+	(void)rv;
+}
+
+static void
+stringify_escape() {
+	int rv;
+	struct Nson nson;
+	char *str;
+
+	rv = nson_init_str(&nson, " < > & ");
+	assert(rv >= 0);
+	nson_to_plist(&nson, &str);
+	assert(strstr(str, "<string> &lt; &gt; &amp; </string>"));
+	nson_clean(&nson);
+
+	(void)rv;
+}
+
+static void
+stringify_true() {
+	int rv;
+	struct Nson nson;
+	char *str;
+
+	rv = NSON(&nson, true);
+	assert(rv >= 0);
+	nson_to_plist(&nson, &str);
+	puts(str);
+	assert(strstr(str, "<true/>"));
 	nson_clean(&nson);
 
 	(void)rv;
@@ -304,4 +335,6 @@ TEST(parse_object_2);
 TEST(parse_object_spaces);
 TEST(parse_data);
 TEST(stringify_data);
+TEST(stringify_escape);
+TEST_OFF(stringify_true);
 DEFINE_END

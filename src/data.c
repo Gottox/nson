@@ -94,7 +94,8 @@ nson_realloc(struct Nson *nson, size_t size) {
 			nson->val.a.len = old;
 			return -1;
 		}
-		memset(&arr[old], 0, sizeof(*arr) * (size - old));
+		if (size > old)
+			memset(&arr[old], 0, sizeof(*arr) * (size - old));
 		nson->val.a.arr = arr;
 	}
 
@@ -132,12 +133,19 @@ nson_clean(struct Nson *nson) {
 }
 
 size_t
-nson_len(const struct Nson *nson) {
-	assert(nson_type(nson) & (NSON_DATA | NSON_STR | NSON_ARR | NSON_OBJ));
+nson_data_len(struct Nson *nson) {
+	assert(nson_type(nson) & (NSON_DATA | NSON_STR));
 
-	if(nson_type(nson) & (NSON_DATA | NSON_STR))
-		return nson->val.d.len;
-	else if(nson_type(nson) == NSON_OBJ)
+	if (nson->val.d.mapper)
+		nson_data(nson);
+	return nson->val.d.len;
+}
+
+size_t
+nson_len(const struct Nson *nson) {
+	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
+
+	if(nson_type(nson) == NSON_OBJ)
 		return nson_mem_len(nson) / 2;
 	else
 		return nson_mem_len(nson);
@@ -244,7 +252,7 @@ nson_mapper_clone(off_t index, struct Nson *nson) {
 				nson_data(nson);
 				break;
 			}
-			len = nson_len(nson);
+			len = nson_data_len(nson);
 			data = calloc(len, sizeof(char));
 
 			memcpy(data, nson_data(nson), len * sizeof(char));

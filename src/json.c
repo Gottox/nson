@@ -77,7 +77,7 @@ json_mapper_unescape(off_t index, struct Nson* nson) {
 	int rv;
 	char *dest;
 
-	len = nson_len(nson);
+	len = nson_data_len(nson);
 	dest = strndup(nson_data(nson), len);
 
 	for(p = dest; (p = strchr(p, '\\')); p++) {
@@ -241,7 +241,7 @@ json_escape(const struct Nson *nson, FILE *fd) {
 	nson_clone(&tmp, nson);
 
 	data = nson_data(&tmp);
-	len = nson_len(&tmp);
+	len = nson_data_len(&tmp);
 
 	for(; i < len; i++) {
 		switch(data[i]) {
@@ -327,7 +327,7 @@ json_b64_enc(const struct Nson *nson, FILE* fd) {
 		rv = -1;
 	else if(fputc('"', fd) < 0)
 		rv = -1;
-	else if(fwrite(nson_data(&tmp), sizeof(char), nson_len(&tmp), fd) == 0)
+	else if(fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) == 0)
 		rv = -1;
 	else if(fputc('"', fd) < 0)
 		rv = -1;

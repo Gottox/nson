@@ -49,12 +49,6 @@ static char *_color_reset = "";
 
 static int _test_def();
 
-void _handle_abrt(int x) {
-	fprintf(stderr, "%s%s is NOT OK: '%s'%s\n", _color_bad, _progname, _current,
-			_color_reset);
-	exit(EXIT_FAILURE);
-}
-
 int main(int argc, char **argv) {
 	if (isatty(STDERR_FILENO)) {
 		_color_bad = "\x1b[31;1m";
@@ -62,7 +56,6 @@ int main(int argc, char **argv) {
 		_color_good = "\x1b[32;1m";
 		_color_reset = "\x1b[0m";
 	}
-	signal(SIGABRT, _handle_abrt);
 	strcpy(_progname, argv[0]);
 	chdir(dirname(argv[0]));
 	return _test_def(argc < 2 ? NULL : argv[1]);
@@ -70,7 +63,7 @@ int main(int argc, char **argv) {
 
 #define ASSERT_ABRT(x) { \
 	switch(fork()) { \
-	case 0: signal(SIGABRT, NULL); close(STDERR_FILENO); { x; } exit(0); \
+	case 0: close(STDERR_FILENO); { x; } exit(0); \
 	default: \
 		{ \
 			int s; \
@@ -95,6 +88,9 @@ static void run_test(void (*func)(), char *name) {
 
 #define TEST(x) \
 	if (needle == NULL || strstr(#x, needle)) run_test(x, #x)
+#define TEST_OFF(x) \
+	(void)x; fprintf(stderr, "%s '%s'\n IGNORED\n", \
+			_progname, #x); \
 
 #define DEFINE_END \
 	fprintf(stderr, "%s%s is OK!%s\n\n", \

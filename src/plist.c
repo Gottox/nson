@@ -75,7 +75,7 @@ plist_mapper_string(off_t index, struct Nson *nson) {
 	char *p;
 	assert(nson_type(nson) & NSON_STR);
 
-	len = nson_len(nson);
+	len = nson_data_len(nson);
 	dest = strndup(nson_data(nson), len);
 
 	for(p = dest; (p = strchr(p, '&')); p++) {
@@ -279,8 +279,9 @@ nson_parse_plist(struct Nson *nson, char *doc, size_t len) {
 }
 
 static int
-plist_escape(const struct Nson *nson, FILE *fd) {
+plist_escape(struct Nson *nson, FILE *fd) {
 	off_t i = 0, last_write = 0;
+	size_t len;
 	char *escape = NULL;
 	const char *str = nson->val.d.b;
 
@@ -288,7 +289,8 @@ plist_escape(const struct Nson *nson, FILE *fd) {
 		return 0;
 	}
 
-	for(; i < nson_len(nson); i++) {
+	len = nson_data_len(nson);
+	for(; i < len; i++) {
 		switch(str[i]) {
 		case '<':
 			escape = "&lt;";
@@ -336,7 +338,7 @@ plist_b64_enc(const struct Nson *nson, FILE* fd) {
 		rv = -1;
 	else if(fputs("<data>", fd) < 0)
 		rv = -1;
-	else if(fwrite(nson_data(&tmp), sizeof(char), nson_len(&tmp), fd) == 0)
+	else if(fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) == 0)
 		rv = -1;
 	else if(fputs("</data>", fd) < 0)
 		rv = -1;
@@ -345,7 +347,7 @@ plist_b64_enc(const struct Nson *nson, FILE* fd) {
 }
 
 static int
-to_plist(const struct Nson *nson, const char *string_overwrite, FILE *fd) {
+to_plist(struct Nson *nson, const char *string_overwrite, FILE *fd) {
 	off_t i;
 	int rv;
 	enum NsonType type = nson_type(nson);
@@ -395,7 +397,7 @@ to_plist(const struct Nson *nson, const char *string_overwrite, FILE *fd) {
 }
 
 int
-nson_to_plist_fd(const struct Nson *nson, FILE *fd) {
+nson_to_plist_fd(struct Nson *nson, FILE *fd) {
 	fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 		"<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" "
 		"\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"
@@ -406,7 +408,7 @@ nson_to_plist_fd(const struct Nson *nson, FILE *fd) {
 }
 
 int
-nson_to_plist(const struct Nson *nson, char **str) {
+nson_to_plist(struct Nson *nson, char **str) {
 	int rv;
 	size_t size = 0;
 	FILE *fd = open_memstream(str, &size);

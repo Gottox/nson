@@ -51,10 +51,8 @@ nson_mapper_b64_dec(off_t index, struct Nson *nson) {
 	char *dest;
 	size_t dest_len;
 	assert(nson_type(nson) & (NSON_DATA | NSON_STR));
-	// Don't use nson_len and nson_data here, might call
-	// a recurson.
-	const size_t src_len = nson->val.d.len;
-	const char *src = nson->val.d.b;
+	const size_t src_len = nson_data_len(nson);
+	const char *src = nson_data(nson);
 
 	dest_len = (src_len + 3) / 4 * 3;
 	dest = calloc(dest_len + 1, sizeof(*dest));
@@ -110,10 +108,10 @@ nson_mapper_b64_enc(off_t index, struct Nson *nson) {
 
 	if(nson->val.d.mapper == nson_mapper_b64_dec) {
 		nson->val.d.mapper = NULL;
-		return nson_len(nson);
+		return nson_data_len(nson);
 	}
 
-	const size_t src_len = nson_len(nson);
+	const size_t src_len = nson_data_len(nson);
 	const char *src = nson_data(nson);
 
 	dest_len = (src_len + 2) / 3 * 4;
@@ -121,7 +119,7 @@ nson_mapper_b64_enc(off_t index, struct Nson *nson) {
 	if (!dest)
 		return -1;
 
-	for(j = i = 0; i < nson_len(nson); i++, j++) {
+	for(j = i = 0; i < src_len; i++, j++) {
 		switch(i % 3) {
 		case 0:
 			dest[j] = base64_table[(src[i] >> 2) & mask];
@@ -188,9 +186,11 @@ int
 nson_map(struct Nson *nson, NsonMapper mapper) {
 	int rv = 0;
 	off_t i;
+	size_t len;
 	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
 
-	for (i = 0; rv >= 0 && i < nson_len(nson); i++) {
+	len = nson_len(nson);
+	for (i = 0; rv >= 0 && i < len; i++) {
 		rv = mapper(i, nson_get(nson, i));
 	}
 	return rv;
@@ -200,15 +200,17 @@ int
 nson_filter(struct Nson *nson, NsonFilter filter) {
 	int rv = 0;
 	off_t i;
-	size_t del_size = 0;
+	size_t del_size = 0, len;
 	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
 
-	for (i = 0; rv >= 0 && i < nson_len(nson); i++) {
+	len = nson_len(nson);
+	for (i = 0; rv >= 0 && i < len; i++) {
 		rv = filter(nson_get(nson, i));
 		if (rv == 0)
 			del_size++;
 		else if (del_size) {
 			i -= del_size;
+			len -= del_size;
 			nson_remove(nson, i, del_size);
 			del_size = 0;
 		}
