@@ -11,12 +11,12 @@
 
 #include <proplib.h>
 
-void nson_plist() {
+void proplib() {
 	prop_dictionary_t dict = prop_dictionary_internalize_from_file("./plist/pkgdb-0.38.plist");
 	assert(dict != NULL);
 	prop_object_release(dict);
 }
 
 DEFINE
-TEST(nson_plist);
+TEST(proplib);
 DEFINE_END

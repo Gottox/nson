@@ -12,7 +12,7 @@
 
 #include <json.h>
 
-void ucl() {
+void json_c() {
 	bool rv;
 	struct json_object *json;
 	void *doc = 0;
@@ -28,5 +28,5 @@ void ucl() {
 }
 
 DEFINE
-TEST(ucl);
+TEST(json_c);
 DEFINE_END
