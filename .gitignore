@@ -77,3 +77,4 @@ doc
 *.gcno
 coverage.*.html
 coverage.html
+cov
