@@ -91,25 +91,35 @@ enum NsonEnc {
 	NSON_BASE64
 };
 
+struct NsonData {
+	const char *b;
+	size_t len;
+	enum NsonEnc enc;
+	NsonMapper mapper;
+};
+
+struct NsonArray {
+	struct Nson *arr;
+	size_t len;
+	bool messy;
+};
+
+struct NsonReal {
+	double r;
+};
+
+struct NsonInt {
+	int64_t i;
+};
+
 /**
  * @brief union holding the value of an Nson Element
  */
 union NsonValue {
-	int64_t i;
-	double r;
-
-	struct {
-		const char *b;
-		size_t len;
-		enum NsonEnc enc;
-		NsonMapper mapper;
-	} d;
-
-	struct {
-		struct Nson *arr;
-		size_t len;
-		bool messy;
-	} a;
+	struct NsonInt i;
+	struct NsonReal r;
+	struct NsonData d;
+	struct NsonArray a;
 };
 
 /**
@@ -140,10 +150,10 @@ union NsonAlloc {
  * @brief Data Container
  */
 struct Nson {
-	enum NsonType type;
-	union NsonValue val;
 	enum NsonAllocType alloc_type;
+	enum NsonType type;
 	union NsonAlloc alloc;
+	union NsonValue val;
 };
 
 /* DATA */

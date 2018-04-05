@@ -172,16 +172,16 @@ int64_t
 nson_int(const struct Nson *nson) {
 	assert(nson_type(nson) & (NSON_INT | NSON_BOOL | NSON_REAL));
 	if(nson_type(nson) == NSON_REAL)
-		return (int64_t)nson->val.r;
-	return nson->val.i;
+		return (int64_t)nson->val.r.r;
+	return nson->val.i.i;
 }
 
 double
 nson_real(const struct Nson *nson) {
 	assert(nson_type(nson) & (NSON_INT | NSON_BOOL | NSON_REAL));
-	if(nson_type(nson) == NSON_REAL)
-		return nson->val.r;
-	return (double)nson->val.i;
+	if(nson_type(nson) != NSON_REAL)
+		return (double)nson->val.i.i;
+	return nson->val.r.r;
 }
 
 struct Nson *
@@ -372,7 +372,7 @@ nson_init_str(struct Nson *nson, const char *val) {
 int
 nson_init_int(struct Nson *nson, const int64_t val) {
 	int rv = nson_init(nson, NSON_INT);
-	nson->val.i = val;
+	nson->val.i.i = val;
 
 	return rv;
 }
@@ -380,7 +380,7 @@ nson_init_int(struct Nson *nson, const int64_t val) {
 int
 nson_init_real(struct Nson *nson, const double val) {
 	int rv = nson_init(nson, NSON_REAL);
-	nson->val.r = val;
+	nson->val.r.r = val;
 
 	return rv;
 }
