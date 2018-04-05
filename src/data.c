@@ -212,14 +212,14 @@ nson_add(struct Nson *nson, struct Nson *val) {
 
 	nson_realloc(nson, len+1);
 
-	arr = nson_mem_get(nson, 0);
-	nson_move(&arr[len], val);
+	arr = nson_mem_get(nson, len);
+	nson_move(arr, val);
 
 	if(nson->val.a.messy || len == 0) {
 	} else if(nson_type(nson) == NSON_ARR) {
-		nson->val.a.messy = nson_cmp(&arr[len-1], &arr[len]) < 0;
+		nson->val.a.messy = nson_cmp(&arr[-1], arr) < 0;
 	} else if(nson_type(nson) == NSON_OBJ && len % 2 == 0) {
-		nson->val.a.messy = nson_cmp(&arr[len-2], &arr[len]) < 0;
+		nson->val.a.messy = nson_cmp(&arr[-2], arr) < 0;
 	}
 	len++;
 
@@ -260,7 +260,7 @@ nson_mapper_clone(off_t index, struct Nson *nson) {
 				break;
 			}
 			len = nson_data_len(nson);
-			data = calloc(len, sizeof(char));
+			data = calloc(len + 1, sizeof(char));
 
 			memcpy(data, nson_data(nson), len * sizeof(char));
 			nson->info |= NSON_MALLOC;

@@ -297,13 +297,10 @@ nson_load_json(struct Nson *nson, const char *file) {
 }
 
 int
-nson_parse_json(struct Nson *nson, char *doc, size_t len) {
+nson_parse_json(struct Nson *nson, const char *doc, size_t len) {
 	int rv;
 	memset(nson, 0, sizeof(*nson));
 	rv = json_parse_type(nson, doc);
-	assert((nson->info & NSON_ALLOC) == 0);
-	nson->alloc = doc;
-	nson->info |= NSON_MALLOC;
 	return rv;
 }
 

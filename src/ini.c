@@ -33,9 +33,10 @@
 #include "nson.h"
 
 static int
-parse_line(struct Nson *nson, char *line) {
+parse_line(struct Nson *nson, const char *line, size_t len) {
 	off_t i = 0;
-	char *key, *val;
+	const char *key, *val;
+	size_t key_len = 0, val_len = 0;
 	struct Nson elem;
 
 	for(; isblank(line[i]) && line[i]; i++);
@@ -44,39 +45,38 @@ parse_line(struct Nson *nson, char *line) {
 		return 0;
 	}
 	key = &line[i];
-	for(; !isblank(line[i]) && line[i]; i++);
+	for(; !isblank(line[i]) && line[i]; key_len++, i++);
 	if(line[i] == '\0')
 		return -1;
-	line[i] = '\0';
 	i++;
 
 	for(; isblank(line[i]) && line[i]; i++);
 	val = &line[i];
+	val_len = len - i;
 
-	for(i = strlen(line) - 1; isspace(line[i]) && i >= 0; i--)
-		line[i] = '\0';
+	//for(i = len - 1; isspace(line[i]) && i >= 0; i--, val_len--);
 
-	nson_init_str(&elem, key);
-	nson_add(nson, &elem);
-	nson_init_str(&elem, val);
+	nson_init_ptr(&elem, strndup(key, key_len), key_len, NSON_STR);
 	nson_add(nson, &elem);
 
-	return i+1;
+	nson_init_ptr(&elem, strndup(val, val_len), val_len, NSON_STR);
+	nson_add(nson, &elem);
+
+	return i;
 }
 
 int
-nson_parse_ini(struct Nson *nson, char *doc, size_t len) {
+nson_parse_ini(struct Nson *nson, const char *doc, size_t len) {
 	int rv = 0, i;
-	char *p, *line;
+	const char *p, *line;
 	memset(nson, 0, sizeof(*nson));
-	nson_init(nson, NSON_OBJ);
-	nson->info |= NSON_MALLOC;
-	nson->alloc = doc;
+	rv = nson_init(nson, NSON_OBJ);
+	if(rv < 0)
+		return rv;
 
 	for(i = 0, p = line = doc; *p; line = ++p, i++) {
 		for(; *p != '\n' && *p; p++);
-		*p = '\0';
-		rv = parse_line(nson, line);
+		rv = parse_line(nson, line, p - line);
 	}
 
 	return rv;

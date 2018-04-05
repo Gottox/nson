@@ -238,10 +238,12 @@ nson_load_plist(struct Nson *nson, const char *file) {
 }
 
 int
-nson_parse_plist(struct Nson *nson, char *doc, size_t len) {
+nson_parse_plist(struct Nson *nson, const char *cdoc, size_t len) {
 	int rv;
 	off_t i = 0;
 	const char *tag;
+
+	char *doc = strdup(cdoc);
 
 	rv = parse_tag(&doc[i], &tag);
 	if(rv < 0 || strcmp("?xml", tag))

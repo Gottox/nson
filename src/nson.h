@@ -56,7 +56,7 @@ struct Nson;
 /**
  * @brief function pointer that is used to parse a buffer
  */
-typedef int (*NsonParser)(struct Nson *, char *, size_t);
+typedef int (*NsonParser)(struct Nson *, const char *, size_t);
 
 /**
  * @brief function pointer that is used to map a Nson element
@@ -401,7 +401,7 @@ int nson_load_json(struct Nson *nson, const char *file);
  * @brief
  * @return
  */
-int nson_parse_json(struct Nson *nson, char *doc, size_t len);
+int nson_parse_json(struct Nson *nson, const char *doc, size_t len);
 
 /**
  * @brief
@@ -421,7 +421,7 @@ int nson_to_json_fd(const struct Nson *nson, FILE* fd);
  * @brief
  * @return
  */
-int nson_parse_ini(struct Nson *nson, char *doc, size_t len);
+int nson_parse_ini(struct Nson *nson, const char *doc, size_t len);
 
 /**
  * @brief
@@ -441,7 +441,7 @@ int nson_load_plist(struct Nson *nson, const char *file);
  * @brief
  * @return
  */
-int nson_parse_plist(struct Nson *nson, char *doc, size_t len);
+int nson_parse_plist(struct Nson *nson, const char *doc, size_t len);
 
 /**
  * @brief
