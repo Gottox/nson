@@ -90,7 +90,7 @@ nson_mapper_b64_dec(off_t index, struct Nson *nson) {
 		return -1;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, j + 1, NSON_PLAIN);
+	nson_init_data(nson, dest, j + 1);
 	nson->alloc_type = NSON_ALLOC_BUF;
 	nson->alloc.b = dest;
 
@@ -140,7 +140,7 @@ nson_mapper_b64_enc(off_t index, struct Nson *nson) {
 	memset(&dest[j+1], '=', 3 - (j % 3));
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, dest_len, NSON_PLAIN);
+	nson_init_data(nson, dest, dest_len);
 	nson->alloc_type = NSON_ALLOC_BUF;
 	nson->alloc.b = dest;
 

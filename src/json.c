@@ -107,7 +107,7 @@ json_mapper_unescape(off_t index, struct Nson* nson) {
 	dest[len] = 0;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, len, NSON_PLAIN);
+	nson_init_data(nson, dest, len);
 	nson->type = NSON_STR;
 	nson->alloc_type = NSON_ALLOC_BUF;
 	nson->alloc.b = dest;
@@ -127,7 +127,7 @@ static int json_parse_string(struct Nson *nson, const char *doc) {
 	}
 	if(p == NULL)
 		return -1;
-	rv = nson_init_data(nson, doc + 1, p - doc - 1, NSON_UTF8);
+	rv = nson_init_data(nson, doc + 1, p - doc - 1);
 	if (rv < 0)
 		return rv;
 	nson->type = NSON_STR;

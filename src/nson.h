@@ -85,16 +85,9 @@ enum NsonType {
 	NSON_ERR  = 1 << 7,
 };
 
-enum NsonEnc {
-	NSON_PLAIN,
-	NSON_UTF8,
-	NSON_BASE64
-};
-
 struct NsonData {
 	const char *b;
 	size_t len;
-	enum NsonEnc enc;
 	NsonMapper mapper;
 };
 
@@ -298,8 +291,7 @@ int nson_init(struct Nson *nson, const enum NsonType type);
  * @brief
  * @return
  */
-int nson_init_data(struct Nson *nson, const char *val, size_t len,
-		enum NsonEnc enc);
+int nson_init_data(struct Nson *nson, const char *val, size_t len);
 
 /**
  * @brief

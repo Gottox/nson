@@ -103,7 +103,7 @@ plist_mapper_string(off_t index, struct Nson *nson) {
 	dest[len] = 0;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, len, NSON_PLAIN);
+	nson_init_data(nson, dest, len);
 	nson->alloc_type = NSON_ALLOC_BUF;
 	nson->alloc.b = dest;
 
@@ -127,7 +127,7 @@ plist_parse_string(struct Nson *nson, const char *start_tag, char *doc) {
 		return -1;
 	end += rv;
 
-	rv = nson_init_data(nson, doc, len, NSON_UTF8);
+	rv = nson_init_data(nson, doc, len);
 	if(rv < 0)
 		return rv;
 
@@ -365,21 +365,13 @@ to_plist(struct Nson *nson, const char *string_overwrite, FILE *fd) {
 		rv = fputs(type == NSON_ARR ? "</array>" : "</dict>", fd);
 		if(rv <= 0)
 			return -1;
+	case NSON_STR:
+		fprintf(fd, "<%s>", string_overwrite);
+		rv = plist_escape(nson, fd);
+		fprintf(fd, "</%s>", string_overwrite);
+		break;
 	case NSON_DATA:
-		switch(nson->val.d.enc) {
-		case NSON_UTF8:
-			fprintf(fd, "<%s>", string_overwrite);
-			rv = plist_escape(nson, fd);
-			fprintf(fd, "</%s>", string_overwrite);
-			break;
-		case NSON_PLAIN:
-			rv = plist_b64_enc(nson, fd);
-		case NSON_BASE64:
-			fputs("<data>", fd);
-			rv = plist_escape(nson, fd);
-			fputs("</data>", fd);
-			break;
-		}
+		rv = plist_b64_enc(nson, fd);
 		break;
 	case NSON_BOOL:
 		fputs(nson_int(nson) ? "<true/>" : "<false/>", fd);

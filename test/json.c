@@ -192,7 +192,7 @@ void stringify_nullbyte() {
 	int rv;
 	char *str;
 	struct Nson nson;
-	nson_init_data(&nson, "a\0b", 3, NSON_UTF8);
+	nson_init_data(&nson, "a\0b", 3);
 	nson.type = NSON_STR;
 
 	assert(rv >= 0);
@@ -274,7 +274,7 @@ void stringify_data() {
 	struct Nson nson;
 	char *result;
 
-	rv = nson_init_data(&nson, "Hello World", 11, NSON_PLAIN);
+	rv = nson_init_data(&nson, "Hello World", 11);
 
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);

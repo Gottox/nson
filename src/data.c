@@ -346,12 +346,10 @@ nson_init(struct Nson *nson, const enum NsonType type) {
 }
 
 int
-nson_init_data(struct Nson *nson, const char *val, size_t len,
-		enum NsonEnc enc) {
+nson_init_data(struct Nson *nson, const char *val, size_t len) {
 	int rv = nson_init(nson, NSON_DATA);
 	nson->val.d.b = val;
 	nson->val.d.len = len;
-	nson->val.d.enc = enc;
 
 	return rv;
 }
@@ -362,8 +360,8 @@ nson_init_str(struct Nson *nson, const char *val) {
 	if(val == 0)
 		return -1;
 
-	int rv = nson_init_data(nson, val, strlen(val), NSON_UTF8);
-	nson->type = NSON_DATA;
+	int rv = nson_init_data(nson, val, strlen(val));
+	nson->type = NSON_STR;
 	nson->alloc_type = NSON_ALLOC_BUF;
 
 	return rv;
