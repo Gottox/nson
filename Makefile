@@ -10,7 +10,6 @@ CFLAGS = -Wall -Werror -Wpedantic -O0 -g
 ## Comment this in for coverage reports
 #CFLAGS += -fprofile-arcs -ftest-coverage
 
-
 HDR = src/nson.h
 
 SRC = \
@@ -41,7 +40,10 @@ BCH = \
 
 BCH_EXE = $(BCH:.c=-bench)
 BCH_CFLAGS = \
-			$(shell pkg-config --cflags --libs proplib libucl json-c) \
+	$(shell pkg-config --cflags --libs proplib libucl json-c) \
+
+CATCHSEGV=\
+	$(shell which catchsegv 2> /dev/null)
 
 all: $(OBJ)
 
@@ -58,17 +60,23 @@ src/%.o: src/%.c $(HDR)
 	$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $<
 
 check: $(TST_EXE)
-	@for i in $(TST_EXE); do ./$$i || break; done
+	@for i in $(TST_EXE); do $(CATCHSEGV) ./$$i || break; done
 
 speed: $(BCH_EXE)
-	@for i in $(BCH_EXE); do ./$$i; done
+	@for i in $(BCH_EXE); do $(CATCHSEGV) ./$$i; done
 
 doc: doxygen.conf $(TST) $(SRC) $(HDR) README.md
 	@sed -i "/^PROJECT_NUMBER\s/ s/=.*/= $(VERSION)/" $<
 	@doxygen $<
 
+coverage: check
+	@printf "%s\n" $(CFLAGS) | grep -qx -- '-fprofile-arcs\|-ftest-coverage' || \
+		( echo "You need to enable coverage settings in the Makefile"; exit 1 )
+	@gcovr -r . --html --html-details -o coverage.html
+
 clean:
 	@rm -rf doc
+	@rm -f *.gcnp *.gcda *.html
 	@rm -f $(TST_EXE) $(BCH_EXE) $(OBJ)
 
 .PHONY: check all clean speed

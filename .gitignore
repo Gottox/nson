@@ -73,3 +73,7 @@ tags
 test/*-test
 bench/*-bench
 doc
+*.gcda
+*.gcno
+coverage.*.html
+coverage.html
