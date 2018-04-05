@@ -175,26 +175,42 @@ size_t nson_data_len(struct Nson *nson);
 const char *nson_data(struct Nson *nson);
 
 /**
- * @brief
- * @return
+ * @brief Compares two Nson Objects.
+ *
+ * @return > 0 if @p a is greater, < 0 if @p b is greater, 0 on equality
  */
 int nson_cmp(const void *a, const void *b);
 
 /**
- * @brief
- * @return
+ * @brief returns the type of an object
+ *
+ * @return the type of @p nson
  */
 enum NsonInfo nson_type(const struct Nson *nson);
 
 /**
- * @brief
- * @return
+ * @brief returns the integer value of an object
+ *
+ * if the object isn't a primitive value, 0
+ * is returned.
+ *
+ * real and booleans are casted to int.
+ *
+ * @return the integer value of @p nson
  */
 int64_t nson_int(const struct Nson *nson);
 
+#define nson_bool(x) nson_int(x)
+
 /**
- * @brief
- * @return
+ * @brief returns the real value of an object
+ *
+ * if the object isn't a primitive value, 0
+ * is returned.
+ *
+ * integer and booleans are casted to int.
+ *
+ * @return the integer value of @p nson
  */
 double nson_real(const struct Nson *nson);
 
@@ -229,8 +245,21 @@ const char * nson_get_key(const struct Nson *nson, off_t index);
 int nson_add(struct Nson *nson, struct Nson *val);
 
 /**
- * @brief
- * @return
+ * @brief Moves the value of @p src into @p nson
+ *
+ * @warning if @p src is an array element, the array
+ * will contain an invalidated object
+ *
+ * invalidates src.
+ *
+ * @return 0
+ */
+int nson_move(struct Nson *nson, struct Nson *src);
+
+/**
+ * @brief clones the value and all children of @p src into @p nson
+ *
+ * @return 0 on success, < 0 on failure
  */
 int nson_clone(struct Nson *nson, const struct Nson *src);
 

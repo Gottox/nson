@@ -44,18 +44,18 @@
 #define MIN(a, b) (a < b ? a : b)
 
 static int
-nson_cmp_data(const struct Nson *a, const struct Nson *b) {
+nson_cmp_data(const struct NsonData *a, const struct NsonData *b) {
 	int rv;
 	struct Nson tmp = { 0 };
-	if(a->val.d.mapper) {
-		nson_clone(&tmp, a);
+	if(a->mapper) {
+		nson_clone(&tmp, (const struct Nson *)a);
 		nson_data(&tmp);
-		rv = nson_cmp_data(b, &tmp) * -1;
+		rv = nson_cmp_data(b, &tmp.val.d) * -1;
 		nson_clean(&tmp);
 		return rv;
 	}
 
-	return memcmp(a->val.d.b, b->val.d.b, MIN(a->val.d.len, b->val.d.len));
+	return memcmp(a->b, b->b, MIN(a->len, b->len));
 }
 
 int
@@ -213,7 +213,7 @@ nson_add(struct Nson *nson, struct Nson *val) {
 	nson_realloc(nson, len+1);
 
 	arr = nson_mem_get(nson, 0);
-	memcpy(&arr[len], val, sizeof(*arr));
+	nson_move(&arr[len], val);
 
 	if(nson->val.a.messy || len == 0) {
 	} else if(nson_type(nson) == NSON_ARR) {
@@ -223,6 +223,13 @@ nson_add(struct Nson *nson, struct Nson *val) {
 	}
 	len++;
 
+	return 0;
+}
+
+int
+nson_move(struct Nson *nson, struct Nson *src) {
+	memcpy(nson, src, sizeof(*src));
+	memset(src, 0, sizeof(*src));
 	return 0;
 }
 
@@ -272,19 +279,19 @@ nson_clone(struct Nson *nson, const struct Nson *src) {
 }
 
 int
-nson_add_all(struct Nson *nson, struct Nson *suff) {
+nson_add_all(struct Nson *nson, struct Nson *src) {
 	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
-	assert(nson_type(suff) & (NSON_ARR | NSON_OBJ));
+	assert(nson_type(src) & (NSON_ARR | NSON_OBJ));
 
-	const size_t suff_len = nson_mem_len(suff);
+	const size_t src_len = nson_mem_len(src);
 	const size_t nson_len = nson_mem_len(nson);
 
-	nson_realloc(nson, nson_len + suff_len);
+	nson_realloc(nson, nson_len + src_len);
 
-	memcpy(&nson->val.a.arr[nson_len], &suff->val.a.arr, suff_len);
+	memcpy(&nson->val.a.arr[nson_len], &src->val.a.arr, src_len);
 
-	suff->val.a.len = 0;
-	nson_clean(suff);
+	src->val.a.len = 0;
+	nson_clean(src);
 
 	return 0;
 }
