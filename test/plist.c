@@ -275,7 +275,7 @@ stringify_data() {
 	struct Nson nson;
 	char *str;
 
-	rv = nson_init_data(&nson, "Hello World", 11);
+	rv = nson_init_data(&nson, "Hello World", 11, NSON_DATA);
 	assert(rv >= 0);
 	nson_to_plist(&nson, &str);
 	assert(strstr(str, "<data>SGVsbG8gV29ybGQ=</data>"));
@@ -336,5 +336,5 @@ TEST(parse_object_spaces);
 TEST(parse_data);
 TEST(stringify_data);
 TEST(stringify_escape);
-TEST_OFF(stringify_true);
+TEST(stringify_true);
 DEFINE_END

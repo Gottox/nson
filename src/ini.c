@@ -70,8 +70,8 @@ nson_parse_ini(struct Nson *nson, char *doc, size_t len) {
 	char *p, *line;
 	memset(nson, 0, sizeof(*nson));
 	nson_init(nson, NSON_OBJ);
-	nson->alloc_type = NSON_ALLOC_BUF;
-	nson->alloc.b = doc;
+	nson->info |= NSON_MALLOC;
+	nson->alloc = doc;
 
 	for(i = 0, p = line = doc; *p; line = ++p, i++) {
 		for(; *p != '\n' && *p; p++);

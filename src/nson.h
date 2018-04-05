@@ -71,18 +71,27 @@ typedef int (*NsonFilter)(const struct Nson *);
 /**
  * @brief type of an Nson Element
  */
-enum NsonType {
+enum NsonInfo {
 	NSON_NONE = 0,
 
-	NSON_ARR  = 1 << 0,
-	NSON_OBJ  = 1 << 1,
-	NSON_DATA = 1 << 2,
-	NSON_STR  = 1 << 3,
-	NSON_BOOL = 1 << 4,
-	NSON_INT  = 1 << 5,
-	NSON_REAL = 1 << 6,
+	NSON_MALLOC  = 1 << 0,
+	NSON_MMAP    = 2 << 0,
+	NSON_ALLOC   = NSON_MALLOC | NSON_MMAP,
 
-	NSON_ERR  = 1 << 7,
+	NSON_BOOL = 1 << 2,
+	NSON_INT  = 2 << 2,
+	NSON_REAL = 3 << 2,
+	NSON_PRIM = NSON_BOOL | NSON_INT | NSON_REAL,
+
+	NSON_ARR  = 1 << 4,
+	NSON_OBJ  = 2 << 4,
+	NSON_STOR = NSON_ARR | NSON_OBJ,
+
+	NSON_DATA = 1 << 6,
+	NSON_STR  = 2 << 6,
+	NSON_PTR  = NSON_DATA | NSON_STR,
+
+	NSON_TYPE = NSON_PRIM | NSON_STOR | NSON_PTR
 };
 
 struct NsonData {
@@ -116,37 +125,13 @@ union NsonValue {
 };
 
 /**
- * @brief allocation type of an Nson Element
- *
- * this type describes how nson should clean up the resources
- * belonging to a Nson Element
- */
-enum NsonAllocType {
-	NSON_ALLOC_NONE,
-	NSON_ALLOC_BUF,
-	NSON_ALLOC_MMAP,
-	NSON_ALLOC_REF,
-};
-
-/**
- * @brief allocation information of an Nson Element
- */
-union NsonAlloc {
-	struct {
-		void* map;
-		size_t len;
-	} m;
-	char *b;
-};
-
-/**
  * @brief Data Container
  */
 struct Nson {
-	enum NsonAllocType alloc_type;
-	enum NsonType type;
-	union NsonAlloc alloc;
 	union NsonValue val;
+	enum NsonInfo info;
+	void *alloc;
+	size_t alloc_size;
 };
 
 /* DATA */
@@ -199,7 +184,7 @@ int nson_cmp(const void *a, const void *b);
  * @brief
  * @return
  */
-enum NsonType nson_type(const struct Nson *nson);
+enum NsonInfo nson_type(const struct Nson *nson);
 
 /**
  * @brief
@@ -285,13 +270,21 @@ int nson_insert_int(struct Nson *nson, const char *key,
  * @brief
  * @return
  */
-int nson_init(struct Nson *nson, const enum NsonType type);
+int nson_init(struct Nson *nson, const enum NsonInfo info);
 
 /**
  * @brief
  * @return
  */
-int nson_init_data(struct Nson *nson, const char *val, size_t len);
+int nson_init_ptr(struct Nson *nson, const char *val, size_t len,
+		const enum NsonInfo info);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_init_data(struct Nson *nson, char *val, size_t len,
+		const enum NsonInfo type);
 
 /**
  * @brief
@@ -304,6 +297,12 @@ int nson_init_str(struct Nson *nson, const char *val);
  * @return
  */
 int nson_init_int(struct Nson *nson, const int64_t val);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_init_bool(struct Nson *nson, const bool val);
 
 /**
  * @brief

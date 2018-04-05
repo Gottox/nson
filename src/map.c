@@ -50,7 +50,7 @@ nson_mapper_b64_dec(off_t index, struct Nson *nson) {
 	off_t i, j;
 	char *dest;
 	size_t dest_len;
-	assert(nson_type(nson) & (NSON_DATA | NSON_STR));
+	assert(nson_type(nson) & NSON_PTR);
 	const size_t src_len = nson_data_len(nson);
 	const char *src = nson_data(nson);
 
@@ -90,9 +90,7 @@ nson_mapper_b64_dec(off_t index, struct Nson *nson) {
 		return -1;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, j + 1);
-	nson->alloc_type = NSON_ALLOC_BUF;
-	nson->alloc.b = dest;
+	nson_init_data(nson, dest, j + 1, NSON_DATA);
 
 	return i;
 }
@@ -104,7 +102,8 @@ nson_mapper_b64_enc(off_t index, struct Nson *nson) {
 	size_t dest_len;
 	char reminder = 0;
 	static const char mask = (1 << 6) - 1;
-	assert(nson_type(nson) & (NSON_STR | NSON_DATA));
+	enum NsonInfo type = nson_type(nson);
+	assert(type & NSON_PTR);
 
 	if(nson->val.d.mapper == nson_mapper_b64_dec) {
 		nson->val.d.mapper = NULL;
@@ -140,9 +139,7 @@ nson_mapper_b64_enc(off_t index, struct Nson *nson) {
 	memset(&dest[j+1], '=', 3 - (j % 3));
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, dest_len);
-	nson->alloc_type = NSON_ALLOC_BUF;
-	nson->alloc.b = dest;
+	nson_init_data(nson, dest, dest_len, NSON_STR);
 
 	return dest_len;
 }

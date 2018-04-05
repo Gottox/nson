@@ -30,6 +30,7 @@
 #include <ctype.h>
 #include <search.h>
 #include <inttypes.h>
+#include <assert.h>
 
 #include "config.h"
 #include "nson.h"
@@ -76,7 +77,9 @@ json_mapper_unescape(off_t index, struct Nson* nson) {
 	char *p;
 	int rv;
 	char *dest;
+	enum NsonInfo type;
 
+	type = nson_type(nson);
 	len = nson_data_len(nson);
 	dest = strndup(nson_data(nson), len);
 
@@ -107,10 +110,7 @@ json_mapper_unescape(off_t index, struct Nson* nson) {
 	dest[len] = 0;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, len);
-	nson->type = NSON_STR;
-	nson->alloc_type = NSON_ALLOC_BUF;
-	nson->alloc.b = dest;
+	nson_init_data(nson, dest, len, type);
 
 	return 0;
 }
@@ -127,12 +127,11 @@ static int json_parse_string(struct Nson *nson, const char *doc) {
 	}
 	if(p == NULL)
 		return -1;
-	rv = nson_init_data(nson, doc + 1, p - doc - 1);
+	rv = nson_init_ptr(nson, doc + 1, p - doc - 1, NSON_STR);
 	if (rv < 0)
 		return rv;
-	nson->type = NSON_STR;
-	nson->val.d.mapper = json_mapper_unescape;
 
+	nson->val.d.mapper = json_mapper_unescape;
 	return p - doc + 1;
 }
 
@@ -155,10 +154,13 @@ json_parse_type(struct Nson *nson, const char *doc) {
 		break;
 	default:
 		if (strncmp("true", &doc[i], 4) == 0) {
-			nson_init_int(nson, 1);
+			nson_init_bool(nson, true);
 			return 4;
 		} else if (strncmp("false", &doc[i], 5) == 0) {
-			nson_init_int(nson, 0);
+			nson_init_bool(nson, false);
+			return 5;
+		} else if (strncmp("null", &doc[i], 5) == 0) {
+			nson_init_data(nson, NULL, 0, NSON_DATA);
 			return 5;
 		} else {
 			rv = -1;
@@ -296,11 +298,13 @@ nson_load_json(struct Nson *nson, const char *file) {
 
 int
 nson_parse_json(struct Nson *nson, char *doc, size_t len) {
+	int rv;
 	memset(nson, 0, sizeof(*nson));
-	nson->alloc_type = NSON_ALLOC_BUF;
-	nson->alloc.b = doc;
-
-	return json_parse_type(nson, doc);
+	rv = json_parse_type(nson, doc);
+	assert((nson->info & NSON_ALLOC) == 0);
+	nson->alloc = doc;
+	nson->info |= NSON_MALLOC;
+	return rv;
 }
 
 int

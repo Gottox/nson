@@ -103,9 +103,7 @@ plist_mapper_string(off_t index, struct Nson *nson) {
 	dest[len] = 0;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, len);
-	nson->alloc_type = NSON_ALLOC_BUF;
-	nson->alloc.b = dest;
+	nson_init_data(nson, dest, len, NSON_DATA | NSON_MALLOC);
 
 	return 0;
 }
@@ -127,16 +125,15 @@ plist_parse_string(struct Nson *nson, const char *start_tag, char *doc) {
 		return -1;
 	end += rv;
 
-	rv = nson_init_data(nson, doc, len);
-	if(rv < 0)
-		return rv;
-
-	if (start_tag[0] == 'd')
+	if (start_tag[0] == 'd') {
+		rv = nson_init_data(nson, doc, len, NSON_DATA);
 		nson->val.d.mapper = nson_mapper_b64_dec;
-	else {
-		nson->type = NSON_STR;
+	} else {
+		rv = nson_init_data(nson, doc, len, NSON_STR);
 		nson->val.d.mapper = plist_mapper_string;
 	}
+	if(rv < 0)
+		return rv;
 
 	return end;
 }
@@ -198,9 +195,9 @@ plist_parse_type(struct Nson *nson, char *doc) {
 	if(rv < 0) {
 		return -1;
 	} else if(strcmp("false/", tag) == 0) {
-		rv = nson_init_int(nson, 0);
+		rv = nson_init_bool(nson, 0);
 	} else if(strcmp("true/", tag) == 0) {
-		rv = nson_init_int(nson, 1);
+		rv = nson_init_bool(nson, 1);
 	} else if(strcmp("real", tag) == 0) {
 		rv = -1;
 		if(*tag == 'r' && (sscanf(&doc[i], "%lf%n", &r_val, &rv) == 0 || rv < 0))
@@ -350,7 +347,7 @@ static int
 to_plist(struct Nson *nson, const char *string_overwrite, FILE *fd) {
 	off_t i;
 	int rv;
-	enum NsonType type = nson_type(nson);
+	enum NsonInfo type = nson_type(nson);
 	switch(type) {
 	case NSON_ARR:
 	case NSON_OBJ:
