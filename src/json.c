@@ -35,11 +35,6 @@
 #include "config.h"
 #include "nson.h"
 
-#define SKIP_SPACES { for(; doc[i] && isspace(doc[i]); i++); }
-
-static int
-json_parse_object(struct Nson *nson, const char *doc);
-
 static int
 json_parse_utf8(char *dest, const char *src) {
 	off_t i = 0;
@@ -113,110 +108,6 @@ json_mapper_unescape(off_t index, struct Nson* nson) {
 	nson_init_data(nson, dest, len, type);
 
 	return 0;
-}
-
-static int json_parse_string(struct Nson *nson, const char *doc) {
-	int rv;
-	const char *p;
-
-	for(p = doc + 1; (p = strchr(p, '"')); p++) {
-		if(p[-1] != '\\')
-			break;
-		if(p[-2] == '\\')
-			break;
-	}
-	if(p == NULL)
-		return -1;
-	rv = nson_init_ptr(nson, doc + 1, p - doc - 1, NSON_STR);
-	if (rv < 0)
-		return rv;
-
-	nson->val.d.mapper = json_mapper_unescape;
-	return p - doc + 1;
-}
-
-static int
-json_parse_type(struct Nson *nson, const char *doc) {
-	int rv;
-	int64_t val;
-	double r_val;
-	off_t i = 0;
-
-	SKIP_SPACES;
-
-	switch(doc[i]) {
-	case '"':
-		return json_parse_string(nson, &doc[i]);
-		break;
-	case '{':
-	case '[':
-		return json_parse_object(nson, &doc[i]);
-		break;
-	default:
-		if (strncmp("true", &doc[i], 4) == 0) {
-			nson_init_bool(nson, true);
-			return 4;
-		} else if (strncmp("false", &doc[i], 5) == 0) {
-			nson_init_bool(nson, false);
-			return 5;
-		} else if (strncmp("null", &doc[i], 5) == 0) {
-			nson_init_data(nson, NULL, 0, NSON_BLOB);
-			return 5;
-		} else {
-			rv = -1;
-			if(sscanf(&doc[i], "%" PRId64 "%n", &val, &rv) == 0 || rv < 0)
-				return rv;
-			if(doc[i + rv] != '.') {
-				nson_init_int(nson, val);
-				return i + rv;
-			}
-			rv = -1;
-			if(sscanf(&doc[i], "%lf%n", &r_val, &rv) == 0 || rv < 0)
-				return rv;
-			nson_init_real(nson, r_val);
-			return i + rv;
-		}
-	}
-}
-
-static int
-json_parse_object(struct Nson *nson, const char *doc) {
-	struct Nson elem;
-	char terminal = ']';
-	const char *seperator = ",,";
-	size_t len = 0;
-	off_t i = 0;
-	int rv;
-
-	if(doc[i] == '{') {
-		terminal = '}';
-		seperator = ",:";
-		nson_init(nson, NSON_OBJ);
-	} else if (doc[i] == '['){
-		nson_init(nson, NSON_ARR);
-	} else {
-		return -1;
-	}
-	nson->val.a.messy = 1;
-
-	do {
-		i++;
-		SKIP_SPACES;
-		if(doc[i] == terminal)
-			break;
-		rv = json_parse_type(&elem, &doc[i]);
-		if(rv < 0)
-			return rv;
-		i += rv;
-		nson_add(nson, &elem);
-		SKIP_SPACES;
-		len++;
-	} while (doc[i] == seperator[len % 2]);
-
-	if (doc[i] != terminal)
-		return -1;
-
-	return i+1;
 }
 
 static int
@@ -298,9 +189,132 @@ nson_load_json(struct Nson *nson, const char *file) {
 
 int
 nson_parse_json(struct Nson *nson, const char *doc, size_t len) {
-	int rv;
+	int rv = 0;
+	off_t row = 0;
+	int64_t i_val;
+	double r_val;
+	const char *p = doc;
+	const char *begin, *line_start = p;
+	size_t stack_size = 1;
+	struct Nson *stack_top, *old_top;
+
+	struct Nson stack = { 0 }, tmp = { 0 };
 	memset(nson, 0, sizeof(*nson));
-	rv = json_parse_type(nson, doc);
+	nson_init(&tmp, NSON_ARR);
+	nson_init(&stack, NSON_ARR);
+	nson_add(&stack, &tmp);
+
+	stack_top = nson_get(&stack, 0);
+	// Skip leading Whitespaces
+	for(; strchr("\n\f\r\t\v ", *p); p++);
+	do {
+		switch(*p) {
+		case '[':
+		case '{':
+			stack_size++;
+			nson_mem_capacity(&stack, stack_size);
+			stack_top = nson_get(&stack, stack_size - 1);
+			nson_init(stack_top, *p == '{' ? NSON_OBJ : NSON_ARR);
+			stack_top->val.a.messy = 1;
+			p++;
+			break;
+		case ',':
+		case ':':
+			p++;
+			break;
+		case ']':
+		case '}':
+			old_top = stack_top;
+			stack_size--;
+			stack_top = nson_get(&stack, stack_size - 1);
+			nson_add(stack_top, old_top);
+			p++;
+			break;
+		case '"':
+			for(begin = ++p; (p = memchr(p, '"', p + len - doc)); p++) {
+				if(p[-1] != '\\')
+					break;
+				else if(p[-2] == '\\')
+					break;
+			}
+			if(p == NULL) {
+				rv = -1;
+				goto out;
+			}
+			nson_init_ptr(&tmp, begin, p - begin, NSON_STR);
+			tmp.val.d.mapper = json_mapper_unescape;
+			nson_add(stack_top, &tmp);
+			p++;
+			break;
+		case '\n':
+			line_start = p;
+			row++;
+		case '\f':
+		case '\r':
+		case '\t':
+		case '\v':
+		case ' ':
+			p++;
+			break;
+		case '-':
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			begin = p;
+			if(*p == '-')
+				p++;
+			for (i_val = 0; *p >= '0' && *p <= '9'; p++)
+				i_val += (i_val * 10) + *p - '0';
+			if (*p == '.') {
+				p++;
+				for(r_val = 0; *p >= '0' && *p <= '9'; p++)
+					r_val += (r_val * 0.1) + (*p - '0');
+				r_val += i_val;
+				nson_init_real(&tmp, *begin == '-' ? -r_val : r_val);
+			}
+			else {
+				nson_init_int(&tmp, *begin == '-' ? -i_val : i_val);
+			}
+
+			nson_add(stack_top, &tmp);
+			break;
+		default:
+			if(strncmp(p, "null", 4) == 0) {
+				nson_init_ptr(&tmp, NULL, 0, NSON_STR);
+				p += 4;
+			} else if(strncmp(p, "true", 4) == 0) {
+				nson_init_bool(&tmp, 1);
+				p += 4;
+			} else if(strncmp(p, "false", 5) == 0) {
+				nson_init_bool(&tmp, 0);
+				p += 5;
+			} else {
+				rv = -1;
+				goto out;
+			}
+			nson_add(stack_top, &tmp);
+		}
+	} while(stack_size > 1 && p - doc < len);
+
+	if(stack_size != 1) {
+		// Premature EOF
+		rv = -1;
+		goto out;
+	}
+	nson_move(nson, nson_get(stack_top, 0));
+	nson_mem_capacity(&stack, 1);
+
+	rv = p - doc;
+out:
+
+	nson_clean(nson_get(&stack, 0));
 	return rv;
 }
 
