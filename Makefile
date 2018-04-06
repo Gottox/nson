@@ -30,8 +30,10 @@ TST = \
 	test/plist.c \
 
 TST_EXE = $(TST:.c=-test)
+TST_CFLAGS =
 
 BCH = \
+	bench/naiv.c \
 	bench/json-c.c \
 	bench/ucl.c \
 	bench/proplib.c \
@@ -41,6 +43,8 @@ BCH = \
 BCH_EXE = $(BCH:.c=-bench)
 BCH_CFLAGS = \
 	$(shell pkg-config --cflags --libs proplib libucl json-c) \
+	'-DBENCH_JSON="json/auctions.json"' \
+	'-DBENCH_PLIST="plist/pkgdb-0.38.plist"' \
 
 CATCHSEGV=\
 	$(shell which catchsegv 2> /dev/null)
@@ -62,12 +66,15 @@ src/%.o: src/%.c $(HDR)
 check: $(TST_EXE)
 	@for i in $(TST_EXE); do $(CATCHSEGV) ./$$i || break; done
 
-speed: $(BCH_EXE)
+speed: $(BCH_EXE) bench/json/auctions.json
 	@for i in $(BCH_EXE); do $(CATCHSEGV) ./$$i; done
 
 doc: doxygen.conf $(TST) $(SRC) $(HDR) README.md
 	@sed -i "/^PROJECT_NUMBER\s/ s/=.*/= $(VERSION)/" $<
 	@doxygen $<
+
+bench/json/auctions.json:
+	wget http://eu.battle.net/auction-data/258993a3c6b974ef3e6f22ea6f822720/auctions.json -O $@
 
 coverage: check
 	@printf "%s\n" $(CFLAGS) | grep -qx -- '-fprofile-arcs\|-ftest-coverage' || \
@@ -79,6 +86,7 @@ clean:
 	@rm -rf doc cov
 	@rm -f *.gcnp *.gcda
 	@rm -f $(TST_EXE) $(BCH_EXE) $(OBJ)
+	#@rm -f bench/json/auctions.json
 
 .PHONY: check all clean speed coverage
 

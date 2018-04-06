@@ -13,7 +13,7 @@ void nson_plist() {
 	int rv;
 	struct Nson nson;
 
-	rv = nson_load_plist(&nson, "./plist/pkgdb-0.38.plist");
+	rv = nson_load_plist(&nson, BENCH_PLIST);
 	assert(rv >= 0);
 	(void)rv;
 }

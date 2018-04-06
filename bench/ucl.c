@@ -19,7 +19,7 @@ void ucl() {
 	size_t len, f_len = 0;
 	struct ucl_parser *parser = NULL;
 
-	rv = mmap_file("./json/pkgdb-0.38.json", &doc, &len, &f_len);
+	rv = mmap_file(BENCH_JSON, &doc, &len, &f_len);
 	assert(rv);
 	parser = ucl_parser_new (0);
 	ucl_parser_add_chunk (parser, doc, f_len);

@@ -18,7 +18,7 @@ void json_c() {
 	void *doc = 0;
 	size_t len, f_len = 0;
 
-	rv = mmap_file("./json/pkgdb-0.38.json", &doc, &len, &f_len);
+	rv = mmap_file(BENCH_JSON, &doc, &len, &f_len);
 	assert(rv);
 	json = json_tokener_parse(doc);
 	assert(json);

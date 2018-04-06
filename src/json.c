@@ -204,6 +204,9 @@ nson_parse_json(struct Nson *nson, const char *doc, size_t len) {
 	nson_init(&stack, NSON_ARR);
 	nson_add(&stack, &tmp);
 
+	/* UNUSED */
+	(void)line_start;
+
 	stack_top = nson_get(&stack, 0);
 	// Skip leading Whitespaces
 	for(; strchr("\n\f\r\t\v ", *p); p++);

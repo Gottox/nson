@@ -13,7 +13,7 @@ void nson_json() {
 	int rv;
 	struct Nson nson;
 
-	rv = nson_load_json(&nson, "./json/pkgdb-0.38.json");
+	rv = nson_load_json(&nson, BENCH_JSON);
 	assert(rv >= 0);
 	(void)rv;
 }
