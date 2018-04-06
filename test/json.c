@@ -32,6 +32,32 @@
 #include <errno.h>
 
 static void
+parse_true() {
+	int rv;
+	struct Nson nson;
+
+	rv = NSON(&nson, true);
+	assert(rv >= 0);
+	assert(nson_int(&nson) != 0);
+	nson_clean(&nson);
+
+	(void)rv;
+}
+
+static void
+parse_number() {
+	int rv;
+	struct Nson nson;
+
+	rv = NSON(&nson, 5);
+	assert(rv >= 0);
+	assert(nson_int(&nson) == 5);
+	nson_clean(&nson);
+
+	(void)rv;
+}
+
+static void
 parse_empty_string() {
 	int rv;
 	struct Nson nson;
@@ -41,6 +67,25 @@ parse_empty_string() {
 	nson_clean(&nson);
 
 	(void)rv;
+}
+
+static void
+object_with_one_element() {
+	int rv;
+	struct Nson nson;
+
+	rv = NSON(&nson, {"a": "b"});
+	assert(rv >= 0);
+
+	assert(nson_len(&nson) == 1);
+
+	struct Nson *e1 = nson_get(&nson, 0);
+	assert(strcmp(nson_get_key(&nson, 0), "a") == 0);
+	assert(strcmp(nson_str(e1), "b") == 0);
+	nson_clean(&nson);
+
+	(void)rv;
+	(void)e1;
 }
 
 static void
@@ -76,6 +121,21 @@ access_str_as_arr() {
 
 	struct Nson *e1 = nson_get(&nson, 0);
 	ASSERT_ABRT(nson_get(e1, 0));
+	nson_clean(&nson);
+
+	(void)rv;
+}
+
+static void
+leading_whitespace() {
+	int rv;
+	struct Nson nson;
+	rv = nson_parse_json(&nson, NSON_P("  {}"));
+	assert(rv >= 0);
+
+	assert(nson_len(&nson) == 0);
+
+	assert(nson_type(&nson) == NSON_OBJ);
 	nson_clean(&nson);
 
 	(void)rv;
@@ -284,9 +344,13 @@ void stringify_data() {
 }
 
 DEFINE
+TEST(parse_true);
+TEST(parse_number);
 TEST(parse_empty_string);
+TEST(object_with_one_element);
 TEST(object_with_multiple_elements);
 TEST(access_str_as_arr);
+TEST(leading_whitespace);
 TEST(unclosed_array);
 TEST(unclosed_array_with_one_element);
 TEST(unclosed_string);
