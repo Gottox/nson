@@ -34,11 +34,11 @@ parse_number(double *r, int64_t *i, const char *p, size_t len) {
 
 	p = parse_int(&upper, p, len);
 	*r = upper;
+	if (i)
+		*i = upper;
 	if (*p != '.' || r == NULL) {
-		if(i) {
-			*i = upper;
+		if(i)
 			*r = NAN;
-		}
 		return p;
 	}
 
