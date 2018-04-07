@@ -278,7 +278,6 @@ stringify_object_with_2_members() {
 	rv = NSON(&nson, {"a": 5, "b": 5});
 	assert(rv >= 0);
 	nson_to_plist(&nson, &str);
-	puts(str);
 	assert(strstr(str, "<dict>"
 				"<key>a</key><integer>5</integer>"
 				"<key>b</key><integer>5</integer>"
