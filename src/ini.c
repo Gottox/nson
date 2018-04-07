@@ -33,11 +33,11 @@
 #include "nson.h"
 
 static int
-parse_line(struct Nson *nson, const char *line, size_t len) {
+parse_line(Nson *nson, const char *line, size_t len) {
 	off_t i = 0;
 	const char *key, *val;
 	size_t key_len = 0, val_len = 0;
-	struct Nson elem;
+	Nson elem;
 
 	for(; isblank(line[i]) && line[i]; i++);
 
@@ -66,7 +66,7 @@ parse_line(struct Nson *nson, const char *line, size_t len) {
 }
 
 int
-nson_parse_ini(struct Nson *nson, const char *doc, size_t len) {
+nson_parse_ini(Nson *nson, const char *doc, size_t len) {
 	int rv = 0, i;
 	const char *p, *line;
 	memset(nson, 0, sizeof(*nson));
@@ -83,6 +83,6 @@ nson_parse_ini(struct Nson *nson, const char *doc, size_t len) {
 }
 
 int
-nson_load_ini(struct Nson *nson, const char *file) {
+nson_load_ini(Nson *nson, const char *file) {
 	return nson_load(nson_parse_ini, nson, file);
 }

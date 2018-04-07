@@ -34,7 +34,7 @@
 static void
 parse_true() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = NSON(&nson, true);
 	assert(rv >= 0);
@@ -47,7 +47,7 @@ parse_true() {
 static void
 parse_double() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = NSON(&nson, 5.2);
 	assert(rv >= 0);
@@ -62,7 +62,7 @@ parse_double() {
 static void
 parse_number() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = NSON(&nson, 5);
 	assert(rv >= 0);
@@ -75,7 +75,7 @@ parse_number() {
 static void
 parse_empty_string() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = NSON(&nson, "");
 	assert(rv >= 0);
@@ -87,14 +87,14 @@ parse_empty_string() {
 static void
 object_with_one_element() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = NSON(&nson, {"a": "b"});
 	assert(rv >= 0);
 
 	assert(nson_len(&nson) == 1);
 
-	struct Nson *e1 = nson_get(&nson, 0);
+	Nson *e1 = nson_get(&nson, 0);
 	assert(strcmp(nson_get_key(&nson, 0), "a") == 0);
 	assert(strcmp(nson_str(e1), "b") == 0);
 	nson_clean(&nson);
@@ -106,16 +106,16 @@ object_with_one_element() {
 static void
 object_with_multiple_elements() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = NSON(&nson, {"a": 1, "b": 2});
 	assert(rv >= 0);
 
 	assert(nson_len(&nson) == 2);
 
-	struct Nson *e1 = nson_get(&nson, 0);
+	Nson *e1 = nson_get(&nson, 0);
 	assert(nson_int(e1) == 1);
-	struct Nson *e2 = nson_get(&nson, 1);
+	Nson *e2 = nson_get(&nson, 1);
 	assert(nson_int(e2) == 2);
 	nson_clean(&nson);
 
@@ -127,14 +127,14 @@ object_with_multiple_elements() {
 static void
 access_str_as_arr() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = NSON(&nson, {"a": 1});
 	assert(rv >= 0);
 
 	assert(nson_len(&nson) == 1);
 
-	struct Nson *e1 = nson_get(&nson, 0);
+	Nson *e1 = nson_get(&nson, 0);
 	ASSERT_ABRT(nson_get(e1, 0));
 	nson_clean(&nson);
 
@@ -144,7 +144,7 @@ access_str_as_arr() {
 static void
 leading_whitespace() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	rv = nson_parse_json(&nson, NSON_P("  {}"));
 	assert(rv >= 0);
 
@@ -159,7 +159,7 @@ leading_whitespace() {
 static void
 unclosed_array() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	rv = nson_parse_json(&nson, NSON_P("["));
 	assert(rv < 0);
 	nson_clean(&nson);
@@ -170,7 +170,7 @@ unclosed_array() {
 static void
 unclosed_string() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	rv = nson_parse_json(&nson, NSON_P("\"aaa"));
 	assert(rv < 0);
 	nson_clean(&nson);
@@ -181,7 +181,7 @@ unclosed_string() {
 static void
 unclosed_array_with_one_element() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	rv = nson_parse_json(&nson, NSON_P("[ 1 , "));
 	assert(rv < 0);
 	nson_clean(&nson);
@@ -192,7 +192,7 @@ unclosed_array_with_one_element() {
 static void
 huge_file() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	rv = nson_load_json(&nson, "./json/huge_file.json");
 	assert(rv < 0);
 	assert(errno == 0);
@@ -204,7 +204,7 @@ huge_file() {
 static void
 page_sized() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	rv = nson_load_json(&nson, "./json/page_sized.json");
 	assert(rv < 0);
 	assert(errno == 0);
@@ -216,7 +216,7 @@ page_sized() {
 static void
 utf8_0080() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	rv = nson_init_str(&nson, "\u0024");
 
 	assert(rv >= 0);
@@ -228,7 +228,7 @@ utf8_0080() {
 static void
 utf8_0800() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	rv = nson_init_str(&nson, "\u00A2");
 
 	assert(rv >= 0);
@@ -240,7 +240,7 @@ utf8_0800() {
 static void
 utf8_FFFF() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	rv = nson_init_str(&nson, "\u20AC");
 
 	assert(rv >= 0);
@@ -252,7 +252,7 @@ utf8_FFFF() {
 void stringify_utf8() {
 	int rv;
 	char *str;
-	struct Nson nson;
+	Nson nson;
 	rv = NSON(&nson, "€");
 
 	assert(rv >= 0);
@@ -266,7 +266,7 @@ void stringify_utf8() {
 void stringify_nullbyte() {
 	int rv;
 	char *str;
-	struct Nson nson;
+	Nson nson;
 	nson_init_data(&nson, "a\0b", 3, NSON_STR);
 
 	assert(rv >= 0);
@@ -281,7 +281,7 @@ void stringify_nullbyte() {
 static void
 stringify_empty_array() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	char *result;
 
 	rv = NSON(&nson, []);
@@ -297,7 +297,7 @@ stringify_empty_array() {
 static void
 stringify_empty_object() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	char *result;
 
 	rv = NSON(&nson, {});
@@ -313,7 +313,7 @@ stringify_empty_object() {
 static void
 stringify_object_with_hidden_item() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	char *result;
 
 	rv = NSON(&nson, { "\u001bhidden": 1 });
@@ -329,7 +329,7 @@ stringify_object_with_hidden_item() {
 static void
 stringify_object() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	char *result;
 
 	rv = NSON(&nson, { "a": 1 });
@@ -346,7 +346,7 @@ stringify_object() {
 
 void stringify_data() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 	char *result;
 
 	rv = nson_init_data(&nson, "Hello World", 11, NSON_BLOB);

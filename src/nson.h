@@ -46,27 +46,22 @@
 
 #define NSON_P(s) strdup(s), strlen(s)
 
-/**
- * @brief Alias for nson_data
- */
-#define nson_str(n) nson_data(n)
-
-struct Nson;
+union Nson;
 
 /**
  * @brief function pointer that is used to parse a buffer
  */
-typedef int (*NsonParser)(struct Nson *, const char *, size_t);
+typedef int (*NsonParser)(union Nson *, const char *, size_t);
 
 /**
  * @brief function pointer that is used to map a Nson element
  */
-typedef int (*NsonMapper)(off_t index, struct Nson *);
+typedef int (*NsonMapper)(off_t index, union Nson *);
 
 /**
  * @brief function pointer that is used to filter a Nson element
  */
-typedef int (*NsonFilter)(const struct Nson *);
+typedef int (*NsonFilter)(const union Nson *);
 
 /**
  * @brief type of an Nson Element
@@ -94,45 +89,46 @@ enum NsonInfo {
 	NSON_TYPE = NSON_PRIM | NSON_STOR | NSON_DATA
 };
 
-struct NsonData {
+typedef struct NsonCommon {
+	enum NsonInfo info;
+	NsonMapper mapper;
+	void *alloc;
+	size_t alloc_size;
+} NsonCommon;
+
+typedef struct NsonData {
+	NsonCommon n;
 	const char *b;
 	size_t len;
-	NsonMapper mapper;
-};
+} NsonData;
 
-struct NsonArray {
-	struct Nson *arr;
+typedef struct NsonArray {
+	NsonCommon n;
+	union Nson *arr;
 	size_t len;
 	bool messy;
-};
+} NsonArray ;
 
-struct NsonReal {
+typedef struct NsonReal {
+	NsonCommon n;
 	double r;
-};
+} NsonReal;
 
-struct NsonInt {
+typedef struct NsonInt {
+	NsonCommon n;
 	int64_t i;
-};
-
-/**
- * @brief union holding the value of an Nson Element
- */
-union NsonValue {
-	struct NsonInt i;
-	struct NsonReal r;
-	struct NsonData d;
-	struct NsonArray a;
-};
+} NsonInt;
 
 /**
  * @brief Data Container
  */
-struct Nson {
-	union NsonValue val;
-	enum NsonInfo info;
-	void *alloc;
-	size_t alloc_size;
-};
+typedef union Nson {
+	struct NsonCommon c;
+	struct NsonInt i;
+	struct NsonReal r;
+	struct NsonData d;
+	struct NsonArray a;
+} Nson;
 
 /* DATA */
 
@@ -146,7 +142,7 @@ struct Nson {
  *
  * @return 0 on success, < 0 on error
  */
-int nson_clean(struct Nson *nson);
+int nson_clean(Nson *nson);
 
 /**
  * @brief returns the number of child elements of @p nson
@@ -156,7 +152,7 @@ int nson_clean(struct Nson *nson);
  *
  * @return the number of child elements of @p nson
  */
-size_t nson_len(const struct Nson *nson);
+size_t nson_len(const Nson *nson);
 
 /**
  * @brief returns the number of child elements of @p nson
@@ -166,13 +162,18 @@ size_t nson_len(const struct Nson *nson);
  *
  * @return the number of child elements of @p nson
  */
-size_t nson_data_len(struct Nson *nson);
+size_t nson_data_len(Nson *nson);
+
+/**
+ * @brief Alias for nson_data
+ */
+#define nson_str(n) nson_data(n)
 
 /**
  * @brief
  * @return
  */
-const char *nson_data(struct Nson *nson);
+const char *nson_data(Nson *nson);
 
 /**
  * @brief Compares two Nson Objects.
@@ -186,7 +187,7 @@ int nson_cmp(const void *a, const void *b);
  *
  * @return the type of @p nson
  */
-enum NsonInfo nson_type(const struct Nson *nson);
+enum NsonInfo nson_type(const Nson *nson);
 
 /**
  * @brief returns the integer value of an object
@@ -198,7 +199,7 @@ enum NsonInfo nson_type(const struct Nson *nson);
  *
  * @return the integer value of @p nson
  */
-int64_t nson_int(const struct Nson *nson);
+int64_t nson_int(const Nson *nson);
 
 #define nson_bool(x) nson_int(x)
 
@@ -212,37 +213,37 @@ int64_t nson_int(const struct Nson *nson);
  *
  * @return the integer value of @p nson
  */
-double nson_real(const struct Nson *nson);
+double nson_real(const Nson *nson);
 
 /**
  * @brief
  * @return
  */
-struct Nson * nson_get(const struct Nson *nson, off_t index);
+Nson *nson_get(const Nson *nson, off_t index);
 
 /**
  * @brief
  * @return
  */
-struct Nson * nson_get_by_key(const struct Nson *nson, const char *key);
+Nson *nson_get_by_key(const Nson *nson, const char *key);
 
 /**
  * @brief
  * @return
  */
-int nson_sort(struct Nson *nson);
+int nson_sort(Nson *nson);
 
 /**
  * @brief
  * @return
  */
-const char * nson_get_key(const struct Nson *nson, off_t index);
+const char * nson_get_key(const Nson *nson, off_t index);
 
 /**
  * @brief
  * @return
  */
-int nson_add(struct Nson *nson, struct Nson *val);
+int nson_add(Nson *nson, Nson *val);
 
 /**
  * @brief Moves the value of @p src into @p nson
@@ -254,114 +255,114 @@ int nson_add(struct Nson *nson, struct Nson *val);
  *
  * @return 0
  */
-int nson_move(struct Nson *nson, struct Nson *src);
+int nson_move(Nson *nson, Nson *src);
 
 /**
  * @brief clones the value and all children of @p src into @p nson
  *
  * @return 0 on success, < 0 on failure
  */
-int nson_clone(struct Nson *nson, const struct Nson *src);
+int nson_clone(Nson *nson, const Nson *src);
 
 /**
  * @brief
  * @return
  */
-int nson_add_all(struct Nson *nson, struct Nson *suff);
+int nson_add_all(Nson *nson, Nson *suff);
 
 /**
  * @brief
  * @return
  */
-int nson_add_str(struct Nson *nson, const char *val);
+int nson_add_str(Nson *nson, const char *val);
 
 /**
  * @brief
  * @return
  */
-int nson_add_int(struct Nson *nson, int64_t val);
+int nson_add_int(Nson *nson, int64_t val);
 
 /**
  * @brief
  * @return
  */
-int nson_insert(struct Nson *nson, const char *key,
-		struct Nson* val);
+int nson_insert(Nson *nson, const char *key,
+		Nson* val);
 
 /**
  * @brief
  * @return
  */
-int nson_insert_int(struct Nson *nson, const char *key,
+int nson_insert_int(Nson *nson, const char *key,
 		int64_t val);
 
 /**
  * @brief
  * @return
  */
-int nson_init(struct Nson *nson, const enum NsonInfo info);
+int nson_init(Nson *nson, const enum NsonInfo info);
 
 /**
  * @brief
  * @return
  */
-int nson_init_ptr(struct Nson *nson, const char *val, size_t len,
+int nson_init_ptr(Nson *nson, const char *val, size_t len,
 		const enum NsonInfo info);
 
 /**
  * @brief
  * @return
  */
-int nson_init_data(struct Nson *nson, char *val, size_t len,
+int nson_init_data(Nson *nson, char *val, size_t len,
 		const enum NsonInfo type);
 
 /**
  * @brief
  * @return
  */
-int nson_init_str(struct Nson *nson, const char *val);
+int nson_init_str(Nson *nson, const char *val);
 
 /**
  * @brief
  * @return
  */
-int nson_init_int(struct Nson *nson, const int64_t val);
+int nson_init_int(Nson *nson, const int64_t val);
 
 /**
  * @brief
  * @return
  */
-int nson_init_bool(struct Nson *nson, const bool val);
+int nson_init_bool(Nson *nson, const bool val);
 
 /**
  * @brief
  * @return
  */
-int nson_init_real(struct Nson *nson, const double val);
+int nson_init_real(Nson *nson, const double val);
 
 /**
  * @brief
  * @return
  */
-int nson_load(NsonParser parser, struct Nson *nson, const char *file);
+int nson_load(NsonParser parser, Nson *nson, const char *file);
 
 /**
  * @brief
  * @return
  */
-struct Nson *nson_mem_get(const struct Nson *nson, off_t index);
+Nson *nson_mem_get(const Nson *nson, off_t index);
 
 /**
  * @brief
  * @return
  */
-size_t nson_mem_len(const struct Nson *nson);
+size_t nson_mem_len(const Nson *nson);
 
 /**
  * @brief
  * @return
  */
-int nson_filter(struct Nson *nson, NsonFilter mapper);
+int nson_filter(Nson *nson, NsonFilter mapper);
 
 /* MAP */
 
@@ -369,31 +370,31 @@ int nson_filter(struct Nson *nson, NsonFilter mapper);
  * @brief
  * @return
  */
-int nson_map(struct Nson *nson, NsonMapper mapper);
+int nson_map(Nson *nson, NsonMapper mapper);
 
 /**
  * @brief
  * @return
  */
-int nson_remove(struct Nson *nson, off_t index, size_t size);
+int nson_remove(Nson *nson, off_t index, size_t size);
 
 /**
  * @brief
  * @return
  */
-int nson_mem_capacity(struct Nson *nson, size_t size);
+int nson_mem_capacity(Nson *nson, size_t size);
 
 /**
  * @brief
  * @return
  */
-int nson_mapper_b64_enc(off_t index, struct Nson *nson);
+int nson_mapper_b64_enc(off_t index, Nson *nson);
 
 /**
  * @brief
  * @return
  */
-int nson_mapper_b64_dec(off_t index, struct Nson *nson);
+int nson_mapper_b64_dec(off_t index, Nson *nson);
 
 /* JSON */
 
@@ -401,25 +402,25 @@ int nson_mapper_b64_dec(off_t index, struct Nson *nson);
  * @brief
  * @return
  */
-int nson_load_json(struct Nson *nson, const char *file);
+int nson_load_json(Nson *nson, const char *file);
 
 /**
  * @brief
  * @return
  */
-int nson_parse_json(struct Nson *nson, const char *doc, size_t len);
+int nson_parse_json(Nson *nson, const char *doc, size_t len);
 
 /**
  * @brief
  * @return
  */
-int nson_to_json(const struct Nson *nson, char **str);
+int nson_to_json(const Nson *nson, char **str);
 
 /**
  * @brief
  * @return
  */
-int nson_to_json_fd(const struct Nson *nson, FILE* fd);
+int nson_to_json_fd(const Nson *nson, FILE* fd);
 
 /* INI */
 
@@ -427,13 +428,13 @@ int nson_to_json_fd(const struct Nson *nson, FILE* fd);
  * @brief
  * @return
  */
-int nson_parse_ini(struct Nson *nson, const char *doc, size_t len);
+int nson_parse_ini(Nson *nson, const char *doc, size_t len);
 
 /**
  * @brief
  * @return
  */
-int nson_load_ini(struct Nson *nson, const char *file);
+int nson_load_ini(Nson *nson, const char *file);
 
 /* PLIST */
 
@@ -441,50 +442,50 @@ int nson_load_ini(struct Nson *nson, const char *file);
  * @brief
  * @return
  */
-int nson_load_plist(struct Nson *nson, const char *file);
+int nson_load_plist(Nson *nson, const char *file);
 
 /**
  * @brief
  * @return
  */
-int nson_parse_plist(struct Nson *nson, const char *doc, size_t len);
+int nson_parse_plist(Nson *nson, const char *doc, size_t len);
 
 /**
  * @brief
  * @return
  */
-int nson_to_plist(struct Nson *nson, char **str);
+int nson_to_plist(Nson *nson, char **str);
 
 /**
  * @brief
  * @return
  */
-int nson_to_plist_fd(struct Nson *nson, FILE* fd);
+int nson_to_plist_fd(Nson *nson, FILE* fd);
 
 
 /* POOL */
 
-struct NsonPool {
+typedef struct NsonPool {
 	int worker;
-};
+} NsonPool;
 
 /**
  * @brief
  * @return
  */
-int nson_pool_init(struct NsonPool *pool);
+int nson_pool_init(NsonPool *pool);
 
 /**
  * @brief
  * @return
  */
-int nson_pool_filter(struct Nson* nson, struct NsonPool *pool,
+int nson_pool_filter(Nson* nson, NsonPool *pool,
 		NsonFilter filter);
 
 /**
  * @brief
  * @return
  */
-int nson_pool_map(struct Nson* nson, struct NsonPool *pool, NsonMapper mapper);
+int nson_pool_map(Nson* nson, NsonPool *pool, NsonMapper mapper);
 
 #endif /* !NSON_H */

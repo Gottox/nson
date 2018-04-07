@@ -67,7 +67,7 @@ parse_tag(char *doc, const char **tag) {
 }
 
 static int
-plist_mapper_string(off_t index, struct Nson *nson) {
+plist_mapper_string(off_t index, Nson *nson) {
 	size_t len;
 	off_t t_len;
 	int rv, val;
@@ -109,7 +109,7 @@ plist_mapper_string(off_t index, struct Nson *nson) {
 }
 
 static int
-plist_parse_string(struct Nson *nson, const char *start_tag, char *doc) {
+plist_parse_string(Nson *nson, const char *start_tag, char *doc) {
 	int rv;
 	off_t end = 0, len;
 	char *p;
@@ -127,10 +127,10 @@ plist_parse_string(struct Nson *nson, const char *start_tag, char *doc) {
 
 	if (start_tag[0] == 'd') {
 		rv = nson_init_data(nson, doc, len, NSON_BLOB);
-		nson->val.d.mapper = nson_mapper_b64_dec;
+		nson->c.mapper = nson_mapper_b64_dec;
 	} else {
 		rv = nson_init_data(nson, doc, len, NSON_STR);
-		nson->val.d.mapper = plist_mapper_string;
+		nson->c.mapper = plist_mapper_string;
 	}
 	if(rv < 0)
 		return rv;
@@ -139,14 +139,14 @@ plist_parse_string(struct Nson *nson, const char *start_tag, char *doc) {
 }
 
 static int
-plist_parse_type(struct Nson *nson, char *doc);
+plist_parse_type(Nson *nson, char *doc);
 
 static int
-plist_parse_object(struct Nson *nson, const char *start_tag, char *doc) {
+plist_parse_object(Nson *nson, const char *start_tag, char *doc) {
 	int rv;
 	size_t len = 0;
 	off_t i = 0;
-	struct Nson elem;
+	Nson elem;
 	const char *tag;
 
 	nson_init(nson, start_tag[0] == 'd' ? NSON_OBJ : NSON_ARR);
@@ -183,7 +183,7 @@ plist_parse_object(struct Nson *nson, const char *start_tag, char *doc) {
 }
 
 static int
-plist_parse_type(struct Nson *nson, char *doc) {
+plist_parse_type(Nson *nson, char *doc) {
 	int rv;
 	off_t i = 0;
 	const char *tag;
@@ -233,12 +233,12 @@ plist_parse_type(struct Nson *nson, char *doc) {
 }
 
 int
-nson_load_plist(struct Nson *nson, const char *file) {
+nson_load_plist(Nson *nson, const char *file) {
 	return nson_load(nson_parse_plist, nson, file);
 }
 
 int
-nson_parse_plist(struct Nson *nson, const char *cdoc, size_t len) {
+nson_parse_plist(Nson *nson, const char *cdoc, size_t len) {
 	int rv;
 	off_t i = 0;
 	const char *tag;
@@ -278,11 +278,11 @@ nson_parse_plist(struct Nson *nson, const char *cdoc, size_t len) {
 }
 
 static int
-plist_escape(struct Nson *nson, FILE *fd) {
+plist_escape(Nson *nson, FILE *fd) {
 	off_t i = 0, last_write = 0;
 	size_t len;
 	char *escape = NULL;
-	const char *str = nson->val.d.b;
+	const char *str = nson->d.b;
 
 	if(str == NULL) {
 		return 0;
@@ -327,9 +327,9 @@ plist_escape(struct Nson *nson, FILE *fd) {
 }
 
 static int
-plist_b64_enc(const struct Nson *nson, FILE* fd) {
+plist_b64_enc(const Nson *nson, FILE* fd) {
 	int rv = 0;
-	struct Nson tmp;
+	Nson tmp;
 
 	if(nson_clone(&tmp, nson))
 		rv = -1;
@@ -346,7 +346,7 @@ plist_b64_enc(const struct Nson *nson, FILE* fd) {
 }
 
 static int
-to_plist(struct Nson *nson, const char *string_overwrite, FILE *fd) {
+to_plist(Nson *nson, const char *string_overwrite, FILE *fd) {
 	off_t i;
 	int rv;
 	enum NsonInfo type = nson_type(nson);
@@ -389,7 +389,7 @@ to_plist(struct Nson *nson, const char *string_overwrite, FILE *fd) {
 }
 
 int
-nson_to_plist_fd(struct Nson *nson, FILE *fd) {
+nson_to_plist_fd(Nson *nson, FILE *fd) {
 	fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 		"<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" "
 		"\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"
@@ -400,7 +400,7 @@ nson_to_plist_fd(struct Nson *nson, FILE *fd) {
 }
 
 int
-nson_to_plist(struct Nson *nson, char **str) {
+nson_to_plist(Nson *nson, char **str) {
 	int rv;
 	size_t size = 0;
 	FILE *fd = open_memstream(str, &size);

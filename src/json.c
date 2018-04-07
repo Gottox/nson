@@ -68,7 +68,7 @@ json_parse_utf8(char *dest, const char *src) {
 }
 
 static int
-json_mapper_unescape(off_t index, struct Nson* nson) {
+json_mapper_unescape(off_t index, Nson* nson) {
 	size_t t_len = 0, len;
 	char *p;
 	int rv;
@@ -112,21 +112,21 @@ json_mapper_unescape(off_t index, struct Nson* nson) {
 }
 
 static int
-json_escape(const struct Nson *nson, FILE *fd) {
+json_escape(const Nson *nson, FILE *fd) {
 	int rv = 0;
 	off_t i = 0, last_write = 0;
 	char c[] = { '\\', 0 };
-	struct Nson tmp = { 0 };
+	Nson tmp = { 0 };
 	const char *data;
 	size_t len;
 
 	if(fputc('"', fd) < 0)
 		return -1;
 
-	if(nson->val.d.mapper == json_mapper_unescape) {
+	if(nson->c.mapper == json_mapper_unescape) {
 		// Not escaped yet, we can dump it directly
-		len = nson->val.d.len;
-		if(fwrite(nson->val.d.b, sizeof(char), len, fd) != len)
+		len = nson->d.len;
+		if(fwrite(nson->d.b, sizeof(char), len, fd) != len)
 			return -1;
 		else if(fputc('"', fd) < 0)
 			return -1;
@@ -184,12 +184,12 @@ cleanup:
 }
 
 int
-nson_load_json(struct Nson *nson, const char *file) {
+nson_load_json(Nson *nson, const char *file) {
 	return nson_load(nson_parse_json, nson, file);
 }
 
 int
-nson_parse_json(struct Nson *nson, const char *doc, size_t len) {
+nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	int rv = 0;
 	off_t row = 0;
 	int64_t i_val;
@@ -197,8 +197,8 @@ nson_parse_json(struct Nson *nson, const char *doc, size_t len) {
 	const char *p = doc;
 	const char *begin, *line_start = p;
 	size_t stack_size = 1;
-	struct Nson *stack_top, *old_top;
-	struct Nson stack = { 0 }, tmp = { 0 };
+	Nson *stack_top, *old_top;
+	Nson stack = { 0 }, tmp = { 0 };
 
 	memset(nson, 0, sizeof(*nson));
 	nson_init(&tmp, NSON_ARR);
@@ -219,7 +219,7 @@ nson_parse_json(struct Nson *nson, const char *doc, size_t len) {
 			nson_mem_capacity(&stack, stack_size);
 			stack_top = nson_get(&stack, stack_size - 1);
 			nson_init(stack_top, *p == '{' ? NSON_OBJ : NSON_ARR);
-			stack_top->val.a.messy = 1;
+			stack_top->a.messy = 1;
 			p++;
 			break;
 		case ',':
@@ -246,7 +246,7 @@ nson_parse_json(struct Nson *nson, const char *doc, size_t len) {
 				goto out;
 			}
 			nson_init_ptr(&tmp, begin, p - begin, NSON_STR);
-			tmp.val.d.mapper = json_mapper_unescape;
+			tmp.c.mapper = json_mapper_unescape;
 			nson_add(stack_top, &tmp);
 			p++;
 			break;
@@ -312,7 +312,7 @@ out:
 }
 
 int
-nson_to_json(const struct Nson *nson, char **str) {
+nson_to_json(const Nson *nson, char **str) {
 	int rv;
 	size_t size = 0;
 	FILE *fd = open_memstream(str, &size);
@@ -325,9 +325,9 @@ nson_to_json(const struct Nson *nson, char **str) {
 }
 
 static int
-json_b64_enc(const struct Nson *nson, FILE* fd) {
+json_b64_enc(const Nson *nson, FILE* fd) {
 	int rv = 0;
-	struct Nson tmp;
+	Nson tmp;
 
 	if(nson_clone(&tmp, nson))
 		rv = -1;
@@ -344,7 +344,7 @@ json_b64_enc(const struct Nson *nson, FILE* fd) {
 }
 
 int
-nson_to_json_fd(const struct Nson *nson, FILE* fd) {
+nson_to_json_fd(const Nson *nson, FILE* fd) {
 	char start = '[', *seperator = ",,", terminal = ']';
 	off_t i;
 

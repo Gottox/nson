@@ -11,7 +11,7 @@
 
 void nson_plist() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = nson_load_plist(&nson, BENCH_PLIST);
 	assert(rv >= 0);

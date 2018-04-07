@@ -34,7 +34,7 @@
 static void
 no_such_file() {
 	int rv;
-	struct Nson config;
+	Nson config;
 	rv = nson_load_ini(&config, "./no-such-file");
 	assert(rv < 0);
 	assert(errno == ENOENT);
@@ -46,7 +46,7 @@ no_such_file() {
 static void
 syntax_error() {
 	int rv;
-	struct Nson config;
+	Nson config;
 	rv = nson_parse_ini(&config, NSON_P("value_missing\n"));
 	assert(rv < 0);
 	nson_clean(&config);
@@ -57,7 +57,7 @@ syntax_error() {
 static void
 three_elements() {
 	int rv;
-	struct Nson config;
+	Nson config;
 	rv = nson_parse_ini(&config, NSON_P(
 			"key1 value1\n"
 			"key2 value2\n"
@@ -68,15 +68,15 @@ three_elements() {
 	assert(nson_len(&config) == 3);
 
 	assert(strcmp("key1", nson_get_key(&config, 0)) == 0);
-	struct Nson *e1 = nson_get(&config, 0);
+	Nson *e1 = nson_get(&config, 0);
 	assert(strcmp("value1", nson_str(e1)) == 0);
 
 	assert(strcmp("key2", nson_get_key(&config, 1)) == 0);
-	struct Nson *e2 = nson_get(&config, 1);
+	Nson *e2 = nson_get(&config, 1);
 	assert(strcmp("value2", nson_str(e2)) == 0);
 
 	assert(strcmp("key2", nson_get_key(&config, 2)) == 0);
-	struct Nson *e3 = nson_get(&config, 2);
+	Nson *e3 = nson_get(&config, 2);
 	assert(strcmp("value3", nson_str(e3)) == 0);
 	nson_clean(&config);
 

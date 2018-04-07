@@ -32,7 +32,7 @@
 
 static void
 create_array() {
-	struct Nson nson;
+	Nson nson;
 	nson_init(&nson, NSON_ARR);
 	assert(nson_type(&nson) == NSON_ARR);
 	assert(nson_len(&nson) == 0);
@@ -40,7 +40,7 @@ create_array() {
 
 static void
 add_int_to_array() {
-	struct Nson nson;
+	Nson nson;
 	nson_init(&nson, NSON_ARR);
 	assert(nson_type(&nson) == NSON_ARR);
 	assert(nson_len(&nson) == 0);
@@ -51,7 +51,7 @@ add_int_to_array() {
 
 static void
 clone_array() {
-	struct Nson nson, clone;
+	Nson nson, clone;
 	NSON(&nson, [ 1, 2 ]);
 
 	nson_clone(&clone, &nson);
@@ -63,7 +63,7 @@ clone_array() {
 static void
 sort_array() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = NSON(&nson, [5,4,3,2,1]);
 	assert(rv >= 0);
@@ -82,7 +82,7 @@ sort_array() {
 static void
 sort_object() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = NSON(&nson, {
 			"e":"five",
@@ -111,14 +111,14 @@ sort_object() {
 }
 
 static int
-filter_lesser_5(const struct Nson *nson) {
+filter_lesser_5(const Nson *nson) {
 	return nson_int(nson) < 5;
 }
 
 static void
 filter_array() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = NSON(&nson, [ 1, 5, 2, 5, 5, 3, 5]);
 	assert(rv >= 0);
@@ -137,7 +137,7 @@ filter_array() {
 static void
 filter_object() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = NSON(&nson, {
 			"a": 1,

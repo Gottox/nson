@@ -38,13 +38,13 @@ static const char base64_table[] =
 
 static int
 nson_cmp_stable(const void *a, const void *b) {
-	const struct Nson *na = a, *nb = b;
+	const Nson *na = a, *nb = b;
 	int rv = nson_cmp(na, nb);
 	return rv ? rv : (na - nb);
 }
 
 int
-nson_mapper_b64_dec(off_t index, struct Nson *nson) {
+nson_mapper_b64_dec(off_t index, Nson *nson) {
 	char *p;
 	int8_t v;
 	off_t i, j;
@@ -96,7 +96,7 @@ nson_mapper_b64_dec(off_t index, struct Nson *nson) {
 }
 
 int
-nson_mapper_b64_enc(off_t index, struct Nson *nson) {
+nson_mapper_b64_enc(off_t index, Nson *nson) {
 	off_t i, j;
 	char *dest;
 	size_t dest_len;
@@ -105,8 +105,8 @@ nson_mapper_b64_enc(off_t index, struct Nson *nson) {
 	enum NsonInfo type = nson_type(nson);
 	assert(type & NSON_DATA);
 
-	if(nson->val.d.mapper == nson_mapper_b64_dec) {
-		nson->val.d.mapper = NULL;
+	if(nson->c.mapper == nson_mapper_b64_dec) {
+		nson->c.mapper = NULL;
 		return nson_data_len(nson);
 	}
 
@@ -144,43 +144,43 @@ nson_mapper_b64_enc(off_t index, struct Nson *nson) {
 	return dest_len;
 }
 
-struct Nson *
-nson_get_by_key(const struct Nson *nson, const char *key) {
-	struct Nson needle = { .val.d.b = (char *)key, .val.d.len = strlen(key) };
-	struct Nson *result;
+Nson *
+nson_get_by_key(const Nson *nson, const char *key) {
+	Nson needle = { .d.b = (char *)key, .d.len = strlen(key) };
+	Nson *result;
 	size_t len, size;
 
 	assert(nson_type(nson) == NSON_OBJ);
-	len = nson->val.a.len / 2;
+	len = nson->a.len / 2;
 	size = sizeof(needle) * 2;
-	if (nson->val.a.messy)
-		result = lfind(&needle, nson->val.a.arr, &len, size, nson_cmp);
+	if (nson->a.messy)
+		result = lfind(&needle, nson->a.arr, &len, size, nson_cmp);
 	else
-		result = bsearch(&needle, nson->val.a.arr, len, size, nson_cmp);
+		result = bsearch(&needle, nson->a.arr, len, size, nson_cmp);
 	return result;
 }
 
 int
-nson_sort(struct Nson *nson) {
+nson_sort(Nson *nson) {
 	assert(nson_type(nson) & (NSON_OBJ | NSON_ARR));
 	size_t len = nson_mem_len(nson);
 	size_t size = sizeof(*nson);
 
-	if (!nson->val.a.messy)
+	if (!nson->a.messy)
 		return 0;
 
 	if (nson_type(nson) == NSON_OBJ) {
 		len /= 2;
 		size *= 2;
 	}
-	qsort(nson->val.a.arr, len, size, nson_cmp_stable);
-	nson->val.a.messy = 0;
+	qsort(nson->a.arr, len, size, nson_cmp_stable);
+	nson->a.messy = 0;
 
 	return 0;
 }
 
 int
-nson_map(struct Nson *nson, NsonMapper mapper) {
+nson_map(Nson *nson, NsonMapper mapper) {
 	int rv = 0;
 	off_t i;
 	size_t len;
@@ -194,7 +194,7 @@ nson_map(struct Nson *nson, NsonMapper mapper) {
 }
 
 int
-nson_filter(struct Nson *nson, NsonFilter filter) {
+nson_filter(Nson *nson, NsonFilter filter) {
 	int rv = 0;
 	off_t i;
 	size_t del_size = 0, len;

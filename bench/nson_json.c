@@ -11,7 +11,7 @@
 
 void nson_json() {
 	int rv;
-	struct Nson nson;
+	Nson nson;
 
 	rv = nson_load_json(&nson, BENCH_JSON);
 	assert(rv >= 0);

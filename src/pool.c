@@ -31,22 +31,22 @@
 #include "config.h"
 #include "nson.h"
 
-int nson_pool_init(struct NsonPool *pool) {
+int nson_pool_init(NsonPool *pool) {
 	memset(pool, 0, sizeof(*pool));
 	return 0;
 }
 
 int
-nson_pool_filter(struct Nson* nson, struct NsonPool *pool, NsonFilter filter) {
+nson_pool_filter(Nson* nson, NsonPool *pool, NsonFilter filter) {
 	return nson_filter(nson, filter);
 }
 
 int
-nson_pool_map(struct Nson* nson, struct NsonPool *pool, NsonMapper mapper) {
+nson_pool_map(Nson* nson, NsonPool *pool, NsonMapper mapper) {
 	return nson_map(nson, mapper);
 }
 
 int
-nson_pool_clean(struct NsonPool *nson) {
+nson_pool_clean(NsonPool *nson) {
 	return 0;
 }
