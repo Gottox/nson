@@ -34,6 +34,7 @@
 
 #include "config.h"
 #include "nson.h"
+#include "util.h"
 
 static int
 json_parse_utf8(char *dest, const char *src) {
@@ -270,22 +271,11 @@ nson_parse_json(struct Nson *nson, const char *doc, size_t len) {
 		case '7':
 		case '8':
 		case '9':
-			begin = p;
-			if(*p == '-')
-				p++;
-			for (i_val = 0; *p >= '0' && *p <= '9'; p++)
-				i_val += (i_val * 10) + *p - '0';
-			if (*p == '.') {
-				p++;
-				for(r_val = 0; *p >= '0' && *p <= '9'; p++)
-					r_val += (r_val * 0.1) + (*p - '0');
-				r_val += i_val;
-				nson_init_real(&tmp, *begin == '-' ? -r_val : r_val);
-			}
-			else {
-				nson_init_int(&tmp, *begin == '-' ? -i_val : i_val);
-			}
-
+			p = parse_number(&r_val, &i_val, p, p - doc);
+			if(isnan(r_val))
+				nson_init_int(&tmp, i_val);
+			else
+				nson_init_real(&tmp, r_val);
 			nson_add(stack_top, &tmp);
 			break;
 		default:

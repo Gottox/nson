@@ -10,7 +10,9 @@ CFLAGS = -Wall -Werror -Wpedantic -O0 -g
 ## Comment this in for coverage reports
 #CFLAGS += -fprofile-arcs -ftest-coverage
 
-HDR = src/nson.h
+HDR = \
+	src/nson.h \
+	src/util.h
 
 SRC = \
 	src/data.c \

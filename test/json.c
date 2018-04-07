@@ -45,6 +45,21 @@ parse_true() {
 }
 
 static void
+parse_double() {
+	int rv;
+	struct Nson nson;
+
+	rv = NSON(&nson, 5.2);
+	assert(rv >= 0);
+	assert(nson_int(&nson) == 5);
+	printf("%f\n\n", nson_real(&nson));
+	assert(nson_real(&nson) == 5.2);
+	nson_clean(&nson);
+
+	(void)rv;
+}
+
+static void
 parse_number() {
 	int rv;
 	struct Nson nson;
@@ -321,6 +336,7 @@ stringify_object() {
 
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);
+	puts(result);
 	assert(strcmp("{\"a\":1}", result) == 0);
 	nson_clean(&nson);
 
@@ -345,6 +361,7 @@ void stringify_data() {
 
 DEFINE
 TEST(parse_true);
+TEST(parse_double);
 TEST(parse_number);
 TEST(parse_empty_string);
 TEST(object_with_one_element);
