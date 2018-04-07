@@ -34,24 +34,25 @@ skip_tag(const char *tag, const char *p, const size_t len) {
 static int
 parse_plist(const char *doc) {
 	int rv = 0;
+	int len = strlen(doc);
 	int64_t i_val;
 	double r_val;
 	const char *p = doc;
 	const char *string_tag;
 	size_t stack_size = 1;
-	rv = skip_tag("<?xml", p, doc - p);
+	rv = skip_tag("<?xml", p, len - (doc - p));
 	if (rv <= 0)
 		return -1;
 	p += rv;
 	SKIP_SPACES;
 
-	rv = skip_tag("<!DOCTYPE", p, doc - p);
+	rv = skip_tag("<!DOCTYPE", p, len - (doc - p));
 	if (rv <= 0)
 		return -1;
 	p += rv;
 	SKIP_SPACES;
 
-	rv = skip_tag("<plist", p, doc - p);
+	rv = skip_tag("<plist", p, len - (doc - p));
 	if (rv <= 0)
 		return -1;
 	p += rv;
@@ -67,13 +68,13 @@ parse_plist(const char *doc) {
 			string_tag = "string";
 			switch(*p) {
 				case 'd':
-					if((rv = skip_tag("dict", p, doc - p)) <= 0)
+					if((rv = skip_tag("dict", p, len - (doc - p))) <= 0)
 						break;
 					stack_size++;
 					p += rv;
 					break;
 				case 'a':
-					if((rv = skip_tag("array", p, doc - p)) <= 0)
+					if((rv = skip_tag("array", p, len - (doc - p))) <= 0)
 						break;
 					stack_size++;
 					p += rv;
@@ -82,13 +83,13 @@ parse_plist(const char *doc) {
 					p++;
 					switch(*p) {
 						case 'd':
-							if((rv = skip_tag("dict", p, doc - p)) <= 0)
+							if((rv = skip_tag("dict", p, len - (doc - p))) <= 0)
 								break;
 							stack_size--;
 							p += rv;
 							break;
 						case 'a':
-							if((rv = skip_tag("array", p, doc - p)) <= 0)
+							if((rv = skip_tag("array", p, len - (doc - p))) <= 0)
 								break;
 							stack_size--;
 							p += rv;
@@ -97,28 +98,28 @@ parse_plist(const char *doc) {
 				case 'k':
 					string_tag = "key";
 				case 's':
-					if((rv = skip_tag(string_tag, p, doc - p)) <= 0)
+					if((rv = skip_tag(string_tag, p, len - (doc - p))) <= 0)
 						break;
 					p += rv;
 					for(rv = 0; rv == 0;) {
-						if(!(p = memchr(p, '<', doc - p)))
+						if(!(p = memchr(p, '<', len - (doc - p))))
 							goto err;
 						p++;
 						if(*p != '/')
 							break;
 						p++;
-						if((rv = skip_tag(string_tag, p, doc - p)) > 0)
+						if((rv = skip_tag(string_tag, p, len - (doc - p))) > 0)
 							p += rv;
 					}
 				case 'r':
-					if((rv = skip_tag("real", p, doc - p)) <= 0)
+					if((rv = skip_tag("real", p, len - (doc - p))) <= 0)
 						break;
-					p = parse_number(&r_val, NULL, p, doc - p);
+					p = parse_number(&r_val, NULL, p, len - (doc - p));
 					break;
 				case 'i':
-					if((rv = skip_tag("integer", p, doc - p)) <= 0)
+					if((rv = skip_tag("integer", p, len - (doc - p))) <= 0)
 						break;
-					p = parse_int(&i_val, p, doc - p);
+					p = parse_int(&i_val, p, len - (doc - p));
 					break;
 			}
 			break;
@@ -128,7 +129,7 @@ parse_plist(const char *doc) {
 		}
 	} while(stack_size > 1);
 	SKIP_SPACES;
-	rv = skip_tag("</plist", p, doc - p);
+	rv = skip_tag("</plist", p, len - (doc - p));
 	if(rv > 0)
 		p += rv;
 	SKIP_SPACES;
@@ -189,7 +190,7 @@ parse_json(const char *doc, const size_t len) {
 		case '7':
 		case '8':
 		case '9':
-			p = parse_number(&r_val, &i_val, p, doc - p);
+			p = parse_number(&r_val, &i_val, p, len - (doc - p));
 			break;
 		default:
 			if(strncmp(p, "null", 4) == 0) {

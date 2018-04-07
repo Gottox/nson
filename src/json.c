@@ -198,8 +198,8 @@ nson_parse_json(struct Nson *nson, const char *doc, size_t len) {
 	const char *begin, *line_start = p;
 	size_t stack_size = 1;
 	struct Nson *stack_top, *old_top;
-
 	struct Nson stack = { 0 }, tmp = { 0 };
+
 	memset(nson, 0, sizeof(*nson));
 	nson_init(&tmp, NSON_ARR);
 	nson_init(&stack, NSON_ARR);
@@ -271,7 +271,7 @@ nson_parse_json(struct Nson *nson, const char *doc, size_t len) {
 		case '7':
 		case '8':
 		case '9':
-			p = parse_number(&r_val, &i_val, p, p - doc);
+			p = parse_number(&r_val, &i_val, p, len - (doc - p));
 			if(isnan(r_val))
 				nson_init_int(&tmp, i_val);
 			else
