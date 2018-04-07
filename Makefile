@@ -3,7 +3,7 @@
 # tox, 2018-04-02 16:39
 #
 VERSION = 0.1
-CFLAGS = -Wall -Werror -Wpedantic -O0 -g
+CFLAGS = -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -Werror -Wpedantic -O2 -g
 #CFLAGS += -DNDEBUG
 ## Comment this in for profiling
 #CFLAGS += -pg -no-pie
