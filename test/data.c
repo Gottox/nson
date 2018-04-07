@@ -50,6 +50,17 @@ add_int_to_array() {
 }
 
 static void
+clone_array() {
+	struct Nson nson, clone;
+	NSON(&nson, [ 1, 2 ]);
+
+	nson_clone(&clone, &nson);
+
+	assert(nson_int(nson_get(&clone, 0)) == 1);
+	assert(nson_int(nson_get(&clone, 1)) == 2);
+}
+
+static void
 sort_array() {
 	int rv;
 	struct Nson nson;
@@ -158,6 +169,7 @@ filter_object() {
 DEFINE
 TEST(create_array);
 TEST(add_int_to_array);
+TEST(clone_array);
 TEST(sort_array);
 TEST(sort_object);
 TEST(filter_array);

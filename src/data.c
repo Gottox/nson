@@ -245,10 +245,11 @@ nson_mapper_clone(off_t index, struct Nson *nson) {
 		case NSON_ARR:
 		case NSON_OBJ:
 			arr = nson->val.a.arr;
-			nson->val.a.arr = NULL;
 			len = nson_mem_len(nson);
+			nson->val.a.arr = NULL;
+			nson->val.a.len = 0;
 
-			rv = nson_mem_capacity(nson, nson_mem_len(nson));
+			rv = nson_mem_capacity(nson, len);
 			if (rv < 0)
 				return rv;
 			memcpy(nson->val.a.arr, arr, nson_mem_len(nson) * sizeof(*arr));
