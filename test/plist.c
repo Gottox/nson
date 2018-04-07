@@ -270,6 +270,25 @@ parse_data() {
 }
 
 static void
+stringify_object_with_2_members() {
+	int rv;
+	struct Nson nson;
+	char *str;
+
+	rv = NSON(&nson, {"a": 5, "b": 5});
+	assert(rv >= 0);
+	nson_to_plist(&nson, &str);
+	puts(str);
+	assert(strstr(str, "<dict>"
+				"<key>a</key><integer>5</integer>"
+				"<key>b</key><integer>5</integer>"
+				"</dict>"));
+	nson_clean(&nson);
+
+	(void)rv;
+}
+
+static void
 stringify_data() {
 	int rv;
 	struct Nson nson;
@@ -333,6 +352,7 @@ TEST(parse_object_1);
 TEST(parse_object_2);
 TEST(parse_object_spaces);
 TEST(parse_data);
+TEST(stringify_object_with_2_members);
 TEST(stringify_data);
 TEST(stringify_escape);
 TEST(stringify_true);

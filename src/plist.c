@@ -357,13 +357,14 @@ to_plist(struct Nson *nson, const char *string_overwrite, FILE *fd) {
 		if(rv <= 0)
 			return -1;
 		for(i = 0; i < nson_mem_len(nson); i++) {
-			rv = to_plist(nson_get(nson, i), i % 2 == 0 ? "key" : "string", fd);
+			rv = to_plist(nson_mem_get(nson, i), i % 2 == 0 ? "key" : "string", fd);
 			if(rv < 0)
 				return -1;
 		}
 		rv = fputs(type == NSON_ARR ? "</array>" : "</dict>", fd);
 		if(rv <= 0)
 			return -1;
+		break;
 	case NSON_STR:
 		fprintf(fd, "<%s>", string_overwrite);
 		rv = plist_escape(nson, fd);
