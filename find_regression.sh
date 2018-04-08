@@ -5,7 +5,7 @@ BENCH_PLIST=bench/bench-file.plist
 #RANGE="HEAD~10..HEAD"
 RANGE="099a41b..HEAD"
 CFLAGS="$(grep '^CFLAGS[^_A-Z]' config.mk | cut -d= -f 2-) -Wno-error"
-WARMUP=0
+WARMUP=3
 
 ###############################
 
@@ -14,6 +14,8 @@ if [ $# -lt 1 ]; then
 	echo Need test
 	exit 1
 fi
+
+cd $(dirname $(which "$0"))
 
 plotfile=$(mktemp --tmpdir find_regression_plot.XXXXXXXXXX)
 make "$BENCH_JSON" "$BENCH_PLIST"
