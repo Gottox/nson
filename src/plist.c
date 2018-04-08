@@ -171,7 +171,7 @@ plist_parse_object(Nson *nson, const char *start_tag, char *doc) {
 
 		SKIP_SPACES;
 
-		rv = nson_add(nson, &elem);
+		rv = nson_push(nson, &elem);
 		if(rv < 0)
 			return -1;
 		len++;

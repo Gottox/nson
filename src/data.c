@@ -202,7 +202,7 @@ nson_get_key(const Nson *nson, off_t index) {
 }
 
 int
-nson_add(Nson *nson, Nson *val) {
+nson_push(Nson *nson, Nson *val) {
 	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
 	Nson *arr;
 	size_t len = nson_mem_len(nson);
@@ -280,7 +280,7 @@ nson_clone(Nson *nson, const Nson *src) {
 }
 
 int
-nson_add_all(Nson *nson, Nson *src) {
+nson_push_all(Nson *nson, Nson *src) {
 	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
 	assert(nson_type(src) & (NSON_ARR | NSON_OBJ));
 
@@ -298,19 +298,19 @@ nson_add_all(Nson *nson, Nson *src) {
 }
 
 int
-nson_add_str(Nson *nson, const char *val) {
+nson_push_str(Nson *nson, const char *val) {
 	Nson elem;
 
 	nson_init_str(&elem, val);
-	return nson_add(nson, &elem);
+	return nson_push(nson, &elem);
 }
 
 int
-nson_add_int(Nson *nson, int64_t val) {
+nson_push_int(Nson *nson, int64_t val) {
 	Nson elem;
 
 	nson_init_int(&elem, val);
-	return nson_add(nson, &elem);
+	return nson_push(nson, &elem);
 }
 
 int
@@ -318,7 +318,7 @@ nson_insert(Nson *nson, const char *key,
 		Nson* val) {
 	assert(nson_type(nson) == NSON_OBJ);
 
-	if (nson_add_str(nson, key) < 0 || nson_add(nson, val) < 0) {
+	if (nson_push_str(nson, key) < 0 || nson_push(nson, val) < 0) {
 		nson->a.len -= nson->a.len % 2;
 		return -1;
 	}

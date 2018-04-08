@@ -45,7 +45,7 @@ add_int_to_array() {
 	assert(nson_type(&nson) == NSON_ARR);
 	assert(nson_len(&nson) == 0);
 
-	nson_add_int(&nson, 42);
+	nson_push_int(&nson, 42);
 	assert(nson_type(nson_get(&nson, 0)) == NSON_INT);
 }
 

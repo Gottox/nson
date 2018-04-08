@@ -203,7 +203,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	memset(nson, 0, sizeof(*nson));
 	nson_init(&tmp, NSON_ARR);
 	nson_init(&stack, NSON_ARR);
-	nson_add(&stack, &tmp);
+	nson_push(&stack, &tmp);
 
 	/* UNUSED */
 	(void)line_start;
@@ -231,7 +231,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			old_top = stack_top;
 			stack_size--;
 			stack_top = nson_get(&stack, stack_size - 1);
-			nson_add(stack_top, old_top);
+			nson_push(stack_top, old_top);
 			p++;
 			break;
 		case '"':
@@ -247,7 +247,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			}
 			nson_init_ptr(&tmp, begin, p - begin, NSON_STR);
 			tmp.c.mapper = json_mapper_unescape;
-			nson_add(stack_top, &tmp);
+			nson_push(stack_top, &tmp);
 			p++;
 			break;
 		case '\n':
@@ -276,7 +276,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 				nson_init_int(&tmp, i_val);
 			else
 				nson_init_real(&tmp, r_val);
-			nson_add(stack_top, &tmp);
+			nson_push(stack_top, &tmp);
 			break;
 		default:
 			if(strncmp(p, "null", 4) == 0) {
@@ -292,7 +292,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 				rv = -1;
 				goto out;
 			}
-			nson_add(stack_top, &tmp);
+			nson_push(stack_top, &tmp);
 		}
 	} while(stack_size > 1 && p - doc < len);
 

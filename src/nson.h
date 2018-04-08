@@ -243,7 +243,7 @@ const char * nson_get_key(const Nson *nson, off_t index);
  * @brief
  * @return
  */
-int nson_add(Nson *nson, Nson *val);
+int nson_push(Nson *nson, Nson *val);
 
 /**
  * @brief Moves the value of @p src into @p nson
@@ -268,19 +268,19 @@ int nson_clone(Nson *nson, const Nson *src);
  * @brief
  * @return
  */
-int nson_add_all(Nson *nson, Nson *suff);
+int nson_push_all(Nson *nson, Nson *suff);
 
 /**
  * @brief
  * @return
  */
-int nson_add_str(Nson *nson, const char *val);
+int nson_push_str(Nson *nson, const char *val);
 
 /**
  * @brief
  * @return
  */
-int nson_add_int(Nson *nson, int64_t val);
+int nson_push_int(Nson *nson, int64_t val);
 
 /**
  * @brief
