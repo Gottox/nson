@@ -208,7 +208,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 
 	stack_top = nson_get(&stack, 0);
 	// Skip leading Whitespaces
-	for(; strchr("\n\f\r\t\v ", *p); p++);
+	for(; isspace(*p); p++);
 	do {
 		switch(*p) {
 		case '[':
@@ -270,20 +270,36 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			p = parse_number(&tmp, p, len - (doc - p));
 			nson_push(stack_top, &tmp);
 			break;
-		default:
-			if(strncmp(p, "null", 4) == 0) {
-				nson_init_ptr(&tmp, NULL, 0, NSON_STR);
-				p += 4;
-			} else if(strncmp(p, "true", 4) == 0) {
-				nson_init_bool(&tmp, 1);
-				p += 4;
-			} else if(strncmp(p, "false", 5) == 0) {
-				nson_init_bool(&tmp, 0);
-				p += 5;
-			} else {
+		case 'n':
+			if(strncmp(p, "null", 4)) {
 				rv = -1;
 				goto out;
 			}
+			nson_init_ptr(&tmp, NULL, 0, NSON_STR);
+			nson_push(stack_top, &tmp);
+			p += 4;
+			break;
+		case 't':
+			if(strncmp(p, "true", 4)) {
+				rv = -1;
+				goto out;
+			}
+			nson_init_bool(&tmp, 1);
+			nson_push(stack_top, &tmp);
+			p += 4;
+			break;
+		case 'f':
+			if(strncmp(p, "false", 5)) {
+				rv = -1;
+				goto out;
+			}
+			nson_init_bool(&tmp, 0);
+			nson_push(stack_top, &tmp);
+			p += 5;
+			break;
+		default:
+			rv = -1;
+			goto out;
 			nson_push(stack_top, &tmp);
 		}
 	} while(nson_len(&stack) > 1 && p - doc < len);
