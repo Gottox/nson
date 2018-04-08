@@ -47,22 +47,22 @@
 
 #define NSON_P(s) strdup(s), strlen(s)
 
-union Nson;
+struct Nson;
 
 /**
  * @brief function pointer that is used to parse a buffer
  */
-typedef int (*NsonParser)(union Nson *, const char *, size_t);
+typedef int (*NsonParser)(struct Nson *, const char *, size_t);
 
 /**
  * @brief function pointer that is used to map a Nson element
  */
-typedef int (*NsonMapper)(off_t index, union Nson *);
+typedef int (*NsonMapper)(off_t index, struct Nson *);
 
 /**
  * @brief function pointer that is used to filter a Nson element
  */
-typedef int (*NsonFilter)(const union Nson *);
+typedef int (*NsonFilter)(const struct Nson *);
 
 /**
  * @brief type of an Nson Element
@@ -100,36 +100,34 @@ typedef struct NsonCommon {
 } NsonCommon;
 
 typedef struct NsonData {
-	NsonCommon n;
 	const char *b;
 	size_t len;
 } NsonData;
 
 typedef struct NsonArray {
-	NsonCommon n;
-	union Nson *arr;
+	struct Nson *arr;
 	size_t len;
 } NsonArray ;
 
 typedef struct NsonReal {
-	NsonCommon n;
 	double r;
 } NsonReal;
 
 typedef struct NsonInt {
-	NsonCommon n;
 	int64_t i;
 } NsonInt;
 
 /**
  * @brief Data Container
  */
-typedef union Nson {
+typedef struct Nson {
+	union {
+		struct NsonInt i;
+		struct NsonReal r;
+		struct NsonData d;
+		struct NsonArray a;
+	} val;
 	struct NsonCommon c;
-	struct NsonInt i;
-	struct NsonReal r;
-	struct NsonData d;
-	struct NsonArray a;
 } Nson;
 
 /* DATA */

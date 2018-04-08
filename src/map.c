@@ -146,17 +146,17 @@ nson_mapper_b64_enc(off_t index, Nson *nson) {
 
 Nson *
 nson_get_by_key(const Nson *nson, const char *key) {
-	Nson needle = { .d.b = (char *)key, .d.len = strlen(key) };
+	Nson needle = { .val.d.b = (char *)key, .val.d.len = strlen(key) };
 	Nson *result;
 	size_t len, size;
 
 	assert(nson_type(nson) == NSON_OBJ);
-	len = nson->a.len / 2;
+	len = nson->val.a.len / 2;
 	size = sizeof(needle) * 2;
 	if (nson->c.info & NSON_MESSY)
-		result = lfind(&needle, nson->a.arr, &len, size, nson_cmp);
+		result = lfind(&needle, nson->val.a.arr, &len, size, nson_cmp);
 	else
-		result = bsearch(&needle, nson->a.arr, len, size, nson_cmp);
+		result = bsearch(&needle, nson->val.a.arr, len, size, nson_cmp);
 	return result;
 }
 
@@ -173,7 +173,7 @@ nson_sort(Nson *nson) {
 		len /= 2;
 		size *= 2;
 	}
-	qsort(nson->a.arr, len, size, nson_cmp_stable);
+	qsort(nson->val.a.arr, len, size, nson_cmp_stable);
 	nson->c.info &= ~NSON_MESSY;
 
 	return 0;

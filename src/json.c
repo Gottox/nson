@@ -125,8 +125,8 @@ json_escape(const Nson *nson, FILE *fd) {
 
 	if(nson->c.mapper == json_mapper_unescape) {
 		// Not escaped yet, we can dump it directly
-		len = nson->d.len;
-		if(fwrite(nson->d.b, sizeof(char), len, fd) != len)
+		len = nson->val.d.len;
+		if(fwrite(nson->val.d.b, sizeof(char), len, fd) != len)
 			return -1;
 		else if(fputc('"', fd) < 0)
 			return -1;
