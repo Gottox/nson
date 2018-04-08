@@ -60,7 +60,7 @@ nson_mapper_b64_dec(off_t index, Nson *nson) {
 		return -1;
 
 	for (i = j = 0; i < src_len && src[i] != '='; i++) {
-		p = strchr(base64_table, src[i]);
+		p = memchr(base64_table, src[i], 64);
 		if(p == NULL)
 			break;
 		v = p - base64_table;
@@ -83,14 +83,13 @@ nson_mapper_b64_dec(off_t index, Nson *nson) {
 		}
 	}
 
-	for(; i % 4 != 0 && i < src_len && src[i] == '='; i++)
-		j--;
+	for(; i % 4 != 0 && i < src_len && src[i] == '='; i++);
 
 	if(i % 4 != 0)
 		return -1;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, j + 1, NSON_BLOB);
+	nson_init_data(nson, dest, j, NSON_BLOB);
 
 	return i;
 }
@@ -100,7 +99,7 @@ nson_mapper_b64_enc(off_t index, Nson *nson) {
 	off_t i, j;
 	char *dest;
 	size_t dest_len;
-	char reminder = 0;
+	int reminder = 0;
 	static const char mask = (1 << 6) - 1;
 	assert(nson_type(nson) & NSON_DATA);
 
@@ -121,11 +120,11 @@ nson_mapper_b64_enc(off_t index, Nson *nson) {
 		switch(i % 3) {
 		case 0:
 			dest[j] = base64_table[(src[i] >> 2) & mask];
-			reminder = src[i] << 4;
+			reminder = (src[i] << 4) & mask;
 			break;
 		case 1:
 			dest[j] = base64_table[(src[i] >> 4 | reminder) & mask];
-			reminder = src[i] << 2;
+			reminder = (src[i] << 2) & mask;
 			break;
 		case 2:
 			dest[j++] = base64_table[(src[i] >> 6 | reminder) & mask];
@@ -133,9 +132,10 @@ nson_mapper_b64_enc(off_t index, Nson *nson) {
 			break;
 		}
 	}
-	if(j % 3)
+	if(dest_len != j) {
 		dest[j] = base64_table[reminder & mask];
-	memset(&dest[j+1], '=', 3 - (j % 3));
+		memset(&dest[j + 1], '=', dest_len - j - 1);
+	}
 
 	nson_clean(nson);
 	nson_init_data(nson, dest, dest_len, NSON_STR);

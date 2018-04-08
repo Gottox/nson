@@ -6,7 +6,7 @@ include config.mk
 
 HDR = \
 	src/nson.h \
-	src/util.h
+	src/util.h \
 
 SRC = \
 	src/data.c \
@@ -24,6 +24,7 @@ TST = \
 	test/json.c \
 	test/ini.c \
 	test/plist.c \
+	test/map.c \
 
 TST_EXE = $(TST:.c=-test)
 TST_CFLAGS =
