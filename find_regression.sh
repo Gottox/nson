@@ -1,42 +1,33 @@
 #! /bin/sh
 
-set -e
+BENCH_JSON=bench/bench-file.json
+BENCH_PLIST=bench/bench-file.plist
+#RANGE="HEAD~10..HEAD"
+RANGE="099a41b..HEAD"
+CFLAGS="$(grep '^CFLAGS[^_A-Z]' config.mk | cut -d= -f 2-) -Wno-error"
+WARMUP=0
 
+###############################
+
+set -e
 if [ $# -lt 1 ]; then
 	echo Need test
 	exit 1
 fi
 
-timeout() {
-	local cmd= sleep= rv=
-
-	"$@" 2>&1 &
-	cmd=$!
-	sleep 1 &
-	sleep=$!
-	wait -n 2>/dev/null
-	rv=$?
-	kill $cmd 2> /dev/null && echo " finished in 1000.0"
-	kill $sleep 2> /dev/null
-	wait 2>/dev/null
-	return $rv
-}
-
-BENCH_JSON=$PWD/bench/bench-file.json
-BENCH_PLIST=$PWD/bench/bench-file.plist
 plotfile=$(mktemp --tmpdir find_regression_plot.XXXXXXXXXX)
 make "$BENCH_JSON" "$BENCH_PLIST"
 head=$(git rev-parse HEAD)
-CFLAGS="$(grep '^CFLAGS[^_A-Z]' config.mk | cut -d= -f 2-) -Wno-error"
 
+BENCH_JSON=$(realpath "$BENCH_JSON")
+BENCH_PLIST=$(realpath "$BENCH_JSON")
 rm -rf find_regression
 git clone . find_regression
 cd find_regression
 
 git checkout $head 2> /dev/null
 
-
-git log --reverse --format='%h' "HEAD~10..HEAD" | while read -r hash; do
+git log --reverse --format='%h' "$RANGE" | while read -r hash; do
 	git checkout .
 	git checkout "$hash" 2> /dev/null
 	git clean -f 2> /dev/null
@@ -58,7 +49,7 @@ git log --reverse --format='%h' "HEAD~10..HEAD" | while read -r hash; do
 	#find . -name '*.plist' -print0 | xargs -r0 -L 1 cp "$BENCH_PLIST"
 
 	#run for warmup
-	for i in $(seq 1 10); do
+	for i in $(seq 1 $WARMUP) run; do
 		result=$("$@" 2>&1 | grep '^ finished in' | sed 's/^[^0-9.]*//; s/[^0-9.].*//;')
 		#result=$(timeout "$@" | grep '^ finished in' | sed 's/^[^0-9.]*//; s/[^0-9.].*//;')
 	done
@@ -76,6 +67,7 @@ rm -rf find_regression
 gnuplot - <<EOF
 set term png
 set output '$plotfile.png'
-plot '$plotfile' using 0:2 with lines title ""
+set xtics rotate by -45
+plot '$plotfile' using 0:2:xtic(1) with lines title ""
 EOF
 xdg-open $plotfile.png
