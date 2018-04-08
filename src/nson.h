@@ -69,24 +69,24 @@ typedef int (*NsonFilter)(const union Nson *);
 enum NsonInfo {
 	NSON_NONE = 0,
 
-	NSON_MALLOC  = 1 << 0,
-	NSON_MMAP    = 2 << 0,
-	NSON_ALLOC   = NSON_MALLOC | NSON_MMAP,
-
-	NSON_BOOL = 1 << 2,
-	NSON_INT  = 2 << 2,
-	NSON_REAL = 3 << 2,
+	NSON_BOOL = 1 << 0,
+	NSON_INT  = 2 << 0,
+	NSON_REAL = 3 << 0,
 	NSON_PRIM = NSON_BOOL | NSON_INT | NSON_REAL,
 
-	NSON_ARR  = 1 << 4,
-	NSON_OBJ  = 2 << 4,
+	NSON_ARR  = 1 << 2,
+	NSON_OBJ  = 2 << 2,
 	NSON_STOR = NSON_ARR | NSON_OBJ,
 
-	NSON_BLOB = 1 << 6,
-	NSON_STR  = 2 << 6,
+	NSON_BLOB = 1 << 4,
+	NSON_STR  = 2 << 4,
 	NSON_DATA  = NSON_BLOB | NSON_STR,
 
-	NSON_TYPE = NSON_PRIM | NSON_STOR | NSON_DATA
+	NSON_TYPE = NSON_PRIM | NSON_STOR | NSON_DATA,
+
+	NSON_MALLOC  = 1 << 6,
+	NSON_MMAP    = 2 << 6,
+	NSON_ALLOC   = NSON_MALLOC | NSON_MMAP,
 };
 
 typedef struct NsonCommon {
