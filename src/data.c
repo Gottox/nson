@@ -207,9 +207,6 @@ nson_push(Nson *nson, Nson *val) {
 	Nson *arr;
 	size_t len = nson_mem_len(nson);
 
-	assert(!(nson_type(nson) == NSON_OBJ
-			&& len % 2 == 0 && nson_type(val) != NSON_STR));
-
 	nson_mem_capacity(nson, len+1);
 
 	arr = nson_mem_get(nson, len);
@@ -224,6 +221,8 @@ nson_push(Nson *nson, Nson *val) {
 			nson->c.info |= NSON_MESSY;
 		break;
 	case NSON_OBJ:
+		assert(len % 2 == 1 || nson_type(arr) == NSON_STR);
+
 		if(len % 2 == 0 && nson_cmp(&arr[-2], arr) > 0)
 			nson->c.info |= NSON_MESSY;
 		break;

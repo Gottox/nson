@@ -102,8 +102,7 @@ nson_mapper_b64_enc(off_t index, Nson *nson) {
 	size_t dest_len;
 	char reminder = 0;
 	static const char mask = (1 << 6) - 1;
-	enum NsonInfo type = nson_type(nson);
-	assert(type & NSON_DATA);
+	assert(nson_type(nson) & NSON_DATA);
 
 	if(nson->c.mapper == nson_mapper_b64_dec) {
 		nson->c.mapper = NULL;
