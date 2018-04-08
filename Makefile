@@ -16,7 +16,6 @@ SRC = \
 	src/pool.c \
 	src/plist.c \
 
-
 OBJ = $(SRC:.c=.o)
 
 TST = \
@@ -34,12 +33,16 @@ BCH = \
 	bench/json-c.c \
 	bench/ucl.c \
 	bench/proplib.c \
+	bench/jansson.c \
 	bench/nson_json.c \
 	bench/nson_plist.c \
 
 BCH_EXE = $(BCH:.c=-bench)
 BCH_CFLAGS = \
-	$(shell pkg-config --cflags --libs proplib libucl json-c) \
+	$(shell pkg-config --cflags --libs proplib) \
+	$(shell pkg-config --cflags --libs libucl) \
+	$(shell pkg-config --cflags --libs json-c) \
+	$(shell pkg-config --cflags --libs jansson) \
 	'-DBENCH_JSON="$(BENCH_JSON)"' \
 	'-DBENCH_PLIST="$(BENCH_PLIST)"' \
 
