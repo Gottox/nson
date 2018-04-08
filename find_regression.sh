@@ -15,7 +15,7 @@ if [ $# -lt 1 ]; then
 	exit 1
 fi
 
-cd $(dirname $(which "$0"))
+cd "$(dirname $(which "$0"))"
 
 plotfile=$(mktemp --tmpdir find_regression_plot.XXXXXXXXXX)
 make "$BENCH_JSON" "$BENCH_PLIST"
