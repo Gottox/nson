@@ -246,6 +246,18 @@ const char * nson_get_key(const Nson *nson, off_t index);
 int nson_push(Nson *nson, Nson *val);
 
 /**
+ * @brief
+ * @return
+ */
+Nson *nson_last(Nson *nson);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_pop(Nson *dest, Nson *nson);
+
+/**
  * @brief Moves the value of @p src into @p nson
  *
  * @warning if @p src is an array element, the array

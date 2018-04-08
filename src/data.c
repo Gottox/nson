@@ -226,6 +226,23 @@ nson_push(Nson *nson, Nson *val) {
 	return 0;
 }
 
+Nson *
+nson_last(Nson *nson) {
+	if(nson->a.len == 0)
+		return NULL;
+	return &nson->a.arr[nson->a.len - 1];
+}
+
+int
+nson_pop(Nson *dest, Nson *nson) {
+	int rv;
+	rv = nson_move(dest, nson_last(nson));
+	if(rv >= 0)
+		nson->a.len--;
+
+	return rv;
+}
+
 int
 nson_move(Nson *nson, Nson *src) {
 	memcpy(nson, src, sizeof(*src));
