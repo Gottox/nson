@@ -78,4 +78,4 @@ doc
 coverage.*.html
 coverage.html
 cov
-bench/json/auctions.json
+bench/bench-file.*

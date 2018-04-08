@@ -57,9 +57,6 @@ int main(int argc, char **argv) {
 		_color_reset = "\x1b[0m";
 	}
 	strcpy(_progname, argv[0]);
-	if(chdir(dirname(argv[0])) <0) {
-		perror(argv[0]);
-	}
 	return _test_def(argc < 2 ? NULL : argv[1]);
 }
 

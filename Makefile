@@ -2,13 +2,7 @@
 # Makefile
 # tox, 2018-04-02 16:39
 #
-VERSION = 0.1
-CFLAGS = -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -Werror -Wpedantic -O2 -g
-#CFLAGS += -DNDEBUG
-## Comment this in for profiling
-#CFLAGS += -pg -no-pie
-## Comment this in for coverage reports
-#CFLAGS += -fprofile-arcs -ftest-coverage
+include config.mk
 
 HDR = \
 	src/nson.h \
@@ -45,11 +39,8 @@ BCH = \
 BCH_EXE = $(BCH:.c=-bench)
 BCH_CFLAGS = \
 	$(shell pkg-config --cflags --libs proplib libucl json-c) \
-	'-DBENCH_JSON="json/auctions.json"' \
-	'-DBENCH_PLIST="plist/pkgdb-0.38.plist"' \
-
-CATCHSEGV=\
-	$(shell which catchsegv 2> /dev/null)
+	'-DBENCH_JSON="$(BENCH_JSON)"' \
+	'-DBENCH_PLIST="$(BENCH_PLIST)"' \
 
 all: $(OBJ)
 
@@ -66,17 +57,20 @@ src/%.o: src/%.c $(HDR)
 	$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $<
 
 check: $(TST_EXE)
-	@for i in $(TST_EXE); do $(CATCHSEGV) ./$$i || break; done
+	@for i in $(TST_EXE); do ./$$i || break; done
 
-speed: $(BCH_EXE) bench/json/auctions.json
-	@for i in $(BCH_EXE); do $(CATCHSEGV) ./$$i; done
+speed: $(BCH_EXE) $(BENCH_JSON) $(BENCH_PLIST)
+	@for i in $(BCH_EXE); do ./$$i; done
 
 doc: doxygen.conf $(TST) $(SRC) $(HDR) README.md
 	@sed -i "/^PROJECT_NUMBER\s/ s/=.*/= $(VERSION)/" $<
 	@doxygen $<
 
-bench/json/auctions.json:
+bench/bench-file.json:
 	wget http://eu.battle.net/auction-data/258993a3c6b974ef3e6f22ea6f822720/auctions.json -O $@
+
+bench/bench-file.plist:
+	wget https://repo.voidlinux.eu/current/x86_64-repodata -O - | zcat | tar xO index.plist > $@
 
 coverage: check
 	@printf "%s\n" $(CFLAGS) | grep -qx -- '-fprofile-arcs\|-ftest-coverage' || \
@@ -88,7 +82,7 @@ clean:
 	@rm -rf doc cov
 	@rm -f *.gcnp *.gcda
 	@rm -f $(TST_EXE) $(BCH_EXE) $(OBJ)
-	#@rm -f bench/json/auctions.json
+	#@rm -f bench/json/auctions.json bench/plist/index.plist
 
 .PHONY: check all clean speed coverage
 
