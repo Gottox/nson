@@ -35,8 +35,6 @@ static int
 parse_plist(const char *doc) {
 	int rv = 0;
 	int len = strlen(doc);
-	int64_t i_val;
-	double r_val;
 	const char *p = doc;
 	const char *string_tag;
 	size_t stack_size = 1;
@@ -114,12 +112,12 @@ parse_plist(const char *doc) {
 				case 'r':
 					if((rv = skip_tag("real", p, len - (doc - p))) <= 0)
 						break;
-					p = parse_number(&r_val, NULL, p, len - (doc - p));
+					for(; (*p >= '0' && *p <= '9') || *p == '.' || *p == '+' || *p == '-' || *p == 'e'; p++);
 					break;
 				case 'i':
 					if((rv = skip_tag("integer", p, len - (doc - p))) <= 0)
 						break;
-					p = parse_int(&i_val, p, len - (doc - p));
+					for(; (*p >= '0' && *p <= '9') || *p == '.' || *p == '+' || *p == '-'; p++);
 					break;
 			}
 			break;
@@ -140,8 +138,6 @@ err:
 
 static size_t
 parse_json(const char *doc, const size_t len) {
-	int64_t i_val;
-	double r_val;
 	const char *p = doc;
 	size_t stack_size = 1;
 	do {
@@ -190,7 +186,7 @@ parse_json(const char *doc, const size_t len) {
 		case '7':
 		case '8':
 		case '9':
-			p = parse_number(&r_val, &i_val, p, len - (doc - p));
+			for(; (*p >= '0' && *p <= '9') || *p == '.' || *p == '+' || *p == '-' || *p == 'e'; p++);
 			break;
 		default:
 			if(strncmp(p, "null", 4) == 0) {
