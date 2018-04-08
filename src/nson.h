@@ -474,30 +474,4 @@ int nson_to_plist(Nson *nson, char **str);
  */
 int nson_to_plist_fd(Nson *nson, FILE* fd);
 
-
-/* POOL */
-
-typedef struct NsonPool {
-	int worker;
-} NsonPool;
-
-/**
- * @brief
- * @return
- */
-int nson_pool_init(NsonPool *pool);
-
-/**
- * @brief
- * @return
- */
-int nson_pool_filter(Nson* nson, NsonPool *pool,
-		NsonFilter filter);
-
-/**
- * @brief
- * @return
- */
-int nson_pool_map(Nson* nson, NsonPool *pool, NsonMapper mapper);
-
 #endif /* !NSON_H */

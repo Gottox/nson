@@ -13,7 +13,6 @@ SRC = \
 	src/map.c \
 	src/json.c \
 	src/ini.c \
-	src/pool.c \
 	src/plist.c \
 
 OBJ = $(SRC:.c=.o)
