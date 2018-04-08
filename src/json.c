@@ -192,8 +192,6 @@ int
 nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	int rv = 0;
 	off_t row = 0;
-	int64_t i_val;
-	double r_val;
 	const char *p = doc;
 	const char *begin, *line_start = p;
 	Nson *stack_top;
@@ -269,11 +267,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		case '7':
 		case '8':
 		case '9':
-			p = parse_number(&r_val, &i_val, p, len - (doc - p));
-			if(isnan(r_val))
-				nson_init_int(&tmp, i_val);
-			else
-				nson_init_real(&tmp, r_val);
+			p = parse_number(&tmp, p, len - (doc - p));
 			nson_push(stack_top, &tmp);
 			break;
 		default:
