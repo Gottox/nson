@@ -196,8 +196,8 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	double r_val;
 	const char *p = doc;
 	const char *begin, *line_start = p;
-	size_t stack_size = 1;
-	Nson *stack_top, *old_top;
+	Nson *stack_top;
+	Nson old_top;
 	Nson stack = { 0 }, tmp = { 0 };
 
 	memset(nson, 0, sizeof(*nson));
@@ -215,11 +215,10 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		switch(*p) {
 		case '[':
 		case '{':
-			stack_size++;
-			nson_mem_capacity(&stack, stack_size);
-			stack_top = nson_get(&stack, stack_size - 1);
-			nson_init(stack_top, *p == '{' ? NSON_OBJ : NSON_ARR);
+			nson_init(&tmp, *p == '{' ? NSON_OBJ : NSON_ARR);
 			tmp.c.info |= NSON_MESSY;
+			nson_push(&stack, &tmp);
+			stack_top = nson_last(&stack);
 			p++;
 			break;
 		case ',':
@@ -228,10 +227,9 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			break;
 		case ']':
 		case '}':
-			old_top = stack_top;
-			stack_size--;
-			stack_top = nson_get(&stack, stack_size - 1);
-			nson_push(stack_top, old_top);
+			nson_pop(&old_top, &stack);
+			stack_top = nson_last(&stack);
+			nson_push(stack_top, &old_top);
 			p++;
 			break;
 		case '"':
@@ -294,9 +292,9 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			}
 			nson_push(stack_top, &tmp);
 		}
-	} while(stack_size > 1 && p - doc < len);
+	} while(nson_len(&stack) > 1 && p - doc < len);
 
-	if(stack_size != 1) {
+	if(nson_len(&stack) != 1) {
 		// Premature EOF
 		rv = -1;
 		goto out;
