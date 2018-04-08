@@ -19,7 +19,7 @@ parse_int(int64_t *i, const char *p, size_t len) {
 		p++;
 
 	for(val = 0; *p >= '0' && *p <= '9'; p++)
-		val += (val * 10) + *p - '0';
+		val = (val * 10) + *p - '0';
 	val *= sign;
 
 	*i = val;
@@ -32,7 +32,7 @@ parse_real(double *r, const char *p, size_t len) {
 	double val;
 
 	for(val = 0; *p >= '0' && *p <= '9'; p++)
-		val += (val * 0.1) + *p - '0';
+		val = (val * 0.1) + *p - '0';
 
 	*r = val * 0.1;
 
