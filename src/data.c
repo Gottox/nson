@@ -219,18 +219,16 @@ nson_push(Nson *nson, Nson *val) {
 		return 0;
 
 	switch(nson_type(nson)) {
-		case NSON_ARR:
-			nson->c.info &= ~NSON_MESSY;
-			nson->c.info |= nson_cmp(&arr[-1], arr) > 0 ? NSON_MESSY : 0;
-			break;
-		case NSON_OBJ:
-			if (len % 2 == 1)
-				break;
-			nson->c.info &= ~NSON_MESSY;
-			nson->c.info |= nson_cmp(&arr[-2], arr) > 0 ? NSON_MESSY : 0;
-			break;
-		default:
-			break;
+	case NSON_ARR:
+		if(nson_cmp(&arr[-1], arr) > 0)
+			nson->c.info |= NSON_MESSY;
+		break;
+	case NSON_OBJ:
+		if(len % 2 == 0 && nson_cmp(&arr[-2], arr) > 0)
+			nson->c.info |= NSON_MESSY;
+		break;
+	default:
+		break;
 	}
 
 	return 0;
