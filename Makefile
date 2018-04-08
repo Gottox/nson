@@ -61,7 +61,7 @@ src/%.o: src/%.c $(HDR)
 	$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $<
 
 check: $(TST_EXE)
-	@for i in $(TST_EXE); do ./$$i || break; done
+	@for i in $(TST_EXE); do ./$$i || exit 1; done
 
 speed: $(BCH_EXE) $(BENCH_JSON) $(BENCH_PLIST)
 	@for i in $(BCH_EXE); do ./$$i; done
