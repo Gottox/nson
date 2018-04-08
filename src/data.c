@@ -215,13 +215,23 @@ nson_push(Nson *nson, Nson *val) {
 	arr = nson_mem_get(nson, len);
 	nson_move(arr, val);
 
-	if(nson->a.messy || len == 0) {
-	} else if(nson_type(nson) == NSON_ARR) {
-		nson->a.messy = nson_cmp(&arr[-1], arr) < 0;
-	} else if(nson_type(nson) == NSON_OBJ && len % 2 == 0) {
-		nson->a.messy = nson_cmp(&arr[-2], arr) < 0;
+	if(len < 2 || nson->c.info & NSON_MESSY)
+		return 0;
+
+	switch(nson_type(nson)) {
+		case NSON_ARR:
+			nson->c.info &= ~NSON_MESSY;
+			nson->c.info |= nson_cmp(&arr[-1], arr) > 0 ? NSON_MESSY : 0;
+			break;
+		case NSON_OBJ:
+			if (len % 2 == 1)
+				break;
+			nson->c.info &= ~NSON_MESSY;
+			nson->c.info |= nson_cmp(&arr[-2], arr) > 0 ? NSON_MESSY : 0;
+			break;
+		default:
+			break;
 	}
-	len++;
 
 	return 0;
 }

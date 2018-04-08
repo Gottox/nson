@@ -219,7 +219,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			nson_mem_capacity(&stack, stack_size);
 			stack_top = nson_get(&stack, stack_size - 1);
 			nson_init(stack_top, *p == '{' ? NSON_OBJ : NSON_ARR);
-			stack_top->a.messy = 1;
+			tmp.c.info |= NSON_MESSY;
 			p++;
 			break;
 		case ',':

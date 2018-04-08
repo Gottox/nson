@@ -153,7 +153,7 @@ nson_get_by_key(const Nson *nson, const char *key) {
 	assert(nson_type(nson) == NSON_OBJ);
 	len = nson->a.len / 2;
 	size = sizeof(needle) * 2;
-	if (nson->a.messy)
+	if (nson->c.info & NSON_MESSY)
 		result = lfind(&needle, nson->a.arr, &len, size, nson_cmp);
 	else
 		result = bsearch(&needle, nson->a.arr, len, size, nson_cmp);
@@ -166,7 +166,7 @@ nson_sort(Nson *nson) {
 	size_t len = nson_mem_len(nson);
 	size_t size = sizeof(*nson);
 
-	if (!nson->a.messy)
+	if ((nson->c.info & NSON_MESSY) == 0)
 		return 0;
 
 	if (nson_type(nson) == NSON_OBJ) {
@@ -174,7 +174,7 @@ nson_sort(Nson *nson) {
 		size *= 2;
 	}
 	qsort(nson->a.arr, len, size, nson_cmp_stable);
-	nson->a.messy = 0;
+	nson->c.info &= ~NSON_MESSY;
 
 	return 0;
 }

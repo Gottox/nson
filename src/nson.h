@@ -40,6 +40,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 #define NSON(n, ...) nson_parse_json(n, strdup(#__VA_ARGS__), strlen(#__VA_ARGS__))
@@ -87,13 +88,15 @@ enum NsonInfo {
 	NSON_MALLOC  = 1 << 6,
 	NSON_MMAP    = 2 << 6,
 	NSON_ALLOC   = NSON_MALLOC | NSON_MMAP,
+
+	NSON_MESSY   = 1 << 8,
 };
 
 typedef struct NsonCommon {
 	enum NsonInfo info;
-	NsonMapper mapper;
 	void *alloc;
 	size_t alloc_size;
+	NsonMapper mapper;
 } NsonCommon;
 
 typedef struct NsonData {
@@ -106,7 +109,6 @@ typedef struct NsonArray {
 	NsonCommon n;
 	union Nson *arr;
 	size_t len;
-	bool messy;
 } NsonArray ;
 
 typedef struct NsonReal {

@@ -50,6 +50,65 @@ add_int_to_array() {
 }
 
 static void
+check_messy_array() {
+	Nson nson, val;
+	nson_init(&nson, NSON_ARR);
+	assert((nson.c.info & NSON_MESSY) == 0);
+
+	nson_init_int(&val, 5);
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) == 0);
+
+	nson_init_int(&val, 6);
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) == 0);
+
+	nson_init_int(&val, 6);
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) == 0);
+
+	nson_init_int(&val, 4);
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) != 0);
+}
+
+static void
+check_messy_object() {
+	Nson nson, val;
+	nson_init(&nson, NSON_OBJ);
+	assert((nson.c.info & NSON_MESSY) == 0);
+
+	nson_init_str(&val, "a");
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) == 0);
+	nson_init_int(&val, 6);
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) == 0);
+
+	nson_init_str(&val, "b");
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) == 0);
+	nson_init_int(&val, 6);
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) == 0);
+
+	nson_init_str(&val, "c");
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) == 0);
+	nson_init_int(&val, 4);
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) == 0);
+
+	nson_init_str(&val, "b");
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) != 0);
+	nson_init_int(&val, 4);
+	nson_push(&nson, &val);
+	assert((nson.c.info & NSON_MESSY) != 0);
+
+}
+
+static void
 clone_array() {
 	Nson nson, clone;
 	NSON(&nson, [ 1, 2 ]);
@@ -170,6 +229,8 @@ DEFINE
 TEST(create_array);
 TEST(add_int_to_array);
 TEST(clone_array);
+TEST(check_messy_array);
+TEST(check_messy_object);
 TEST(sort_array);
 TEST(sort_object);
 TEST(filter_array);
