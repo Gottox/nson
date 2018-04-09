@@ -68,7 +68,7 @@ json_parse_utf8(char *dest, const char *src) {
 }
 
 static int
-json_mapper_unescape(off_t index, Nson* nson) {
+json_mapper_unescape(off_t index, Nson* nson, void *userdata) {
 	size_t t_len = 0, len;
 	char *p;
 	int rv;
@@ -319,16 +319,112 @@ out:
 	return rv;
 }
 
-int
-nson_to_json(const Nson *nson, char **str) {
-	int rv;
-	size_t size = 0;
-	FILE *fd = open_memstream(str, &size);
-	if(fd == NULL)
-		return -1;
+static int
+json_reducer_stringify(off_t index, Nson *dest, const Nson *nson, const void *user_data) {
+	Nson val;
+	char buf[32];
+	char *tmp;
+	size_t size;
+	FILE *fd;
+	enum NsonInfo type = nson_type(nson);
+	const Nson *parent = user_data;
 
-	rv = nson_to_json_fd(nson, fd);
-	fclose(fd);
+	switch (type) {
+	case NSON_OBJ:
+	case NSON_ARR:
+		nson_init_ptr(&val, type == NSON_OBJ ? "{" : "[", 1, NSON_STR);
+		nson_push(dest, &val);
+
+		nson_reduce(dest, nson, json_reducer_stringify, nson);
+
+		nson_init_ptr(&val, type == NSON_OBJ ? "}" : "]", 1, NSON_STR);
+		nson_push(dest, &val);
+		break;
+	case NSON_BOOL:
+		if(nson_int(nson)) {
+			nson_init_ptr(&val, "true", 4, NSON_STR);
+		} else {
+			nson_init_ptr(&val, "false", 5, NSON_STR);
+		}
+		nson_push(dest, &val);
+		break;
+	case NSON_INT:
+		snprintf(buf, sizeof(buf), "%" PRId64, nson_int(nson));
+		nson_init_str(&val, buf);
+		nson_push(dest, &val);
+		break;
+	case NSON_REAL:
+		snprintf(buf, sizeof(buf), "%f", nson_real(nson));
+		nson_init_str(&val, buf);
+		nson_push(dest, &val);
+		break;
+	case NSON_BLOB:
+		nson_init_ptr(&val, "\"", 1, NSON_STR);
+		nson_push(dest, &val);
+
+		nson_clone(&val, nson);
+		nson_mapper_b64_enc(0, &val, NULL);
+		nson_push(dest, &val);
+
+		nson_init_ptr(&val, "\"", 1, NSON_STR);
+		nson_push(dest, &val);
+
+		break;
+	case NSON_STR:
+		fd = open_memstream(&tmp, &size);
+		if(fd == NULL)
+			return -1;
+		json_escape(nson, fd);
+		fclose(fd);
+		nson_init_ptr(&val, tmp, strlen(tmp), NSON_STR | NSON_MALLOC);
+		nson_push(dest, &val);
+		break;
+	default:
+		break;
+	}
+	if (!parent || nson_mem_len(parent) == index + 1) {
+		return 0;
+	}
+
+	if (parent && nson_type(parent) == NSON_OBJ && index % 2 == 0) {
+		nson_init_ptr(&val, ":", 1, NSON_STR);
+	} else {
+		nson_init_ptr(&val, ",", 1, NSON_STR);
+	}
+	nson_push(dest, &val);
+	return 0;
+}
+
+int
+nson_to_json(Nson *nson, char **str) {
+	int rv = 0;
+	size_t len = 0;
+	off_t i = 0;
+	Nson dest;
+	Nson val;
+	//size_t size = 0;
+	//FILE *fd = open_memstream(str, &size);
+	//if(fd == NULL)
+	//	return -1;
+
+	//rv = nson_to_json_fd(nson, fd);
+	//fclose(fd);
+
+	nson_init(&dest, NSON_ARR);
+	json_reducer_stringify(0, &dest, nson, NULL);
+
+	for(i = 0; i < nson_mem_len(&dest); i++) {
+		len += nson_data_len(nson_mem_get(&dest, i));
+	}
+
+	*str = calloc(len + 1, sizeof(char));
+
+	while(nson_pop(&val, &dest)) {
+		len -= nson_data_len(&val);
+		memcpy(&(*str)[len], nson_str(&val), nson_data_len(&val));
+		nson_clean(&val);
+	}
+
 	return rv;
 }
 
@@ -339,7 +435,7 @@ json_b64_enc(const Nson *nson, FILE* fd) {
 
 	if(nson_clone(&tmp, nson))
 		rv = -1;
-	if(nson_mapper_b64_enc(0, &tmp) < 0)
+	if(nson_mapper_b64_enc(0, &tmp, NULL) < 0)
 		rv = -1;
 	else if(fputc('"', fd) < 0)
 		rv = -1;

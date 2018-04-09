@@ -44,7 +44,7 @@ nson_cmp_stable(const void *a, const void *b) {
 }
 
 int
-nson_mapper_b64_dec(off_t index, Nson *nson) {
+nson_mapper_b64_dec(off_t index, Nson *nson, void *userdata) {
 	char *p;
 	int8_t v;
 	off_t i, j;
@@ -95,7 +95,7 @@ nson_mapper_b64_dec(off_t index, Nson *nson) {
 }
 
 int
-nson_mapper_b64_enc(off_t index, Nson *nson) {
+nson_mapper_b64_enc(off_t index, Nson *nson, void *userdata) {
 	off_t i, j;
 	char *dest;
 	size_t dest_len;
@@ -179,40 +179,42 @@ nson_sort(Nson *nson) {
 }
 
 int
-nson_map(Nson *nson, NsonMapper mapper) {
+nson_reducer_flatten(off_t index, struct Nson *dest, const struct Nson *nson,
+		const void *user_data) {
+	Nson clone;
+
+	if(nson_type(nson) & NSON_STOR)
+		return nson_reduce(dest, nson, nson_reducer_flatten, NULL);
+	else {
+		nson_clone(&clone, nson);
+		return nson_push(dest, &clone);
+	}
+}
+
+int
+nson_reduce(Nson *dest, const Nson *nson, NsonReducer reducer,
+		const void *userdata) {
 	int rv = 0;
 	off_t i;
 	size_t len;
-	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
 
-	len = nson_len(nson);
+	len = nson_mem_len(nson);
 	for (i = 0; rv >= 0 && i < len; i++) {
-		rv = mapper(i, nson_get(nson, i));
+		rv = reducer(i, dest, nson_mem_get(nson, i), userdata);
 	}
 	return rv;
 }
 
 int
-nson_filter(Nson *nson, NsonFilter filter) {
+nson_map(Nson *nson, NsonMapper mapper, void *userdata) {
 	int rv = 0;
 	off_t i;
-	size_t del_size = 0, len;
+	size_t len;
 	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
 
-	len = nson_len(nson);
+	len = nson_mem_len(nson);
 	for (i = 0; rv >= 0 && i < len; i++) {
-		rv = filter(nson_get(nson, i));
-		if (rv == 0)
-			del_size++;
-		else if (del_size) {
-			i -= del_size;
-			len -= del_size;
-			nson_remove(nson, i, del_size);
-			del_size = 0;
-		}
+		rv = mapper(i, nson_mem_get(nson, i), userdata);
 	}
-	if (del_size)
-		nson_remove(nson, i - del_size, del_size);
 	return rv;
 }
-

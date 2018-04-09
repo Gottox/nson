@@ -8,16 +8,28 @@
 #include "../test/test.h"
 
 #include "../src/nson.h"
+Nson nson;
 
-void nson_json() {
+void bench_nson_json() {
 	int rv;
-	Nson nson;
 
 	rv = nson_load_json(&nson, BENCH_JSON);
+
+	assert(rv >= 0);
+	(void)rv;
+}
+
+void bench_nson_to_json() {
+	int rv;
+	char *str;
+
+	nson_to_json(&nson, &str);
+
 	assert(rv >= 0);
 	(void)rv;
 }
 
 DEFINE
-TEST(nson_json);
+TEST(bench_nson_json);
+TEST(bench_nson_to_json);
 DEFINE_END

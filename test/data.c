@@ -169,12 +169,7 @@ sort_object() {
 	(void)rv;
 }
 
-static int
-filter_lesser_5(const Nson *nson) {
-	return nson_int(nson) < 5;
-}
-
-static void
+/*static void
 filter_array() {
 	int rv;
 	Nson nson;
@@ -223,7 +218,7 @@ filter_object() {
 	assert(strcmp(nson_get_key(&nson, 2), "f") == 0);
 
 	(void)rv;
-}
+}*/
 
 DEFINE
 TEST(create_array);
@@ -233,6 +228,6 @@ TEST(check_messy_array);
 TEST(check_messy_object);
 TEST(sort_array);
 TEST(sort_object);
-TEST(filter_array);
-TEST(filter_object);
+//TEST(filter_array);
+//TEST(filter_object);
 DEFINE_END
