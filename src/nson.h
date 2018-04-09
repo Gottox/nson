@@ -100,20 +100,24 @@ typedef struct NsonCommon {
 } NsonCommon;
 
 typedef struct NsonData {
+	struct NsonCommon c;
 	const char *b;
 	size_t len;
 } NsonData;
 
 typedef struct NsonArray {
+	struct NsonCommon c;
 	struct Nson *arr;
 	size_t len;
 } NsonArray ;
 
 typedef struct NsonReal {
+	struct NsonCommon c;
 	double r;
 } NsonReal;
 
 typedef struct NsonInt {
+	struct NsonCommon c;
 	int64_t i;
 } NsonInt;
 
@@ -121,12 +125,10 @@ typedef struct NsonInt {
  * @brief Data Container
  */
 typedef struct Nson {
-	union {
-		struct NsonInt i;
-		struct NsonReal r;
-		struct NsonData d;
-		struct NsonArray a;
-	} val;
+	struct NsonInt i;
+	struct NsonReal r;
+	struct NsonData d;
+	struct NsonArray a;
 	struct NsonCommon c;
 } Nson;
 
