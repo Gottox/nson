@@ -29,7 +29,11 @@
 #ifndef TEST_H
 #define TEST_H
 
+#ifdef NDEBUG
 #undef NDEBUG
+#define _NDEBUG
+#endif
+
 #include <assert.h>
 #include <sys/types.h>
 #include <limits.h>
@@ -61,6 +65,9 @@ int main(int argc, char **argv) {
 	return _test_def(argc < 2 ? NULL : argv[1]);
 }
 
+#ifdef _NDEBUG
+#define ASSERT_ABRT(x) { x; }
+#else
 #define ASSERT_ABRT(x) { \
 	switch(fork()) { \
 	case 0: close(STDERR_FILENO); { x; } exit(0); \
@@ -73,6 +80,7 @@ int main(int argc, char **argv) {
 		} \
 	} \
 }
+#endif
 
 static void run_test(void (*func)(), char *name) {
 	clock_t time = clock();
