@@ -10,7 +10,7 @@ CFLAGS = -Wall -Werror -Wpedantic -O0 -g
 #CFLAGS += -DNDEBUG
 
 ## Comment this in for profiling
-#CFLAGS += -pg -no-pie
+LDFLAGS += -lprofiler
 
 ## Comment this in for coverage reports
 #CFLAGS += -fprofile-arcs -ftest-coverage
