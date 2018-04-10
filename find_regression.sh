@@ -52,7 +52,7 @@ git log --reverse --format='%h' "$RANGE" | while read -r hash; do
 
 	#run for warmup
 	for i in $(seq 1 $WARMUP) run; do
-		result=$("$@" 2>&1 | grep '^ finished in' | sed 's/^[^0-9.]*//; s/[^0-9.].*//;')
+		result=$("$@" 2>&1 | grep '^ finished in' | sed 's/^[^0-9.]*//; s/[^0-9.].*//;' | head -n 1)
 		#result=$(timeout "$@" | grep '^ finished in' | sed 's/^[^0-9.]*//; s/[^0-9.].*//;')
 	done
 
