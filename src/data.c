@@ -244,7 +244,7 @@ nson_last(Nson *nson) {
 
 int
 nson_pop(Nson *dest, Nson *nson) {
-	int rv;
+	int rv = 0;
 	if (nson_len(nson) == 0) {
 		dest = NULL;
 		return 0;
@@ -252,6 +252,7 @@ nson_pop(Nson *dest, Nson *nson) {
 
 	if(dest)
 		rv = nson_move(dest, nson_last(nson));
+
 	if(rv < 0) {
 		return rv;
 	}
