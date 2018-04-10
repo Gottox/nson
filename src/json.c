@@ -213,8 +213,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		switch(*p) {
 		case '[':
 		case '{':
-			nson_init(&tmp, *p == '{' ? NSON_OBJ : NSON_ARR);
-			tmp.c.info |= NSON_MESSY;
+			nson_init(&tmp, (*p == '{' ? NSON_OBJ : NSON_ARR) | NSON_MESSY);
 			nson_push(&stack, &tmp);
 			stack_top = nson_last(&stack);
 			p++;
