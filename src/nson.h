@@ -57,7 +57,7 @@ typedef int (*NsonParser)(struct Nson *, const char *, size_t);
 /**
  * @brief function pointer that is used to map a Nson element
  */
-typedef int (*NsonReducer)(off_t index, struct Nson *, const struct Nson *, const void *);
+typedef int (*NsonReducer)(off_t index, struct Nson *, const struct Nson *, void *);
 
 /**
  * @brief function pointer that is used to map a Nson element
@@ -90,6 +90,7 @@ enum NsonInfo {
 	NSON_ALLOC   = NSON_MALLOC | NSON_MMAP,
 
 	NSON_MESSY   = 1 << 8,
+	NSON_TERM    = 2 << 8,
 };
 
 typedef struct NsonCommon {
@@ -109,6 +110,7 @@ typedef struct NsonArray {
 	struct NsonCommon c;
 	struct Nson *arr;
 	size_t len;
+	size_t cap;
 } NsonArray ;
 
 typedef struct NsonReal {
@@ -384,14 +386,7 @@ int nson_map(Nson *nson, NsonMapper mapper, void *userdata);
  * @brief
  * @return
  */
-int nson_reduce(Nson *dest, const Nson *nson, NsonReducer reducer, const void *userdata);
-
-/**
- * @brief
- * @return
- */
-int nson_reducer_flatten(off_t index, struct Nson *dest, const struct Nson *nson,
-		const void *user_data);
+int nson_reduce(Nson *dest, const Nson *nson, NsonReducer reducer, void *userdata);
 
 /**
  * @brief
@@ -482,5 +477,17 @@ int nson_to_plist(Nson *nson, char **str);
  * @return
  */
 int nson_to_plist_fd(Nson *nson, FILE* fd);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_flat(Nson *unflat);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_unflat(Nson *flat);
 
 #endif /* !NSON_H */

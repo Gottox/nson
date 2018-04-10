@@ -191,32 +191,20 @@ nson_load_json(Nson *nson, const char *file) {
 int
 nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	int rv = 0;
-	off_t row = 0;
 	const char *p = doc;
-	const char *begin, *line_start = p;
-	Nson *stack_top;
-	Nson old_top;
-	Nson stack = { 0 }, tmp = { 0 };
+	const char *begin;
+	Nson tmp = { 0 }, flat = { 0 };
 
-	memset(nson, 0, sizeof(*nson));
-	nson_init(&tmp, NSON_ARR);
-	nson_init(&stack, NSON_ARR);
-	nson_push(&stack, &tmp);
+	nson_init(&flat, NSON_ARR | NSON_MESSY);
 
-	/* UNUSED */
-	(void)line_start;
-
-	stack_top = nson_get(&stack, 0);
 	// Skip leading Whitespaces
 	for(; isspace(*p); p++);
 	do {
 		switch(*p) {
 		case '[':
 		case '{':
-			nson_init(&tmp, *p == '{' ? NSON_OBJ : NSON_ARR);
-			tmp.c.info |= NSON_MESSY;
-			nson_push(&stack, &tmp);
-			stack_top = nson_last(&stack);
+			nson_init(&tmp, (*p == '{' ? NSON_OBJ : NSON_ARR) | NSON_MESSY);
+			nson_push(&flat, &tmp);
 			p++;
 			break;
 		case ',':
@@ -225,9 +213,8 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			break;
 		case ']':
 		case '}':
-			nson_pop(&old_top, &stack);
-			stack_top = nson_last(&stack);
-			nson_push(stack_top, &old_top);
+			nson_init(&tmp, (*p == '}' ? NSON_OBJ : NSON_ARR) | NSON_TERM);
+			nson_push(&flat, &tmp);
 			p++;
 			break;
 		case '"':
@@ -243,12 +230,10 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			}
 			nson_init_ptr(&tmp, begin, p - begin, NSON_STR);
 			tmp.c.mapper = json_mapper_unescape;
-			nson_push(stack_top, &tmp);
+			nson_push(&flat, &tmp);
 			p++;
 			break;
 		case '\n':
-			line_start = p;
-			row++;
 		case '\f':
 		case '\r':
 		case '\t':
@@ -268,7 +253,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		case '8':
 		case '9':
 			p = parse_number(&tmp, p, len - (doc - p));
-			nson_push(stack_top, &tmp);
+			nson_push(&flat, &tmp);
 			break;
 		case 'n':
 			if(strncmp(p, "null", 4)) {
@@ -276,7 +261,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 				goto out;
 			}
 			nson_init_ptr(&tmp, NULL, 0, NSON_STR);
-			nson_push(stack_top, &tmp);
+			nson_push(&flat, &tmp);
 			p += 4;
 			break;
 		case 't':
@@ -285,7 +270,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 				goto out;
 			}
 			nson_init_bool(&tmp, 1);
-			nson_push(stack_top, &tmp);
+			nson_push(&flat, &tmp);
 			p += 4;
 			break;
 		case 'f':
@@ -294,33 +279,33 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 				goto out;
 			}
 			nson_init_bool(&tmp, 0);
-			nson_push(stack_top, &tmp);
+			nson_push(&flat, &tmp);
 			p += 5;
 			break;
 		default:
 			rv = -1;
 			goto out;
-			nson_push(stack_top, &tmp);
+			nson_push(&flat, &tmp);
 		}
-	} while(nson_len(&stack) > 1 && p - doc < len);
+	} while(p - doc < len);
 
-	if(nson_len(&stack) != 1) {
-		// Premature EOF
-		rv = -1;
-		goto out;
-	}
-	nson_move(nson, nson_get(stack_top, 0));
-	nson_mem_capacity(&stack, 1);
+	nson_unflat(&flat);
+
+//	if(nson_len(&stack) != 1) {
+//		// Premature EOF
+//		rv = -1;
+//		goto out;
+//	}
 
 	rv = p - doc;
 out:
 
-	nson_clean(nson_get(&stack, 0));
+	nson_clean(&flat);
 	return rv;
 }
 
 static int
-json_reducer_stringify(off_t index, Nson *dest, const Nson *nson, const void *user_data) {
+json_reducer_stringify(off_t index, Nson *dest, const Nson *nson, void *user_data) {
 	Nson val;
 	char buf[32];
 	char *tmp;
@@ -335,7 +320,7 @@ json_reducer_stringify(off_t index, Nson *dest, const Nson *nson, const void *us
 		nson_init_ptr(&val, type == NSON_OBJ ? "{" : "[", 1, NSON_STR);
 		nson_push(dest, &val);
 
-		nson_reduce(dest, nson, json_reducer_stringify, nson);
+		nson_reduce(dest, nson, json_reducer_stringify, (void *)nson);
 
 		nson_init_ptr(&val, type == NSON_OBJ ? "}" : "]", 1, NSON_STR);
 		nson_push(dest, &val);

@@ -81,25 +81,27 @@ nson_cmp(const void *a, const void *b) {
 }
 
 int
-nson_mem_capacity(Nson *nson, size_t size) {
+nson_mem_capacity(Nson *nson, size_t cap) {
 	Nson *arr;
-	size_t old = nson_mem_len(nson);
+	size_t old = nson->a.cap;
 
-	nson->a.len = size;
+	nson->a.cap = cap;
 
-	if(old != size) {
-		arr = nson->a.arr;
-		arr = realloc(arr, sizeof(*arr) * size);
-		if(!arr) {
-			nson->a.len = old;
-			return -1;
-		}
-		if (size > old)
-			memset(&arr[old], 0, sizeof(*arr) * (size - old));
-		nson->a.arr = arr;
+	if(old >= cap) {
+		return 0;
 	}
 
-	return nson_mem_len(nson);
+	arr = nson->a.arr;
+	arr = realloc(arr, sizeof(*arr) * cap);
+	if(!arr) {
+		nson->a.cap = cap;
+		return -1;
+	}
+	if (cap > old)
+		memset(&arr[old], 0, sizeof(*arr) * (cap - old));
+	nson->a.arr = arr;
+
+	return 0;
 }
 
 int
@@ -206,14 +208,15 @@ nson_push(Nson *nson, Nson *val) {
 	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
 	assert(nson_type(val) != NSON_NONE);
 	Nson *arr;
-	size_t len = nson_mem_len(nson);
+	size_t len = nson_mem_len(nson) + 1;
 
-	nson_mem_capacity(nson, len+1);
+	nson_mem_capacity(nson, len);
+	nson->a.len = len;
 
-	arr = nson_mem_get(nson, len);
+	arr = nson_mem_get(nson, len - 1);
 	nson_move(arr, val);
 
-	if(len < 2 || nson->c.info & NSON_MESSY)
+	if(len <= 2 || nson->c.info & NSON_MESSY)
 		return 0;
 
 	switch(nson_type(nson)) {
@@ -222,9 +225,9 @@ nson_push(Nson *nson, Nson *val) {
 			nson->c.info |= NSON_MESSY;
 		break;
 	case NSON_OBJ:
-		assert(len % 2 == 1 || nson_type(arr) == NSON_STR);
+		assert(len % 2 == 0 || nson_type(arr) == NSON_STR);
 
-		if(len % 2 == 0 && nson_cmp(&arr[-2], arr) > 0)
+		if(len % 2 == 1 && nson_cmp(&arr[-2], arr) > 0)
 			nson->c.info |= NSON_MESSY;
 		break;
 	default:
@@ -278,9 +281,10 @@ nson_mapper_clone(off_t index, Nson *nson, void *userdata) {
 			arr = nson->a.arr;
 			len = nson_mem_len(nson);
 			nson->a.arr = NULL;
-			nson->a.len = 0;
+			nson->a.cap = 0;
 
 			rv = nson_mem_capacity(nson, len);
+			nson->a.len = len;
 			if (rv < 0)
 				return rv;
 			memcpy(nson->a.arr, arr, nson_mem_len(nson) * sizeof(*arr));
@@ -320,6 +324,7 @@ nson_push_all(Nson *nson, Nson *src) {
 	const size_t nson_len = nson_mem_len(nson);
 
 	nson_mem_capacity(nson, nson_len + src_len);
+	nson->a.len = nson_len + src_len;
 
 	memcpy(&nson->a.arr[nson_len], &src->a.arr, src_len);
 
@@ -529,4 +534,79 @@ nson_remove(Nson *nson, off_t index, size_t size) {
 	memmove(elem, &elem[size], (len - index - size) * sizeof(*elem));
 	nson_mem_capacity(nson, len - size);
 	return 0;
+}
+
+int
+nson_flat(Nson *unflat) {
+	assert(!"Not implemented");
+}
+
+int
+nson_mem_swap(Nson *nson, size_t split, size_t end) {
+	Nson *buf = calloc(split, sizeof(*buf));
+	if(buf == NULL)
+		return -1;
+
+	buf = calloc(split, sizeof(*buf));
+	memcpy(buf, nson, split * sizeof(*buf));
+
+	memmove(nson, &nson[split], (end - split) * sizeof(*buf));
+
+	memcpy(&nson[end - split], buf, split * sizeof(*buf));
+	free(buf);
+
+	return 0;
+}
+
+void
+dbg(Nson *flat) {
+	printf("--------------------------------\n");
+	for(int i = 0; i < 7; i++)
+		printf("%i. %li %i\n", i, flat->a.arr[i].i.i, flat->a.arr[i].c.info);
+}
+
+int
+nson_unflat(Nson *flat) {
+	off_t i;
+	size_t len;
+	Nson *stack_bottom, *stack_top, *item, *arr;
+	Nson old_top = { 0 }, stack, tmp;
+
+	nson_init(&stack, NSON_ARR | NSON_MESSY);
+	nson_init(&tmp, NSON_ARR | NSON_MESSY);
+	nson_push(&stack, &tmp);
+
+	stack_bottom = stack_top = nson_mem_get(&stack, 0);
+
+	len = nson_mem_len(flat);
+	arr = nson_mem_get(flat, 0);
+	for(i = len - 1; i >= 0; i--) {
+		item = &arr[i];
+
+		if((item->c.info & NSON_STOR) == 0) {
+			stack_top->a.len++;
+		} else if(item->c.info & NSON_TERM) {
+			nson_push(&stack, item);
+			stack_top = nson_last(&stack);
+			stack_top->a.len = 0;
+		} else {
+			stack_top->a.arr = item;
+			nson_pop(&old_top, &stack);
+			stack_top = nson_last(&stack);
+			stack_top->a.len++;
+
+			//printf("--------------------------------\n");
+			//printf("--------------------------------\n");
+			//printf("   %li %li %li\n", item - arr, 1l, len);
+			//dbg(flat);
+			//nson_mem_swap(item, len - stack_top->a.len, len);
+			//dbg(flat);
+			len -= i;
+		}
+	}
+
+	//flat->a.len = 1;
+	//nson_move(flat, nson_get(flat, 0));
+
+	return -(stack_top - stack_bottom);
 }

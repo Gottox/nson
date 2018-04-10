@@ -179,21 +179,8 @@ nson_sort(Nson *nson) {
 }
 
 int
-nson_reducer_flatten(off_t index, struct Nson *dest, const struct Nson *nson,
-		const void *user_data) {
-	Nson clone;
-
-	if(nson_type(nson) & NSON_STOR)
-		return nson_reduce(dest, nson, nson_reducer_flatten, NULL);
-	else {
-		nson_clone(&clone, nson);
-		return nson_push(dest, &clone);
-	}
-}
-
-int
 nson_reduce(Nson *dest, const Nson *nson, NsonReducer reducer,
-		const void *userdata) {
+		void *userdata) {
 	int rv = 0;
 	off_t i;
 	size_t len;

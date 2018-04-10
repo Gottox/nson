@@ -31,6 +31,73 @@
 #include "test.h"
 
 static void
+unflat_array_depth_2() {
+	char *str;
+	Nson container, item;
+	nson_init(&container, NSON_ARR);
+
+	nson_init(&item, NSON_ARR);
+	nson_push(&container, &item);
+	{
+		nson_init_int(&item, 1);
+		nson_push(&container, &item);
+
+		nson_init(&item, NSON_ARR);
+		nson_push(&container, &item);
+		{
+			nson_init_int(&item, 2);
+			nson_push(&container, &item);
+		}
+		nson_init(&item, NSON_ARR | NSON_TERM);
+		nson_push(&container, &item);
+
+		nson_init_int(&item, 3);
+		nson_push(&container, &item);
+	}
+	nson_init(&item, NSON_ARR | NSON_TERM);
+	nson_push(&container, &item);
+
+	nson_unflat(&container);
+
+	nson_to_json(&container, &str);
+	puts("[1,[2],3]");
+	puts(str);
+}
+
+static void
+unflat_array() {
+	Nson container, item;
+	nson_init(&container, NSON_ARR);
+
+	nson_init(&item, NSON_ARR);
+	nson_push(&container, &item);
+	{
+		nson_init_int(&item, 1);
+		nson_push(&container, &item);
+		nson_init_int(&item, 2);
+		nson_push(&container, &item);
+		nson_init_int(&item, 3);
+		nson_push(&container, &item);
+		nson_init_int(&item, 4);
+		nson_push(&container, &item);
+		nson_init_int(&item, 5);
+		nson_push(&container, &item);
+	}
+	nson_init(&item, NSON_ARR | NSON_TERM);
+	nson_push(&container, &item);
+
+	nson_unflat(&container);
+
+	printf("%li\n", nson_len(&container));
+	assert(nson_len(&container) == 5);
+	assert(nson_int(nson_get(&container, 0)) == 1);
+	assert(nson_int(nson_get(&container, 1)) == 2);
+	assert(nson_int(nson_get(&container, 2)) == 3);
+	assert(nson_int(nson_get(&container, 3)) == 4);
+	assert(nson_int(nson_get(&container, 4)) == 5);
+}
+
+static void
 create_array() {
 	Nson nson;
 	nson_init(&nson, NSON_ARR);
@@ -221,6 +288,8 @@ filter_object() {
 }*/
 
 DEFINE
+TEST(unflat_array);
+TEST(unflat_array_depth_2);
 TEST(create_array);
 TEST(add_int_to_array);
 TEST(clone_array);

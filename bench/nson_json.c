@@ -15,7 +15,7 @@ void bench_nson_json() {
 
 	rv = nson_load_json(&nson, BENCH_JSON);
 
-	assert(rv >= 0);
+	//assert(rv >= 0);
 	(void)rv;
 }
 
@@ -31,5 +31,5 @@ void bench_nson_to_json() {
 
 DEFINE
 TEST(bench_nson_json);
-TEST(bench_nson_to_json);
+TEST_OFF(bench_nson_to_json);
 DEFINE_END
