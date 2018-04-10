@@ -57,12 +57,12 @@ typedef int (*NsonParser)(struct Nson *, const char *, size_t);
 /**
  * @brief function pointer that is used to map a Nson element
  */
-typedef int (*NsonMapper)(off_t index, struct Nson *);
+typedef int (*NsonReducer)(off_t index, struct Nson *, const struct Nson *, const void *);
 
 /**
- * @brief function pointer that is used to filter a Nson element
+ * @brief function pointer that is used to map a Nson element
  */
-typedef int (*NsonFilter)(const struct Nson *);
+typedef int (*NsonMapper)(off_t index, struct Nson *, void *);
 
 /**
  * @brief type of an Nson Element
@@ -370,19 +370,26 @@ Nson *nson_mem_get(const Nson *nson, off_t index);
  */
 size_t nson_mem_len(const Nson *nson);
 
-/**
- * @brief
- * @return
- */
-int nson_filter(Nson *nson, NsonFilter mapper);
-
 /* MAP */
 
 /**
  * @brief
  * @return
  */
-int nson_map(Nson *nson, NsonMapper mapper);
+int nson_map(Nson *nson, NsonMapper mapper, void *user_data);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_reduce(Nson *dest, const Nson *nson, NsonReducer reducer, const void *user_data);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_reducer_flatten(off_t index, struct Nson *dest, const struct Nson *nson,
+		const void *user_data);
 
 /**
  * @brief
@@ -400,13 +407,13 @@ int nson_mem_capacity(Nson *nson, size_t size);
  * @brief
  * @return
  */
-int nson_mapper_b64_enc(off_t index, Nson *nson);
+int nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data);
 
 /**
  * @brief
  * @return
  */
-int nson_mapper_b64_dec(off_t index, Nson *nson);
+int nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data);
 
 /* JSON */
 
@@ -426,7 +433,7 @@ int nson_parse_json(Nson *nson, const char *doc, size_t len);
  * @brief
  * @return
  */
-int nson_to_json(const Nson *nson, char **str);
+int nson_to_json(Nson *nson, char **str);
 
 /**
  * @brief

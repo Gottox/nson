@@ -39,7 +39,7 @@
 
 
 static int
-plist_mapper_string(off_t index, Nson *nson) {
+plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 	size_t len;
 	off_t t_len;
 	int rv, val;
@@ -333,7 +333,7 @@ plist_b64_enc(const Nson *nson, FILE* fd) {
 
 	if(nson_clone(&tmp, nson))
 		rv = -1;
-	if(nson_mapper_b64_enc(0, &tmp) < 0)
+	if(nson_mapper_b64_enc(0, &tmp, NULL) < 0)
 		rv = -1;
 	else if(fputs("<data>", fd) < 0)
 		rv = -1;

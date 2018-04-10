@@ -68,7 +68,7 @@ json_parse_utf8(char *dest, const char *src) {
 }
 
 static int
-json_mapper_unescape(off_t index, Nson* nson) {
+json_mapper_unescape(off_t index, Nson* nson, void *user_data) {
 	size_t t_len = 0, len;
 	char *p;
 	int rv;
@@ -320,7 +320,7 @@ out:
 }
 
 int
-nson_to_json(const Nson *nson, char **str) {
+nson_to_json(Nson *nson, char **str) {
 	int rv;
 	size_t size = 0;
 	FILE *fd = open_memstream(str, &size);
@@ -339,7 +339,7 @@ json_b64_enc(const Nson *nson, FILE* fd) {
 
 	if(nson_clone(&tmp, nson))
 		rv = -1;
-	if(nson_mapper_b64_enc(0, &tmp) < 0)
+	if(nson_mapper_b64_enc(0, &tmp, NULL) < 0)
 		rv = -1;
 	else if(fputc('"', fd) < 0)
 		rv = -1;

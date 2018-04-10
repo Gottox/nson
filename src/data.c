@@ -158,7 +158,7 @@ nson_data(Nson *nson) {
 
 	if(mapper) {
 		nson->c.mapper = NULL;
-		mapper(0, nson);
+		mapper(0, nson, NULL);
 	}
 	return nson->val.d.b;
 }
@@ -204,6 +204,7 @@ nson_get_key(const Nson *nson, off_t index) {
 int
 nson_push(Nson *nson, Nson *val) {
 	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
+	assert(nson_type(val) != NSON_NONE);
 	Nson *arr;
 	size_t len = nson_mem_len(nson);
 
@@ -243,11 +244,17 @@ nson_last(Nson *nson) {
 int
 nson_pop(Nson *dest, Nson *nson) {
 	int rv;
-	rv = nson_move(dest, nson_last(nson));
-	if(rv >= 0)
-		nson->val.a.len--;
+	if (nson_len(nson) == 0) {
+		dest = NULL;
+		return 0;
+	}
 
-	return rv;
+	rv = nson_move(dest, nson_last(nson));
+	if(rv < 0) {
+		return rv;
+	}
+
+	return nson->val.a.len--;
 }
 
 int
@@ -258,7 +265,7 @@ nson_move(Nson *nson, Nson *src) {
 }
 
 static int
-nson_mapper_clone(off_t index, Nson *nson) {
+nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 	int rv;
 	size_t len;
 	Nson *arr;
@@ -277,7 +284,7 @@ nson_mapper_clone(off_t index, Nson *nson) {
 			if (rv < 0)
 				return rv;
 			memcpy(nson->val.a.arr, arr, nson_mem_len(nson) * sizeof(*arr));
-			return nson_map(nson, nson_mapper_clone);
+			return nson_map(nson, nson_mapper_clone, NULL);
 		case NSON_STR:
 		case NSON_BLOB:
 			if(nson->c.mapper) {
@@ -300,13 +307,14 @@ nson_mapper_clone(off_t index, Nson *nson) {
 int
 nson_clone(Nson *nson, const Nson *src) {
 	memcpy(nson, src, sizeof(*src));
-	return nson_mapper_clone(0, nson);
+	return nson_mapper_clone(0, nson, NULL);
 }
 
 int
 nson_push_all(Nson *nson, Nson *src) {
+	if ((nson_type(src) & NSON_STOR) == 0)
+		return nson_push(nson, src);
 	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
-	assert(nson_type(src) & (NSON_ARR | NSON_OBJ));
 
 	const size_t src_len = nson_mem_len(src);
 	const size_t nson_len = nson_mem_len(nson);

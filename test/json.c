@@ -52,7 +52,6 @@ parse_double() {
 	rv = NSON(&nson, 5.2);
 	assert(rv >= 0);
 	assert(nson_int(&nson) == 5);
-	printf("%f\n\n", nson_real(&nson));
 	assert(nson_real(&nson) == 5.2);
 	nson_clean(&nson);
 
@@ -270,9 +269,9 @@ void stringify_nullbyte() {
 	nson_init_data(&nson, "a\0b", 3, NSON_STR);
 
 	assert(rv >= 0);
+	assert(strcmp(nson_str(&nson), "a") == 0);
 	rv = nson_to_json(&nson, &str);
 	assert(rv >= 0);
-	assert(strcmp(nson_str(&nson), "a") == 0);
 	assert(strcmp(str, "\"a\\u0000b\"") == 0);
 
 	(void)rv;
@@ -311,22 +310,6 @@ stringify_empty_object() {
 }
 
 static void
-stringify_object_with_hidden_item() {
-	int rv;
-	Nson nson;
-	char *result;
-
-	rv = NSON(&nson, { "\u001bhidden": 1 });
-
-	assert(rv >= 0);
-	nson_to_json(&nson, &result);
-	assert(strcmp("{}", result) == 0);
-	nson_clean(&nson);
-
-	(void)rv;
-}
-
-static void
 stringify_object() {
 	int rv;
 	Nson nson;
@@ -353,6 +336,7 @@ void stringify_data() {
 
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);
+	puts(result);
 	assert(strcmp("\"SGVsbG8gV29ybGQ=\"", result) == 0);
 	nson_clean(&nson);
 
@@ -381,6 +365,5 @@ TEST(stringify_nullbyte);
 TEST(stringify_empty_array);
 TEST(stringify_empty_object);
 TEST(stringify_object);
-TEST(stringify_object_with_hidden_item);
 TEST(stringify_data);
 DEFINE_END
