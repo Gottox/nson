@@ -401,7 +401,7 @@ int nson_remove(Nson *nson, off_t index, size_t size);
  * @brief
  * @return
  */
-int nson_mem_capacity(Nson *nson, size_t size);
+int nson_mem_capacity(Nson *nson, const size_t size);
 
 /**
  * @brief

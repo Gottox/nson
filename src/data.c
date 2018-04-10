@@ -81,25 +81,26 @@ nson_cmp(const void *a, const void *b) {
 }
 
 int
-nson_mem_capacity(Nson *nson, size_t size) {
+nson_mem_capacity(Nson *nson, const size_t size) {
 	Nson *arr;
-	size_t old = nson_mem_len(nson);
+	const size_t old = nson_mem_len(nson);
 
+	if(size == old)
+		return size;
+
+	arr = nson->val.a.arr;
 	nson->val.a.len = size;
 
-	if(old != size) {
-		arr = nson->val.a.arr;
-		arr = realloc(arr, sizeof(*arr) * size);
-		if(!arr) {
-			nson->val.a.len = old;
-			return -1;
-		}
-		if (size > old)
-			memset(&arr[old], 0, sizeof(*arr) * (size - old));
-		nson->val.a.arr = arr;
+	arr = realloc(arr, sizeof(*arr) * size);
+	if(!arr) {
+		nson->val.a.len = old;
+		return -1;
 	}
+	if(size > old)
+		memset(&arr[old], 0, sizeof(*arr) * (size - old));
 
-	return nson_mem_len(nson);
+	nson->val.a.arr = arr;
+	return size;
 }
 
 int
@@ -203,7 +204,7 @@ nson_get_key(const Nson *nson, off_t index) {
 
 int
 nson_push(Nson *nson, Nson *val) {
-	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
+	assert(nson_type(nson) & NSON_STOR);
 	assert(nson_type(val) != NSON_NONE);
 	Nson *arr;
 	size_t len = nson_mem_len(nson);
@@ -213,7 +214,7 @@ nson_push(Nson *nson, Nson *val) {
 	arr = nson_mem_get(nson, len);
 	nson_move(arr, val);
 
-	if(len < 2 || nson->c.info & NSON_MESSY)
+	if(len <= 2 || nson->c.info & NSON_MESSY)
 		return 0;
 
 	switch(nson_type(nson)) {
@@ -249,7 +250,8 @@ nson_pop(Nson *dest, Nson *nson) {
 		return 0;
 	}
 
-	rv = nson_move(dest, nson_last(nson));
+	if(dest)
+		rv = nson_move(dest, nson_last(nson));
 	if(rv < 0) {
 		return rv;
 	}
@@ -530,3 +532,4 @@ nson_remove(Nson *nson, off_t index, size_t size) {
 	nson_mem_capacity(nson, len - size);
 	return 0;
 }
+
