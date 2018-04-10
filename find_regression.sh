@@ -2,8 +2,8 @@
 
 BENCH_JSON=bench/bench-file.json
 BENCH_PLIST=bench/bench-file.plist
-#RANGE="HEAD~10..HEAD"
-RANGE="099a41b..HEAD"
+RANGE="HEAD~10..HEAD"
+#RANGE="099a41b..HEAD"
 CFLAGS="$(grep '^CFLAGS[^_A-Z]' config.mk | cut -d= -f 2-) -Wno-error"
 WARMUP=0
 
