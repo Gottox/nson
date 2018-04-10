@@ -73,7 +73,7 @@ json_mapper_unescape(off_t index, Nson* nson, void *user_data) {
 	char *p;
 	int rv;
 	char *dest;
-	enum NsonInfo type;
+	enum NsonType type;
 
 	type = nson_type(nson);
 	len = nson_data_len(nson);
@@ -213,7 +213,8 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		switch(*p) {
 		case '[':
 		case '{':
-			nson_init(&tmp, (*p == '{' ? NSON_OBJ : NSON_ARR) | NSON_MESSY);
+			nson_init(&tmp, *p == '{' ? NSON_OBJ : NSON_ARR);
+			tmp.val.a.messy = true;
 			nson_push(&stack, &tmp);
 			stack_top = nson_last(&stack);
 			p++;

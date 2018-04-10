@@ -53,58 +53,58 @@ static void
 check_messy_array() {
 	Nson nson, val;
 	nson_init(&nson, NSON_ARR);
-	assert((nson.c.info & NSON_MESSY) == 0);
+	assert(nson.val.a.messy == false);
 
 	nson_init_int(&val, 5);
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) == 0);
+	assert(nson.val.a.messy == false);
 
 	nson_init_int(&val, 6);
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) == 0);
+	assert(nson.val.a.messy == false);
 
 	nson_init_int(&val, 6);
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) == 0);
+	assert(nson.val.a.messy == false);
 
 	nson_init_int(&val, 4);
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) != 0);
+	assert(nson.val.a.messy == true);
 }
 
 static void
 check_messy_object() {
 	Nson nson, val;
 	nson_init(&nson, NSON_OBJ);
-	assert((nson.c.info & NSON_MESSY) == 0);
+	assert(nson.val.a.messy == false);
 
 	nson_init_str(&val, "a");
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) == 0);
+	assert(nson.val.a.messy == false);
 	nson_init_int(&val, 6);
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) == 0);
+	assert(nson.val.a.messy == false);
 
 	nson_init_str(&val, "b");
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) == 0);
+	assert(nson.val.a.messy == false);
 	nson_init_int(&val, 6);
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) == 0);
+	assert(nson.val.a.messy == false);
 
 	nson_init_str(&val, "c");
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) == 0);
+	assert(nson.val.a.messy == false);
 	nson_init_int(&val, 4);
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) == 0);
+	assert(nson.val.a.messy == false);
 
 	nson_init_str(&val, "b");
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) != 0);
+	assert(nson.val.a.messy == true);
 	nson_init_int(&val, 4);
 	nson_push(&nson, &val);
-	assert((nson.c.info & NSON_MESSY) != 0);
+	assert(nson.val.a.messy == true);
 
 }
 

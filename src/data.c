@@ -61,7 +61,7 @@ nson_cmp_data(const Nson *a, const Nson *b) {
 int
 nson_cmp(const void *a, const void *b) {
 	int rv;
-	enum NsonInfo type = nson_type(a);
+	enum NsonType type = nson_type(a);
 
 	// Reverse sort as NSON_NONE needs to be last
 	if ((rv = nson_type(b) - type))
@@ -108,19 +108,15 @@ nson_clean(Nson *nson) {
 	off_t i;
 	int rv = 0;
 
-	switch(nson->c.info | NSON_ALLOC) {
-	case NSON_MMAP:
+	if (nson->c.alloc == NULL) {
+	} else if (nson->c.alloc_size != 0) {
 		if(munmap(nson->c.alloc, nson->c.alloc_size) < 0)
 			return -1;
-		break;
-	case NSON_MALLOC:
+	} else {
 		free(nson->c.alloc);
-		break;
-	default:
-		break;
 	}
 
-	if(nson_type(nson) & (NSON_ARR | NSON_OBJ)) {
+	if(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ) {
 		for (i = 0; i < nson_mem_len(nson); i++) {
 			rv = nson_clean(nson_mem_get(nson, i));
 			if(rv < 0)
@@ -135,7 +131,7 @@ nson_clean(Nson *nson) {
 
 size_t
 nson_data_len(Nson *nson) {
-	assert(nson_type(nson) & (NSON_BLOB | NSON_STR));
+	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 
 	if (nson->c.mapper)
 		nson_data(nson);
@@ -144,7 +140,7 @@ nson_data_len(Nson *nson) {
 
 size_t
 nson_len(const Nson *nson) {
-	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
+	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ);
 
 	if(nson_type(nson) == NSON_OBJ)
 		return nson_mem_len(nson) / 2;
@@ -154,7 +150,7 @@ nson_len(const Nson *nson) {
 
 const char *
 nson_data(Nson *nson) {
-	assert(nson_type(nson) & (NSON_BLOB | NSON_STR));
+	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 	NsonMapper mapper = nson->c.mapper;
 
 	if(mapper) {
@@ -164,14 +160,14 @@ nson_data(Nson *nson) {
 	return nson->val.d.b;
 }
 
-enum NsonInfo
+enum NsonType
 nson_type(const Nson *nson) {
-	return nson->c.info & NSON_TYPE;
+	return nson->c.type;
 }
 
 int64_t
 nson_int(const Nson *nson) {
-	assert(nson_type(nson) & (NSON_INT | NSON_BOOL | NSON_REAL));
+	assert(nson_type(nson) == NSON_INT || nson_type(nson) == NSON_BOOL || nson_type(nson) == NSON_REAL);
 	if(nson_type(nson) == NSON_REAL)
 		return (int64_t)nson->val.r.r;
 	return nson->val.i.i;
@@ -179,7 +175,7 @@ nson_int(const Nson *nson) {
 
 double
 nson_real(const Nson *nson) {
-	assert(nson_type(nson) & (NSON_INT | NSON_BOOL | NSON_REAL));
+	assert(nson_type(nson) == NSON_INT || nson_type(nson) == NSON_BOOL || nson_type(nson) == NSON_REAL);
 	if(nson_type(nson) != NSON_REAL)
 		return (double)nson->val.i.i;
 	return nson->val.r.r;
@@ -187,7 +183,7 @@ nson_real(const Nson *nson) {
 
 Nson *
 nson_get(const Nson *nson, off_t index) {
-	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
+	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ);
 	if(nson_type(nson) == NSON_OBJ)
 		index = index * 2 + 1;
 	return nson_mem_get(nson, index);
@@ -204,7 +200,7 @@ nson_get_key(const Nson *nson, off_t index) {
 
 int
 nson_push(Nson *nson, Nson *val) {
-	assert(nson_type(nson) & NSON_STOR);
+	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ);
 	assert(nson_type(val) != NSON_NONE);
 	Nson *arr;
 	size_t len = nson_mem_len(nson);
@@ -214,22 +210,20 @@ nson_push(Nson *nson, Nson *val) {
 	arr = nson_mem_get(nson, len);
 	nson_move(arr, val);
 
-	if(len <= 2 || nson->c.info & NSON_MESSY)
+	if(nson->val.a.messy || len <= 2)
 		return 0;
 
 	switch(nson_type(nson)) {
-	case NSON_ARR:
-		if(nson_cmp(&arr[-1], arr) > 0)
-			nson->c.info |= NSON_MESSY;
-		break;
-	case NSON_OBJ:
-		assert(len % 2 == 1 || nson_type(arr) == NSON_STR);
+		case NSON_ARR:
+			nson->val.a.messy = nson_cmp(&arr[-1], arr) > 0;
+			break;
+		case NSON_OBJ:
+			assert(len % 2 == 1 || nson_type(arr) == NSON_STR);
 
-		if(len % 2 == 0 && nson_cmp(&arr[-2], arr) > 0)
-			nson->c.info |= NSON_MESSY;
-		break;
-	default:
-		break;
+			nson->val.a.messy = len % 2 == 0 && nson_cmp(&arr[-2], arr) > 0;
+			break;
+		default:
+			break;
 	}
 
 	return 0;
@@ -274,7 +268,6 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 	Nson *arr;
 	char *data;
 
-	nson->c.info &= ~NSON_ALLOC;
 	switch(nson_type(nson)) {
 		case NSON_ARR:
 		case NSON_OBJ:
@@ -298,8 +291,8 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 			data = calloc(len + 1, sizeof(char));
 
 			memcpy(data, nson_data(nson), len * sizeof(char));
-			nson->c.info |= NSON_MALLOC;
 			nson->c.alloc = data;
+			nson->c.alloc_size = 0;
 			break;
 		default:
 			break;
@@ -315,9 +308,8 @@ nson_clone(Nson *nson, const Nson *src) {
 
 int
 nson_push_all(Nson *nson, Nson *src) {
-	if ((nson_type(src) & NSON_STOR) == 0)
+	if (nson_type(src) != NSON_ARR && nson_type(src) != NSON_OBJ)
 		return nson_push(nson, src);
-	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
 
 	const size_t src_len = nson_mem_len(src);
 	const size_t nson_len = nson_mem_len(nson);
@@ -379,17 +371,17 @@ nson_insert_int(Nson *nson, const char *key,
 }
 
 int
-nson_init(Nson *nson, const enum NsonInfo info) {
+nson_init(Nson *nson, const enum NsonType info) {
 	assert(info != NSON_NONE);
 
 	memset(nson, 0, sizeof(*nson));
-	nson->c.info = info;
+	nson->c.type = info;
 
 	return 0;
 }
 
 int
-nson_init_ptr(Nson *nson, const char *val, size_t len, enum NsonInfo info) {
+nson_init_ptr(Nson *nson, const char *val, size_t len, enum NsonType info) {
 	int rv = nson_init(nson, info);
 	if(rv < 0)
 		return rv;
@@ -400,13 +392,13 @@ nson_init_ptr(Nson *nson, const char *val, size_t len, enum NsonInfo info) {
 }
 
 int
-nson_init_data(Nson *nson, char *val, size_t len, enum NsonInfo type) {
-	type &= NSON_DATA;
+nson_init_data(Nson *nson, char *val, size_t len, enum NsonType type) {
 	assert(type);
 	if(val == NULL)
 		return nson_init_ptr(nson, NULL, 0, type);
-	int rv = nson_init_ptr(nson, val, len, type | NSON_MALLOC);
+	int rv = nson_init_ptr(nson, val, len, type);
 	nson->c.alloc = val;
+	nson->c.alloc_size = 0;
 	return rv;
 }
 
@@ -493,14 +485,12 @@ nson_load(NsonParser parser, Nson *nson, const char *file) {
 
 	nson->c.alloc = mf;
 	nson->c.alloc_size = mapsize;
-	nson->c.info &= ~NSON_ALLOC;
-	nson->c.info |= NSON_MMAP;
 	return rv;
 }
 
 Nson *
 nson_mem_get(const Nson *nson, off_t index) {
-	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
+	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ);
 	assert(index < nson->val.a.len);
 
 	return &nson->val.a.arr[index];
@@ -508,7 +498,7 @@ nson_mem_get(const Nson *nson, off_t index) {
 
 size_t
 nson_mem_len(const Nson *nson) {
-	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
+	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ);
 
 	return nson->val.a.len;
 }
@@ -517,8 +507,8 @@ int
 nson_remove(Nson *nson, off_t index, size_t size) {
 	Nson *elem;
 	size_t len = nson_len(nson);
-	enum NsonInfo type = nson_type(nson);
-	assert(type & NSON_STOR);
+	enum NsonType type = nson_type(nson);
+	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ);
 	assert(len >= index + size);
 
 	if(type == NSON_OBJ) {

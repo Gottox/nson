@@ -67,33 +67,22 @@ typedef int (*NsonMapper)(off_t index, struct Nson *, void *);
 /**
  * @brief type of an Nson Element
  */
-enum NsonInfo {
-	NSON_NONE = 0,
+enum NsonType {
+	NSON_NONE,
 
-	NSON_BOOL = 1 << 0,
-	NSON_INT  = 2 << 0,
-	NSON_REAL = 3 << 0,
-	NSON_PRIM = NSON_BOOL | NSON_INT | NSON_REAL,
+	NSON_BOOL,
+	NSON_INT,
+	NSON_REAL,
 
-	NSON_ARR  = 1 << 2,
-	NSON_OBJ  = 2 << 2,
-	NSON_STOR = NSON_ARR | NSON_OBJ,
+	NSON_ARR,
+	NSON_OBJ,
 
-	NSON_BLOB = 1 << 4,
-	NSON_STR  = 2 << 4,
-	NSON_DATA  = NSON_BLOB | NSON_STR,
-
-	NSON_TYPE = NSON_PRIM | NSON_STOR | NSON_DATA,
-
-	NSON_MALLOC  = 1 << 6,
-	NSON_MMAP    = 2 << 6,
-	NSON_ALLOC   = NSON_MALLOC | NSON_MMAP,
-
-	NSON_MESSY   = 1 << 8,
+	NSON_BLOB,
+	NSON_STR,
 };
 
 typedef struct NsonCommon {
-	enum NsonInfo info;
+	uint8_t type;
 	void *alloc;
 	size_t alloc_size;
 	NsonMapper mapper;
@@ -105,6 +94,7 @@ typedef struct NsonData {
 } NsonData;
 
 typedef struct NsonArray {
+	bool messy;
 	struct Nson *arr;
 	size_t len;
 } NsonArray ;
@@ -187,7 +177,7 @@ int nson_cmp(const void *a, const void *b);
  *
  * @return the type of @p nson
  */
-enum NsonInfo nson_type(const Nson *nson);
+enum NsonType nson_type(const Nson *nson);
 
 /**
  * @brief returns the integer value of an object
@@ -312,21 +302,21 @@ int nson_insert_int(Nson *nson, const char *key,
  * @brief
  * @return
  */
-int nson_init(Nson *nson, const enum NsonInfo info);
+int nson_init(Nson *nson, const enum NsonType info);
 
 /**
  * @brief
  * @return
  */
 int nson_init_ptr(Nson *nson, const char *val, size_t len,
-		const enum NsonInfo info);
+		const enum NsonType info);
 
 /**
  * @brief
  * @return
  */
 int nson_init_data(Nson *nson, char *val, size_t len,
-		const enum NsonInfo type);
+		const enum NsonType type);
 
 /**
  * @brief

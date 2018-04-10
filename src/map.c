@@ -50,7 +50,7 @@ nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
 	off_t i, j;
 	char *dest;
 	size_t dest_len;
-	assert(nson_type(nson) & NSON_DATA);
+	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 	const size_t src_len = nson_data_len(nson);
 	const char *src = nson_data(nson);
 
@@ -101,7 +101,7 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 	size_t dest_len;
 	int reminder = 0;
 	static const char mask = (1 << 6) - 1;
-	assert(nson_type(nson) & NSON_DATA);
+	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 
 	if(nson->c.mapper == nson_mapper_b64_dec) {
 		nson->c.mapper = NULL;
@@ -152,7 +152,7 @@ nson_get_by_key(const Nson *nson, const char *key) {
 	assert(nson_type(nson) == NSON_OBJ);
 	len = nson->val.a.len / 2;
 	size = sizeof(needle) * 2;
-	if (nson->c.info & NSON_MESSY)
+	if (nson->val.a.messy)
 		result = lfind(&needle, nson->val.a.arr, &len, size, nson_cmp);
 	else
 		result = bsearch(&needle, nson->val.a.arr, len, size, nson_cmp);
@@ -165,7 +165,7 @@ nson_sort(Nson *nson) {
 	size_t len = nson_mem_len(nson);
 	size_t size = sizeof(*nson);
 
-	if ((nson->c.info & NSON_MESSY) == 0)
+	if (!nson->val.a.messy)
 		return 0;
 
 	if (nson_type(nson) == NSON_OBJ) {
@@ -173,7 +173,7 @@ nson_sort(Nson *nson) {
 		size *= 2;
 	}
 	qsort(nson->val.a.arr, len, size, nson_cmp_stable);
-	nson->c.info &= ~NSON_MESSY;
+	nson->val.a.messy = false;
 
 	return 0;
 }
@@ -183,7 +183,7 @@ nson_reducer_flatten(off_t index, struct Nson *dest, const struct Nson *nson,
 		const void *user_data) {
 	Nson clone;
 
-	if(nson_type(nson) & NSON_STOR)
+	if (nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB)
 		return nson_reduce(dest, nson, nson_reducer_flatten, NULL);
 	else {
 		nson_clone(&clone, nson);

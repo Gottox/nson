@@ -329,10 +329,10 @@ stringify_object() {
 
 void stringify_data() {
 	int rv;
-	Nson nson;
+	Nson nson = { .c.alloc_size = 1, .c.alloc = (void *)1 };
 	char *result;
 
-	rv = nson_init_data(&nson, "Hello World", 11, NSON_BLOB);
+	rv = nson_init_ptr(&nson, "Hello World", 11, NSON_BLOB);
 
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);

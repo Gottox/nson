@@ -75,7 +75,7 @@ plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 	dest[len] = 0;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, len, NSON_STR | NSON_MALLOC);
+	nson_init_data(nson, dest, len, NSON_STR);
 
 	return 0;
 }
@@ -148,7 +148,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			if((rv = skip_tag("array", p, len - (doc - p))) <= 0)
 				break;
 			nson_init(&tmp, NSON_ARR);
-			tmp.c.info |= NSON_MESSY;
+			tmp.val.a.messy = true;
 			nson_push(&stack, &tmp);
 			stack_top = nson_last(&stack);
 			p += rv;
@@ -156,7 +156,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 		case 'd':
 			if((rv = skip_tag("dict", p, len - (doc - p))) > 0) {
 				nson_init(&tmp, NSON_OBJ);
-				tmp.c.info |= NSON_MESSY;
+				tmp.val.a.messy = true;
 				nson_push(&stack, &tmp);
 				stack_top = nson_last(&stack);
 				p += rv;
@@ -349,7 +349,7 @@ static int
 to_plist(Nson *nson, const char *string_overwrite, FILE *fd) {
 	off_t i;
 	int rv;
-	enum NsonInfo type = nson_type(nson);
+	enum NsonType type = nson_type(nson);
 	switch(type) {
 	case NSON_ARR:
 	case NSON_OBJ:
