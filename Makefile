@@ -24,7 +24,7 @@ TST = \
 	test/plist.c \
 	test/map.c \
 
-TST_EXE = $(TST:.c=-test)
+TST_BIN = $(TST:.c=-test)
 TST_CFLAGS =
 
 BCH = \
@@ -36,7 +36,7 @@ BCH = \
 	bench/nson_json.c \
 	bench/nson_plist.c \
 
-BCH_EXE = $(BCH:.c=-bench)
+BCH_BIN = $(BCH:.c=-bench)
 BCH_CFLAGS = \
 	$(shell pkg-config --cflags --libs proplib) \
 	$(shell pkg-config --cflags --libs libucl) \
@@ -59,11 +59,11 @@ src/%.o: src/%.c $(HDR)
 	@echo CC $@
 	$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $<
 
-check: $(TST_EXE)
-	@for i in $(TST_EXE); do ./$$i || exit 1; done
+check: $(TST_BIN)
+	@for i in $(TST_BIN); do ./$$i || exit 1; done
 
-speed: $(BCH_EXE) $(BENCH_JSON) $(BENCH_PLIST)
-	@for i in $(BCH_EXE); do ./$$i; done
+speed: $(BCH_BIN) $(BENCH_JSON) $(BENCH_PLIST)
+	@for i in $(BCH_BIN); do ./$$i; done
 
 doc: doxygen.conf $(TST) $(SRC) $(HDR) README.md
 	@sed -i "/^PROJECT_NUMBER\s/ s/=.*/= $(VERSION)/" $<
@@ -84,7 +84,7 @@ coverage: check
 clean:
 	@rm -rf doc cov
 	@rm -f *.gcnp *.gcda
-	@rm -f $(TST_EXE) $(BCH_EXE) $(OBJ)
+	@rm -f $(TST_BIN) $(BCH_BIN) $(OBJ)
 	#@rm -f bench/json/auctions.json bench/plist/index.plist
 
 .PHONY: check all clean speed coverage
