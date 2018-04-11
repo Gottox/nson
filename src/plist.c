@@ -112,7 +112,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 	const char *string_tag = "string";
 	Nson old_top;
 	Nson *stack_top;
-	Nson stack = { 0 }, tmp = { 0 };
+	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
 
 
 	rv = skip_tag("<?xml", p, len - (doc - p));

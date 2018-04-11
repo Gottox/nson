@@ -116,7 +116,7 @@ json_escape(const Nson *nson, FILE *fd) {
 	int rv = 0;
 	off_t i = 0, last_write = 0;
 	char c[] = { '\\', 0 };
-	Nson tmp = { 0 };
+	Nson tmp = { { { 0 } } };
 	const char *data;
 	size_t len;
 
@@ -196,7 +196,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	const char *begin, *line_start = p;
 	Nson *stack_top;
 	Nson old_top;
-	Nson stack = { 0 }, tmp = { 0 };
+	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
 
 	memset(nson, 0, sizeof(*nson));
 	nson_init(&tmp, NSON_ARR);

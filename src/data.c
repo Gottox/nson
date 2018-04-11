@@ -46,7 +46,7 @@
 static int
 nson_cmp_data(const Nson *a, const Nson *b) {
 	int rv;
-	Nson tmp = { 0 };
+	Nson tmp = { { { 0 } } };
 	if(a->c.mapper) {
 		nson_clone(&tmp, (const Nson *)a);
 		nson_data(&tmp);
