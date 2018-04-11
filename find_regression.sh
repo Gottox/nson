@@ -34,11 +34,16 @@ git log --reverse --format='%h' "$RANGE" | while read -r hash; do
 	git checkout "$hash" 2> /dev/null
 	git clean -f 2> /dev/null
 	sed -i 's/-D\(BENCH_[A-Z]*\)="[^"]*"/-D\1="$(\1)"/' Makefile
-	if ! make clean "$1" \
-		BENCH_JSON=$BENCH_JSON \
-		BENCH_PLIST="$BENCH_PLIST" \
-		CFLAGS="$CFLAGS" > /dev/null 2>&1; then
+	make clean > /dev/null > /dev/null 2>&1
+	ln -fs $BENCH_JSON $BENCH_JSON.run
+	ln -fs $BENCH_PLIST $BENCH_PLIST.run
+	output=$(make "$1" \
+		BENCH_JSON="$BENCH_JSON.run" \
+		BENCH_PLIST="$BENCH_PLIST.run" \
+		CFLAGS="$CFLAGS" > /dev/null 2>&1)
+	if [ "$?" -ne 0 ]; then
 		printf '%s\t0\t%s\n' "$hash" "Build Error"
+		echo "$output" >&2
 		continue
 	fi
 
@@ -59,12 +64,13 @@ git log --reverse --format='%h' "$RANGE" | while read -r hash; do
 	if ! [ "$result" ]; then
 		result=0
 		msg="Run Error"
+		exit 0
 	fi
 	printf '%s\t%s\t%s\n' "$hash" "$result" "$msg"
 done | tee "$plotfile"
 
 cd .. || exit 1
-rm -rf find_regression
+rm -rf find_regression $BENCH_JSON.run $BENCH_PLIST.run
 
 gnuplot - <<EOF
 set term png
