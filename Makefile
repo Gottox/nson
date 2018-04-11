@@ -49,15 +49,15 @@ all: $(OBJ)
 
 bench/%-bench: bench/%.c test/test.h $(OBJ)
 	@echo CCBENCH $@
-	$(CC) $(CFLAGS) $(LDFLAGS) $(BCH_CFLAGS) $(OBJ) $< -o $@
+	@$(CC) $(CFLAGS) $(LDFLAGS) $(BCH_CFLAGS) $(OBJ) $< -o $@
 
 test/%-test: test/%.c test/test.h $(OBJ)
 	@echo CCTEST $@
-	$(CC) $(CFLAGS) $(LDFLAGS) $(TST_CFLAGS) $(OBJ) $< -o $@
+	@$(CC) $(CFLAGS) $(LDFLAGS) $(TST_CFLAGS) $(OBJ) $< -o $@
 
-src/%.o: src/%.c $(HDR)
+%.o: %.c $(HDR)
 	@echo CC $@
-	$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $<
+	@$(CC) $(CFLAGS) $(LDFLAGS) -c -o $@ $<
 
 check: $(TST_BIN)
 	@for i in $(TST_BIN); do ./$$i || exit 1; done
@@ -70,10 +70,10 @@ doc: doxygen.conf $(TST) $(SRC) $(HDR) README.md
 	@doxygen $<
 
 bench/bench-file.json:
-	wget http://eu.battle.net/auction-data/258993a3c6b974ef3e6f22ea6f822720/auctions.json -O $@
+	@wget http://eu.battle.net/auction-data/258993a3c6b974ef3e6f22ea6f822720/auctions.json -O $@
 
 bench/bench-file.plist:
-	wget https://repo.voidlinux.eu/current/x86_64-repodata -O - | zcat | tar xO index.plist > $@
+	@wget https://repo.voidlinux.eu/current/x86_64-repodata -O - | zcat | tar xO index.plist > $@
 
 coverage: check
 	@printf "%s\n" $(CFLAGS) | grep -qx -- '-fprofile-arcs\|-ftest-coverage' || \
@@ -82,10 +82,11 @@ coverage: check
 	@gcovr -r . --html --html-details -o cov/index.html
 
 clean:
+	@echo cleaning...
 	@rm -rf doc cov
 	@rm -f *.gcnp *.gcda
-	@rm -f $(TST_BIN) $(BCH_BIN) $(OBJ)
-	#@rm -f bench/json/auctions.json bench/plist/index.plist
+	@rm -f $(TST_BIN) $(BCH_BIN) $(OBJ) $(BIN)
+	@rm -f $(BENCH_JSON) $(BENCH_PLIST)
 
 .PHONY: check all clean speed coverage
 
