@@ -72,8 +72,10 @@ doc: doxygen.conf $(TST) $(SRC) $(HDR) README.md
 bench/bench-file.json:
 	@wget http://eu.battle.net/auction-data/258993a3c6b974ef3e6f22ea6f822720/auctions.json -O $@
 
-bench/bench-file.plist:
-	@wget https://repo.voidlinux.eu/current/x86_64-repodata -O - | zcat | tar xO index.plist > $@
+bench/bench-file.plist: bench/bench-file.json
+	@npm install plist-cli
+	@node_modules/.bin/plist-cli < $< > $@
+	@rm -rf package-lock.json node_modules
 
 coverage: check
 	@printf "%s\n" $(CFLAGS) | grep -qx -- '-fprofile-arcs\|-ftest-coverage' || \
