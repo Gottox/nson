@@ -88,7 +88,7 @@ clean:
 	@rm -rf doc cov
 	@rm -f *.gcnp *.gcda
 	@rm -f $(TST_BIN) $(BCH_BIN) $(OBJ) $(BIN)
-	@rm -f $(BENCH_JSON) $(BENCH_PLIST)
+	#@rm -f $(BENCH_JSON) $(BENCH_PLIST)
 
 .PHONY: check all clean speed coverage
 
