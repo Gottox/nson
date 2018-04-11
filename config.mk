@@ -4,7 +4,7 @@ VERSION = 0.1
 #CFLAGS = -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -Werror -Wpedantic -O2
 
 # debug flags
-CFLAGS = -Wall -Werror -Wpedantic -O0 -g
+CFLAGS = -Wall -Werror -Wpedantic -O0 -g -fPIC
 
 # if you're feeling lucky:
 #CFLAGS += -DNDEBUG

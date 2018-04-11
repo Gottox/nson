@@ -17,6 +17,8 @@ SRC = \
 
 OBJ = $(SRC:.c=.o)
 
+BIN = bin/nson
+
 TST = \
 	test/data.c \
 	test/json.c \
@@ -45,7 +47,20 @@ BCH_CFLAGS = \
 	'-DBENCH_JSON="$(BENCH_JSON)"' \
 	'-DBENCH_PLIST="$(BENCH_PLIST)"' \
 
-all: $(OBJ)
+all: $(BIN) libnson.a libnson.so
+
+libnson.a: $(OBJ)
+	@echo AR $@
+	@ar rc $@ $(OBJ)
+	@ranlib $@
+
+libnson.so: $(OBJ)
+	@echo SH $@
+	@$(CC) -shared $(LDFLAGS) $(OBJ) -o $@
+
+bin/%: bin/%.o $(OBJ)
+	@echo LD $@
+	@$(CC) $(LDFLAGS) $(OBJ) $< -o $@
 
 bench/%-bench: bench/%.c test/test.h $(OBJ)
 	@echo CCBENCH $@
