@@ -79,3 +79,4 @@ coverage.*.html
 coverage.html
 cov
 bench/bench-file.*
+bin/nson
