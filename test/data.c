@@ -169,6 +169,117 @@ sort_object() {
 	(void)rv;
 }
 
+static void
+walk_array_empty() {
+	int rv;
+	off_t index = -1;
+	Nson nson;
+	Nson stack;
+	Nson *item;
+	Nson *stack_top;
+
+	rv = NSON(&nson, [ ]);
+	assert(rv >= 0);
+
+	rv = nson_init(&stack, NSON_ARR);
+	assert(rv >= 0);
+
+	item = stack_top = &nson;
+	assert(nson_type(item) == NSON_ARR);
+	assert(item == stack_top);
+	assert(index == -1);
+
+	item = nson_walk(&stack, &stack_top, &index);
+	assert(nson_type(item) == NSON_ARR);
+	assert(item == &nson);
+	assert(stack_top == NULL);
+	assert(index == 0);
+
+	item = nson_walk(&stack, &stack_top, &index);
+	assert(item == NULL);
+	assert(stack_top == NULL);
+	assert(index == 0);
+}
+
+static void
+walk_array() {
+	int rv;
+	off_t index = -1;
+	Nson nson;
+	Nson stack;
+	Nson *item;
+	Nson *stack_top;
+
+	rv = NSON(&nson, [
+			1, [ 2 ], 3, [ 4 ], 5
+	]);
+	assert(rv >= 0);
+
+	rv = nson_init(&stack, NSON_ARR);
+	assert(rv >= 0);
+
+	{
+		item = stack_top = &nson;
+		assert(nson_type(item) == NSON_ARR);
+		assert(item == stack_top);
+		assert(index == -1);
+
+		item = nson_walk(&stack, &stack_top, &index);
+		assert(nson_type(item) == NSON_INT);
+		assert(nson_int(item) == 1);
+		assert(index == 0);
+
+		{
+			item = nson_walk(&stack, &stack_top, &index);
+			assert(nson_type(item) == NSON_ARR);
+			assert(item == stack_top);
+			assert(index == -1);
+
+			item = nson_walk(&stack, &stack_top, &index);
+			assert(nson_type(item) == NSON_INT);
+			assert(nson_int(item) == 2);
+			assert(index == 0);
+		}
+		item = nson_walk(&stack, &stack_top, &index);
+		assert(nson_type(item) == NSON_ARR);
+		assert(item != stack_top);
+		assert(index == 1);
+
+		item = nson_walk(&stack, &stack_top, &index);
+		assert(nson_type(item) == NSON_INT);
+		assert(nson_int(item) == 3);
+		assert(index == 2);
+
+		{
+			item = nson_walk(&stack, &stack_top, &index);
+			assert(nson_type(item) == NSON_ARR);
+			assert(item == stack_top);
+			assert(index == -1);
+
+			item = nson_walk(&stack, &stack_top, &index);
+			assert(nson_type(item) == NSON_INT);
+			assert(nson_int(item) == 4);
+			assert(index == 0);
+		}
+		item = nson_walk(&stack, &stack_top, &index);
+		assert(nson_type(item) == NSON_ARR);
+		assert(item != stack_top);
+		assert(index == 3);
+
+		item = nson_walk(&stack, &stack_top, &index);
+		assert(nson_type(item) == NSON_INT);
+		assert(nson_int(item) == 5);
+		assert(index == 4);
+	}
+	item = nson_walk(&stack, &stack_top, &index);
+	assert(nson_type(item) == NSON_ARR);
+	assert(item == &nson);
+	assert(stack_top == NULL);
+	assert(index == 0);
+
+	(void)rv;
+}
+
 DEFINE
 TEST(create_array);
 TEST(add_int_to_array);
@@ -177,4 +288,6 @@ TEST(check_messy_array);
 TEST(check_messy_object);
 TEST(sort_array);
 TEST(sort_object);
+TEST(walk_array_empty);
+TEST(walk_array);
 DEFINE_END

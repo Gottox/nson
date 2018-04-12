@@ -360,6 +360,12 @@ Nson *nson_mem_get(const Nson *nson, off_t index);
  */
 size_t nson_mem_len(const Nson *nson);
 
+/**
+ * @brief
+ * @return
+ */
+Nson *nson_walk(Nson *stack, Nson **nson, off_t *index);
+
 /* MAP */
 
 /**
