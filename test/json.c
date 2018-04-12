@@ -266,9 +266,9 @@ void stringify_nullbyte() {
 	int rv;
 	char *str;
 	Nson nson;
-	nson_init_data(&nson, "a\0b", 3, NSON_STR);
-
+	rv = nson_init_data(&nson, "a\0b", 3, NSON_STR);
 	assert(rv >= 0);
+
 	assert(strcmp(nson_str(&nson), "a") == 0);
 	rv = nson_to_json(&nson, &str);
 	assert(rv >= 0);
