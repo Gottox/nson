@@ -435,7 +435,7 @@ int nson_to_json(Nson *nson, char **str);
  * @brief
  * @return
  */
-int nson_to_json_fd(const Nson *nson, FILE* fd);
+int nson_to_json_fd(Nson *nson, FILE* fd);
 
 /* INI */
 

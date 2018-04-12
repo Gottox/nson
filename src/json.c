@@ -364,52 +364,47 @@ json_b64_enc(const Nson *nson, FILE* fd) {
 }
 
 int
-nson_to_json_fd(const Nson *nson, FILE* fd) {
-	char start = '[', *seperator = ",,", terminal = ']';
+nson_to_json_fd(Nson *nson, FILE* fd) {
 	off_t i;
+	Nson stack;
+	Nson *it;
 
-	switch(nson_type(nson)) {
-		case NSON_NONE:
-			abort();
-			break;
-		case NSON_STR:
-			json_escape(nson, fd);
-			break;
-		case NSON_BLOB:
-			json_b64_enc(nson, fd);
-			break;
-		case NSON_REAL:
-			fprintf(fd, "%f", nson_real(nson));
-			break;
-		case NSON_INT:
-			fprintf(fd, "%" PRId64, nson_int(nson));
-			break;
-		case NSON_BOOL:
-			fputs(nson_int(nson) ? "true" : "false", fd);
-			break;
-		case NSON_ARR:
-		case NSON_OBJ:
-			if(nson_type(nson) == NSON_OBJ) {
-				start = '{';
-				seperator = ":,";
-				terminal = '}';
-			}
-
-			for(i = 0; i < nson_mem_len(nson); i++) {
-				if(terminal == '}' && i % 2 == 0
-						&& nson_data(nson_mem_get(nson, i))[0] == '\x1b') {
-					i+=2;
-					continue;
-				}
-				fputc(start, fd);
-				start = seperator[i % 2];
-				nson_to_json_fd(nson_mem_get(nson, i), fd);
-			}
-			if(start == '[' || start == '{')
-				fputc(start, fd);
-			fputc(terminal, fd);
-		default:
-			break;
+	nson_init(&stack, NSON_ARR);
+	for(i = -1, it = nson; it; it = nson_walk(&stack, &nson, &i)) {
+		switch(nson_type(it)) {
+			case NSON_NONE:
+				abort();
+				break;
+			case NSON_STR:
+				json_escape(it, fd);
+				break;
+			case NSON_BLOB:
+				json_b64_enc(it, fd);
+				break;
+			case NSON_REAL:
+				fprintf(fd, "%f", nson_real(it));
+				break;
+			case NSON_INT:
+				fprintf(fd, "%" PRId64, nson_int(it));
+				break;
+			case NSON_BOOL:
+				fputs(nson_int(it) ? "true" : "false", fd);
+				break;
+			case NSON_ARR:
+				fputc(i == -1 ? '[' : ']', fd);
+				break;
+			case NSON_OBJ:
+				fputc(i == -1 ? '{' : '}', fd);
+				break;
+			default:
+				break;
+		}
+		if (i == -1 || !nson || nson_mem_len(nson) == i + 1) {
+		} else if(nson_type(nson) == NSON_OBJ) {
+			fputc(i % 2 ? ',' : ':', fd);
+		} else {
+			fputc(',', fd);
+		}
 	}
 	return 0;
 }
