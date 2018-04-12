@@ -335,66 +335,63 @@ plist_b64_enc(const Nson *nson, FILE* fd) {
 		rv = -1;
 	if(nson_mapper_b64_enc(0, &tmp, NULL) < 0)
 		rv = -1;
-	else if(fputs("<data>", fd) < 0)
-		rv = -1;
 	else if(fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) == 0)
-		rv = -1;
-	else if(fputs("</data>", fd) < 0)
 		rv = -1;
 	nson_clean(&tmp);
 	return rv;
 }
 
-static int
-to_plist(Nson *nson, const char *string_overwrite, FILE *fd) {
-	off_t i;
-	int rv;
-	enum NsonType type = nson_type(nson);
-	switch(type) {
-	case NSON_ARR:
-	case NSON_OBJ:
-		rv = fputs(type == NSON_ARR ? "<array>" : "<dict>", fd);
-		if(rv <= 0)
-			return -1;
-		for(i = 0; i < nson_mem_len(nson); i++) {
-			rv = to_plist(nson_mem_get(nson, i), i % 2 == 0 ? "key" : "string", fd);
-			if(rv < 0)
-				return -1;
-		}
-		rv = fputs(type == NSON_ARR ? "</array>" : "</dict>", fd);
-		if(rv <= 0)
-			return -1;
-		break;
-	case NSON_STR:
-		fprintf(fd, "<%s>", string_overwrite);
-		rv = plist_escape(nson, fd);
-		fprintf(fd, "</%s>", string_overwrite);
-		break;
-	case NSON_BLOB:
-		rv = plist_b64_enc(nson, fd);
-		break;
-	case NSON_BOOL:
-		fputs(nson_int(nson) ? "<true/>" : "<false/>", fd);
-		break;
-	case NSON_INT:
-		fprintf(fd, "<integer>%" PRId64 "</integer>", nson_int(nson));
-		break;
-	case NSON_REAL:
-		fprintf(fd, "<real>%f</real>", nson_real(nson));
-		break;
-	default:
-		break;
-	}
-	return 0;
-}
-
 int
 nson_to_plist_fd(Nson *nson, FILE *fd) {
+	off_t i;
+	Nson stack;
+	Nson *it;
+
 	fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 		"<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" "
 		"\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"
 		"<plist version=\"1.0\">", fd);
-	to_plist(nson, "string", fd);
+	nson_init(&stack, NSON_ARR);
+	for(i = -1, it = nson; it; it = nson_walk(&stack, &nson, &i)) {
+		switch(nson_type(it)) {
+			case NSON_NONE:
+				abort();
+				break;
+			case NSON_STR:
+				if(nson && nson_type(nson) == NSON_OBJ && i % 2 == 0) {
+					fputs("<key>", fd);
+					plist_escape(it, fd);
+					fputs("</key>", fd);
+				} else {
+					fputs("<string>", fd);
+					plist_escape(it, fd);
+					fputs("</string>", fd);
+				}
+				break;
+			case NSON_BLOB:
+				fputs("<data>", fd);
+				plist_b64_enc(it, fd);
+				fputs("</data>", fd);
+				break;
+			case NSON_REAL:
+				fprintf(fd, "<real>%f</real>", nson_real(it));
+				break;
+			case NSON_INT:
+				fprintf(fd, "<integer>%" PRId64 "</integer>", nson_int(it));
+				break;
+			case NSON_BOOL:
+				fputs(nson_int(it) ? "<true/>" : "<false/>", fd);
+				break;
+			case NSON_ARR:
+				fputs(i == -1 ? "<array>" : "</array>", fd);
+				break;
+			case NSON_OBJ:
+				fputs(i == -1 ? "<dict>" : "</dict>", fd);
+				break;
+			default:
+				break;
+		}
+	}
 	fputs("</plist>",fd);
 	return 0;
 }
