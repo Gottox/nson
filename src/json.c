@@ -46,10 +46,22 @@ json_parse_utf8(char *dest, const char *src) {
 	i++;
 
 	for (; i < 5; i++) {
-		if(isdigit(src[i]))
+		switch(src[i]) {
+		case '0': case '1': case '2': case '3': case '4':
+		case '5': case '6': case '7': case '8': case '9':
 			chr = (16 * chr) + src[i] - '0';
-		else if(isxdigit(src[i]))
+			break;
+		case 'a': case 'b': case 'c':
+		case 'd': case 'e': case 'f':
 			chr = (16 * chr) + tolower(src[i]) - 'a' + 10;
+			break;
+		case 'A': case 'B': case 'C':
+		case 'D': case 'E': case 'F':
+			chr = (16 * chr) + src[i] - 'A' + 10;
+			break;
+		default:
+			return 0;
+		}
 	}
 
 	if (chr < 0x0080) {
