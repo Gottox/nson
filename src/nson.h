@@ -82,28 +82,44 @@ enum NsonType {
 	NSON_STR,
 };
 
+/**
+ * @brief Information that are common to all data types
+ * */
 typedef struct NsonCommon {
-	uint8_t type;
+	enum NsonType type;
 	void *alloc;
 	size_t alloc_size;
 	NsonMapper mapper;
 } NsonCommon;
 
+/**
+ * @brief fields that are used to save arbitrary binary or
+ * string data.
+ */
 typedef struct NsonData {
 	const char *b;
 	size_t len;
 } NsonData;
 
+/**
+ * @brief Data that are used to reference ranges of NSON fields.
+ */
 typedef struct NsonArray {
 	bool messy;
 	struct Nson *arr;
 	size_t len;
 } NsonArray ;
 
+/**
+ * @brief Data that are used to store a single floating point value.
+ */
 typedef struct NsonReal {
 	double r;
 } NsonReal;
 
+/**
+ * @brief Data that are used to store a single integer value.
+ */
 typedef struct NsonInt {
 	int64_t i;
 } NsonInt;
@@ -126,7 +142,7 @@ typedef struct Nson {
 /**
  * @brief invalidates @p nson
  *
- * frees all resources belonging to @p nson and NULLs
+ * frees all resources belonging to @p nson and zeros
  * @p nson. Does not free @p nson itself.
  *
  * @p nson can be resident on the stack and on the heap.
@@ -161,8 +177,9 @@ size_t nson_data_len(Nson *nson);
 #define nson_str(n) nson_data(n)
 
 /**
- * @brief
- * @return
+ * @brief Retrieve the binary / string data from a field of type
+ * NSON_STR or NSON_BLOB
+ * @return a pointer to the data referenced by @p nson
  */
 const char *nson_data(Nson *nson);
 
@@ -207,7 +224,7 @@ int64_t nson_int(const Nson *nson);
 double nson_real(const Nson *nson);
 
 /**
- * @brief
+ * @brief returns the value at a given index.
  * @return
  */
 Nson *nson_get(const Nson *nson, off_t index);
@@ -268,7 +285,7 @@ int nson_move(Nson *nson, Nson *src);
 int nson_clone(Nson *nson, const Nson *src);
 
 /**
- * @brief
+ * @brief appends @p suff to @p nson.
  * @return
  */
 int nson_push_all(Nson *nson, Nson *suff);
