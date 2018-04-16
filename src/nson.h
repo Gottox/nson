@@ -397,13 +397,6 @@ int nson_reduce(Nson *dest, const Nson *nson, NsonReducer reducer, const void *u
  * @brief
  * @return
  */
-int nson_reducer_flatten(off_t index, struct Nson *dest, const struct Nson *nson,
-		const void *user_data);
-
-/**
- * @brief
- * @return
- */
 int nson_remove(Nson *nson, off_t index, size_t size);
 
 /**
