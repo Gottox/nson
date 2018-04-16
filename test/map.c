@@ -67,7 +67,55 @@ check_encode_base64() {
 	assert(strcmp("SGVsbG8gV29y", nson_str(&nson)) == 0);
 }
 
+int
+mult_mapper(off_t index, Nson *nson, void *user_data) {
+	int64_t val = nson_int(nson);
+	nson_clean(nson);
+	nson_init_int(nson, val * 2);
+
+	return 0;
+}
+
+static void
+check_map_thread() {
+	Nson nson;
+	NSON(&nson, [
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+	]);
+
+	nson_map_thread(&nson, mult_mapper, NULL);
+
+	assert(2 == nson_int(nson_get(&nson, 0)));
+	assert(4 == nson_int(nson_get(&nson, 1)));
+	assert(6 == nson_int(nson_get(&nson, 2)));
+	assert(8 == nson_int(nson_get(&nson, 3)));
+	assert(10 == nson_int(nson_get(&nson, 4)));
+	assert(12 == nson_int(nson_get(&nson, 5)));
+	assert(14 == nson_int(nson_get(&nson, 6)));
+	assert(16 == nson_int(nson_get(&nson, 7)));
+	assert(18 == nson_int(nson_get(&nson, 8)));
+	assert(20 == nson_int(nson_get(&nson, 9)));
+}
+
+static void
+check_map_thread_two() {
+	Nson nson;
+
+	NSON(&nson, [
+		23, 42
+	]);
+
+	nson_map_thread(&nson, mult_mapper, NULL);
+
+	assert(2 == nson_len(&nson));
+	assert(46 == nson_int(nson_get(&nson, 0)));
+	assert(84 == nson_int(nson_get(&nson, 1)));
+	nson_clean(&nson);
+}
+
 DEFINE
 TEST(check_decode_base64);
 TEST(check_encode_base64);
+TEST(check_map_thread);
+TEST(check_map_thread_two);
 DEFINE_END

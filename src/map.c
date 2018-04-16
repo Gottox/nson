@@ -29,6 +29,8 @@
 #include <assert.h>
 #include <string.h>
 #include <search.h>
+#include <unistd.h>
+#include <pthread.h>
 
 #include "config.h"
 #include "nson.h"
@@ -210,11 +212,62 @@ nson_map(Nson *nson, NsonMapper mapper, void *user_data) {
 	int rv = 0;
 	off_t i;
 	size_t len;
-	assert(nson_type(nson) & (NSON_ARR | NSON_OBJ));
+	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ
+			|| nson_type(nson) == NSON_SLICE);
 
 	len = nson_mem_len(nson);
 	for (i = 0; rv >= 0 && i < len; i++) {
 		rv = mapper(i, nson_mem_get(nson, i), user_data);
 	}
 	return rv;
+}
+
+struct ThreadInfo {
+	Nson slice;
+	void *user_data;
+	NsonMapper mapper;
+	pthread_t thread;
+	int rv;
+};
+
+static void *
+map_thread_wrapper(void *arg) {
+	struct ThreadInfo *thread = arg;
+
+	thread->rv = nson_map(&thread->slice, thread->mapper, thread->user_data);
+
+	return NULL;
+}
+
+int
+nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
+	struct ThreadInfo *threads;
+	int thread_num, i;
+	size_t len, slice_len;
+
+	thread_num = (int)sysconf(_SC_NPROCESSORS_ONLN);
+	len = nson_mem_len(nson);
+	if(thread_num <= 1 || len <= 1) {
+		return nson_map(nson, mapper, user_data);
+	} else if(thread_num > len) {
+		thread_num = len;
+	}
+	slice_len = len / thread_num;
+	threads = alloca(thread_num * sizeof(*threads));
+	for (i = 0; i < thread_num; i++) {
+		threads[i].mapper = mapper;
+		threads[i].user_data = user_data;
+		if(i == thread_num - 1) {
+			nson_slice(&threads[i].slice, nson, slice_len * i, len - slice_len * i);
+			map_thread_wrapper(&threads[i]);
+		} else {
+			nson_slice(&threads[i].slice, nson, slice_len * i, slice_len);
+			pthread_create(&threads[i].thread, NULL, map_thread_wrapper, &threads[i]);
+		}
+	}
+	for (i = 0; i < thread_num - 1; i++) {
+		pthread_join(threads[i].thread, NULL);
+		nson_clean(&threads[i].slice);
+	}
+	return 0;
 }
