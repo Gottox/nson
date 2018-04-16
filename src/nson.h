@@ -47,22 +47,22 @@
 
 #define NSON_P(s) strdup(s), strlen(s)
 
-struct Nson;
+union Nson;
 
 /**
  * @brief function pointer that is used to parse a buffer
  */
-typedef int (*NsonParser)(struct Nson *, const char *, size_t);
+typedef int (*NsonParser)(union Nson *, const char *, size_t);
 
 /**
  * @brief function pointer that is used to map a Nson element
  */
-typedef int (*NsonReducer)(off_t index, struct Nson *, const struct Nson *, const void *);
+typedef int (*NsonReducer)(off_t index, union Nson *, const union Nson *, const void *);
 
 /**
  * @brief function pointer that is used to map a Nson element
  */
-typedef int (*NsonMapper)(off_t index, struct Nson *, void *);
+typedef int (*NsonMapper)(off_t index, union Nson *, void *);
 
 /**
  * @brief type of an Nson Element
@@ -97,6 +97,7 @@ typedef struct NsonCommon {
  * string data.
  */
 typedef struct NsonData {
+	struct NsonCommon c;
 	const char *b;
 	size_t len;
 } NsonData;
@@ -105,8 +106,9 @@ typedef struct NsonData {
  * @brief Data that are used to reference ranges of NSON fields.
  */
 typedef struct NsonArray {
+	struct NsonCommon c;
 	bool messy;
-	struct Nson *arr;
+	union Nson *arr;
 	size_t len;
 } NsonArray ;
 
@@ -114,6 +116,7 @@ typedef struct NsonArray {
  * @brief Data that are used to store a single floating point value.
  */
 typedef struct NsonReal {
+	struct NsonCommon c;
 	double r;
 } NsonReal;
 
@@ -121,19 +124,18 @@ typedef struct NsonReal {
  * @brief Data that are used to store a single integer value.
  */
 typedef struct NsonInt {
+	struct NsonCommon c;
 	int64_t i;
 } NsonInt;
 
 /**
  * @brief Data Container
  */
-typedef struct Nson {
-	union {
-		struct NsonInt i;
-		struct NsonReal r;
-		struct NsonData d;
-		struct NsonArray a;
-	} val;
+typedef union Nson {
+	struct NsonInt i;
+	struct NsonReal r;
+	struct NsonData d;
+	struct NsonArray a;
 	struct NsonCommon c;
 } Nson;
 

@@ -148,7 +148,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			if((rv = skip_tag("array", p, len - (doc - p))) <= 0)
 				break;
 			nson_init(&tmp, NSON_ARR);
-			tmp.val.a.messy = true;
+			tmp.a.messy = true;
 			nson_push(&stack, &tmp);
 			stack_top = nson_last(&stack);
 			p += rv;
@@ -156,7 +156,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 		case 'd':
 			if((rv = skip_tag("dict", p, len - (doc - p))) > 0) {
 				nson_init(&tmp, NSON_OBJ);
-				tmp.val.a.messy = true;
+				tmp.a.messy = true;
 				nson_push(&stack, &tmp);
 				stack_top = nson_last(&stack);
 				p += rv;
@@ -282,7 +282,7 @@ plist_escape(Nson *nson, FILE *fd) {
 	off_t i = 0, last_write = 0;
 	size_t len;
 	char *escape = NULL;
-	const char *str = nson->val.d.b;
+	const char *str = nson->d.b;
 
 	if(str == NULL) {
 		return 0;

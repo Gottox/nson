@@ -137,8 +137,8 @@ json_escape(const Nson *nson, FILE *fd) {
 
 	if(nson->c.mapper == json_mapper_unescape) {
 		// Not escaped yet, we can dump it directly
-		len = nson->val.d.len;
-		if(fwrite(nson->val.d.b, sizeof(char), len, fd) != len)
+		len = nson->d.len;
+		if(fwrite(nson->d.b, sizeof(char), len, fd) != len)
 			return -1;
 		else if(fputc('"', fd) < 0)
 			return -1;
@@ -226,7 +226,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		case '[':
 		case '{':
 			nson_init(&tmp, *p == '{' ? NSON_OBJ : NSON_ARR);
-			tmp.val.a.messy = true;
+			tmp.a.messy = true;
 			nson_push(&stack, &tmp);
 			stack_top = nson_last(&stack);
 			p++;
