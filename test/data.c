@@ -47,6 +47,8 @@ add_int_to_array() {
 
 	nson_push_int(&nson, 42);
 	assert(nson_type(nson_get(&nson, 0)) == NSON_INT);
+
+	nson_clean(&nson);
 }
 
 static void
@@ -70,6 +72,8 @@ check_messy_array() {
 	nson_init_int(&val, 4);
 	nson_push(&nson, &val);
 	assert(nson.a.messy == true);
+
+	nson_clean(&nson);
 }
 
 static void
@@ -106,6 +110,7 @@ check_messy_object() {
 	nson_push(&nson, &val);
 	assert(nson.a.messy == true);
 
+	nson_clean(&nson);
 }
 
 static void
@@ -117,6 +122,9 @@ clone_array() {
 
 	assert(nson_int(nson_get(&clone, 0)) == 1);
 	assert(nson_int(nson_get(&clone, 1)) == 2);
+
+	nson_clean(&clone);
+	nson_clean(&nson);
 }
 
 static void
@@ -135,6 +143,7 @@ sort_array() {
 	assert(nson_int(nson_get(&nson, 3)) == 4);
 	assert(nson_int(nson_get(&nson, 4)) == 5);
 
+	nson_clean(&nson);
 	(void)rv;
 }
 
