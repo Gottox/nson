@@ -38,16 +38,20 @@ check_decode_base64() {
 	nson_mapper_b64_dec(0, &nson, NULL);
 	assert(strcmp("Hello World", nson_str(&nson)) == 0);
 	assert(nson_data_len(&nson) == 11);
+	nson_clean(&nson);
 
 	nson_init_str(&nson, "SGVsbG8gV29ybA==");
 	nson_mapper_b64_dec(0, &nson, NULL);
 	assert(strcmp("Hello Worl", nson_str(&nson)) == 0);
 	assert(nson_data_len(&nson) == 10);
+	nson_clean(&nson);
 
 	nson_init_str(&nson, "SGVsbG8gV29y");
 	nson_mapper_b64_dec(0, &nson, NULL);
 	assert(strcmp("Hello Wor", nson_str(&nson)) == 0);
 	assert(nson_data_len(&nson) == 9);
+
+	nson_clean(&nson);
 }
 
 static void
@@ -57,14 +61,18 @@ check_encode_base64() {
 	nson_init_str(&nson, "Hello World");
 	nson_mapper_b64_enc(0, &nson, NULL);
 	assert(strcmp("SGVsbG8gV29ybGQ=", nson_str(&nson)) == 0);
+	nson_clean(&nson);
 
 	nson_init_str(&nson, "Hello Worl");
 	nson_mapper_b64_enc(0, &nson, NULL);
 	assert(strcmp("SGVsbG8gV29ybA==", nson_str(&nson)) == 0);
+	nson_clean(&nson);
 
 	nson_init_str(&nson, "Hello Wor");
 	nson_mapper_b64_enc(0, &nson, NULL);
 	assert(strcmp("SGVsbG8gV29y", nson_str(&nson)) == 0);
+
+	nson_clean(&nson);
 }
 
 int
@@ -95,6 +103,8 @@ check_map_thread() {
 	assert(16 == nson_int(nson_get(&nson, 7)));
 	assert(18 == nson_int(nson_get(&nson, 8)));
 	assert(20 == nson_int(nson_get(&nson, 9)));
+
+	nson_clean(&nson);
 }
 
 static void

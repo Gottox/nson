@@ -45,7 +45,7 @@
 
 #define NSON(n, ...) nson_parse_json(n, #__VA_ARGS__, strlen(#__VA_ARGS__))
 
-#define NSON_P(s) strdup(s), strlen(s)
+#define NSON_P(s) s, strlen(s)
 
 union Nson;
 

@@ -39,8 +39,8 @@ parse_true() {
 	rv = NSON(&nson, true);
 	assert(rv >= 0);
 	assert(nson_int(&nson) != 0);
-	nson_clean(&nson);
 
+	nson_clean(&nson);
 	(void)rv;
 }
 
@@ -53,8 +53,8 @@ parse_double() {
 	assert(rv >= 0);
 	assert(nson_int(&nson) == 5);
 	assert(nson_real(&nson) == 5.2);
-	nson_clean(&nson);
 
+	nson_clean(&nson);
 	(void)rv;
 }
 
@@ -66,8 +66,8 @@ parse_number() {
 	rv = NSON(&nson, 5);
 	assert(rv >= 0);
 	assert(nson_int(&nson) == 5);
-	nson_clean(&nson);
 
+	nson_clean(&nson);
 	(void)rv;
 }
 
@@ -78,8 +78,8 @@ parse_empty_string() {
 
 	rv = NSON(&nson, "");
 	assert(rv >= 0);
-	nson_clean(&nson);
 
+	nson_clean(&nson);
 	(void)rv;
 }
 
@@ -96,8 +96,8 @@ object_with_one_element() {
 	Nson *e1 = nson_get(&nson, 0);
 	assert(strcmp(nson_get_key(&nson, 0), "a") == 0);
 	assert(strcmp(nson_str(e1), "b") == 0);
-	nson_clean(&nson);
 
+	nson_clean(&nson);
 	(void)rv;
 	(void)e1;
 }
@@ -116,8 +116,8 @@ object_with_multiple_elements() {
 	assert(nson_int(e1) == 1);
 	Nson *e2 = nson_get(&nson, 1);
 	assert(nson_int(e2) == 2);
-	nson_clean(&nson);
 
+	nson_clean(&nson);
 	(void)rv;
 	(void)e1;
 	(void)e2;
@@ -221,6 +221,7 @@ utf8_0080() {
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "$") == 0);
 
+	nson_clean(&nson);
 	(void)rv;
 }
 
@@ -233,6 +234,7 @@ utf8_0800() {
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "¢") == 0);
 
+	nson_clean(&nson);
 	(void)rv;
 }
 
@@ -245,6 +247,7 @@ utf8_FFFF() {
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "€") == 0);
 
+	nson_clean(&nson);
 	(void)rv;
 }
 
@@ -259,6 +262,7 @@ void stringify_utf8() {
 	assert(rv >= 0);
 	assert(strcmp(str, "\"€\"") == 0);
 
+	free(str);
 	(void)rv;
 }
 
@@ -266,7 +270,7 @@ void stringify_nullbyte() {
 	int rv;
 	char *str;
 	Nson nson;
-	rv = nson_init_data(&nson, "a\0b", 3, NSON_STR);
+	rv = nson_init_ptr(&nson, "a\0b", 3, NSON_STR);
 	assert(rv >= 0);
 
 	assert(strcmp(nson_str(&nson), "a") == 0);
@@ -274,6 +278,8 @@ void stringify_nullbyte() {
 	assert(rv >= 0);
 	assert(strcmp(str, "\"a\\u0000b\"") == 0);
 
+	free(str);
+	nson_clean(&nson);
 	(void)rv;
 }
 
@@ -288,8 +294,9 @@ stringify_empty_array() {
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);
 	assert(strcmp("[]", result) == 0);
-	nson_clean(&nson);
 
+	nson_clean(&nson);
+	free(result);
 	(void)rv;
 }
 
@@ -304,8 +311,9 @@ stringify_empty_object() {
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);
 	assert(strcmp("{}", result) == 0);
-	nson_clean(&nson);
 
+	free(result);
+	nson_clean(&nson);
 	(void)rv;
 }
 
@@ -321,9 +329,9 @@ stringify_object() {
 	nson_to_json(&nson, &result);
 	puts(result);
 	assert(strcmp("{\"a\":1}", result) == 0);
+
 	nson_clean(&nson);
-
-
+	free(result);
 	(void)rv;
 }
 
@@ -338,8 +346,9 @@ void stringify_data() {
 	nson_to_json(&nson, &result);
 	puts(result);
 	assert(strcmp("\"SGVsbG8gV29ybGQ=\"", result) == 0);
-	nson_clean(&nson);
 
+	free(result);
+	nson_clean(&nson);
 	(void)rv;
 }
 

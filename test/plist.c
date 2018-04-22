@@ -282,8 +282,9 @@ stringify_object_with_2_members() {
 				"<key>a</key><integer>5</integer>"
 				"<key>b</key><integer>5</integer>"
 				"</dict>"));
-	nson_clean(&nson);
 
+	nson_clean(&nson);
+	free(str);
 	(void)rv;
 }
 
@@ -297,8 +298,9 @@ stringify_data() {
 	assert(rv >= 0);
 	nson_to_plist(&nson, &str);
 	assert(strstr(str, "<data>SGVsbG8gV29ybGQ=</data>"));
-	nson_clean(&nson);
 
+	nson_clean(&nson);
+	free(str);
 	(void)rv;
 }
 
@@ -312,8 +314,9 @@ stringify_escape() {
 	assert(rv >= 0);
 	nson_to_plist(&nson, &str);
 	assert(strstr(str, "<string> &lt; &gt; &amp; </string>"));
-	nson_clean(&nson);
 
+	nson_clean(&nson);
+	free(str);
 	(void)rv;
 }
 
@@ -327,8 +330,9 @@ stringify_true() {
 	assert(rv >= 0);
 	nson_to_plist(&nson, &str);
 	assert(strstr(str, "<true/>"));
-	nson_clean(&nson);
 
+	nson_clean(&nson);
+	free(str);
 	(void)rv;
 }
 

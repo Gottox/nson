@@ -175,6 +175,7 @@ sort_object() {
 	assert(strcmp(nson_get_key(&nson, 3), "d") == 0);
 	assert(strcmp(nson_get_key(&nson, 4), "e") == 0);
 
+	nson_clean(&nson);
 	(void)rv;
 }
 
@@ -208,6 +209,9 @@ walk_array_empty() {
 	assert(item == NULL);
 	assert(stack_top == NULL);
 	assert(index == 0);
+
+	nson_clean(&nson);
+	nson_clean(&stack);
 }
 
 static void
@@ -287,6 +291,9 @@ walk_array() {
 	assert(index == 0);
 
 	(void)rv;
+
+	nson_clean(&nson);
+	nson_clean(&stack);
 }
 
 DEFINE
