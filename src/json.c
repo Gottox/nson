@@ -322,12 +322,11 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		goto out;
 	}
 	nson_move(nson, nson_get(stack_top, 0));
-	nson_mem_capacity(&stack, 1);
 
 	rv = p - doc;
 out:
 
-	nson_clean(nson_get(&stack, 0));
+	nson_clean(&stack);
 	return rv;
 }
 

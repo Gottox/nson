@@ -268,12 +268,12 @@ string:
 		return -1;
 	p += rv;
 	nson_move(nson, nson_get(stack_top, 0));
-	nson_mem_capacity(&stack, 1);
 
 	rv = p - doc;
 
 err:
-	nson_clean(nson_get(&stack, 0));
+
+	nson_clean(&stack);
 	return rv;
 }
 
