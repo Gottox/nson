@@ -47,6 +47,8 @@ BCH_CFLAGS = \
 	'-DBENCH_JSON="$(BENCH_JSON)"' \
 	'-DBENCH_PLIST="$(BENCH_PLIST)"' \
 
+MAJOR=$(shell echo $(VERSION) | cut -d . -f 1)
+
 all: $(BIN) libnson.a libnson.so
 
 libnson.a: $(OBJ)
@@ -56,7 +58,9 @@ libnson.a: $(OBJ)
 
 libnson.so: $(OBJ)
 	@echo SH $@
-	@$(CC) -shared $(LDFLAGS) $(OBJ) -o $@
+	@$(CC) -shared $(LDFLAGS) $(OBJ) -o $@.$(VERSION) -Wl,-soname=$@.$(MAJOR)
+	@ln -sf $@.$(VERSION) $@.$(MAJOR)
+	@ln -sf $@.$(VERSION) $@
 
 bin/%: bin/%.o $(OBJ)
 	@echo LD $@
@@ -102,7 +106,7 @@ clean:
 	@echo cleaning...
 	@rm -rf doc cov
 	@rm -f *.gcnp *.gcda
-	@rm -f $(TST_BIN) $(BCH_BIN) $(OBJ) $(BIN) libnson.so libnson.a
+	@rm -f $(TST_BIN) $(BCH_BIN) $(OBJ) $(BIN) libnson.so* libnson.a
 	#@rm -f $(BENCH_JSON) $(BENCH_PLIST)
 
 .PHONY: check all clean speed coverage

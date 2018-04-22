@@ -5,6 +5,7 @@ VERSION = 0.1
 
 # debug flags
 CFLAGS = -Wall -Werror -Wpedantic -O0 -g -fPIC -std=gnu99 -pthread
+LDFLAGS = -pthread
 
 # if you're feeling lucky:
 #CFLAGS += -DNDEBUG
