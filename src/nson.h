@@ -43,7 +43,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define NSON(n, ...) nson_parse_json(n, strdup(#__VA_ARGS__), strlen(#__VA_ARGS__))
+#define NSON(n, ...) nson_parse_json(n, #__VA_ARGS__, strlen(#__VA_ARGS__))
 
 #define NSON_P(s) strdup(s), strlen(s)
 
