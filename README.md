@@ -18,7 +18,7 @@ for the benchmark the following libraries and headerfiles are needed:
  * json-c
  * jansson
 
-To aquire the bench file `wget` is used. For converting it into plist, node and
+To aquire the bench file `wget` is used. For converting it into plist, node and npm
 need to be installed.
 
 To setup the environment in VoidLinux run the following command:
