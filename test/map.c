@@ -85,6 +85,42 @@ mult_mapper(off_t index, Nson *nson, void *user_data) {
 }
 
 static void
+check_map_big() {
+	int i;
+	Nson nson;
+	nson_init(&nson, NSON_ARR);
+	for(i = 0; i < 10240; i++) {
+		nson_push_int(&nson, i);
+	}
+
+	nson_map(&nson, mult_mapper, NULL);
+
+	for(i = 0; i < 10240; i++) {
+		assert(i*2 == nson_int(nson_get(&nson, i)));
+	}
+
+	nson_clean(&nson);
+}
+
+static void
+check_map_thread_big() {
+	int i;
+	Nson nson;
+	nson_init(&nson, NSON_ARR);
+	for(i = 0; i < 10240; i++) {
+		nson_push_int(&nson, i);
+	}
+
+	nson_map_thread(&nson, mult_mapper, NULL);
+
+	for(i = 0; i < 10240; i++) {
+		assert(i*2 == nson_int(nson_get(&nson, i)));
+	}
+
+	nson_clean(&nson);
+}
+
+static void
 check_map_thread() {
 	Nson nson;
 	NSON(&nson, [
@@ -126,6 +162,8 @@ check_map_thread_two() {
 DEFINE
 TEST(check_decode_base64);
 TEST(check_encode_base64);
+TEST(check_map_big);
 TEST(check_map_thread);
 TEST(check_map_thread_two);
+TEST(check_map_thread_big);
 DEFINE_END
