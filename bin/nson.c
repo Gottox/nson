@@ -60,7 +60,7 @@ main(int argc, char *argv[]) {
 			formats[i]++;
 		if (strcmp(argv[optind], "-") == 0)
 			continue;
-		fd = open(argv[optind], i ? (O_WRONLY | O_CREAT): O_RDONLY, 0664);
+		fd = open(argv[optind], i ? (O_WRONLY | O_CREAT) : O_RDONLY, 0664);
 		if (fd < 0) {
 			perror(argv[optind]);
 			return EXIT_FAILURE;
