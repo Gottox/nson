@@ -210,18 +210,29 @@ nson_map(Nson *nson, NsonMapper mapper, void *user_data) {
 }
 
 struct ThreadInfo {
-	Nson slice;
+	Nson *nson;
 	void *user_data;
 	NsonMapper mapper;
 	pthread_t thread;
+	int fd;
 	int rv;
+	uint8_t bucket_size;
 };
 
 static void *
 map_thread_wrapper(void *arg) {
+	int i, rv;
 	struct ThreadInfo *thread = arg;
+	int *buckets = alloca(thread->bucket_size * sizeof(int));
+	size_t bucket_len = 0;
 
-	thread->rv = nson_map(&thread->slice, thread->mapper, thread->user_data);
+	while ((bucket_len = read(thread->fd, buckets, thread->bucket_size * sizeof(int))) > 0) {
+		for (i = 0; rv >= 0 && i < bucket_len / sizeof(int); i++) {
+			rv = thread->mapper(buckets[i], nson_mem_get(thread->nson, buckets[i]),
+					thread->user_data);
+		}
+	}
+	thread->rv = rv;
 
 	return NULL;
 }
@@ -229,8 +240,9 @@ map_thread_wrapper(void *arg) {
 int
 nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
 	struct ThreadInfo *threads;
-	int thread_num, i;
-	size_t len, slice_len;
+	int thread_num, bucket_size, i, p[2];
+	FILE *fd;
+	size_t len;
 
 	thread_num = (int)sysconf(_SC_NPROCESSORS_ONLN);
 	len = nson_mem_len(nson);
@@ -238,23 +250,36 @@ nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
 		return nson_map(nson, mapper, user_data);
 	} else if(thread_num > len) {
 		thread_num = len;
+		bucket_size = 1;
+	} else {
+		bucket_size = len / thread_num;
+		if(bucket_size > 32)
+			bucket_size = 32;
 	}
-	slice_len = len / thread_num;
+
 	threads = alloca(thread_num * sizeof(*threads));
+	if(pipe(p) < 0)
+		return -1;
+
 	for (i = 0; i < thread_num; i++) {
 		threads[i].mapper = mapper;
 		threads[i].user_data = user_data;
-		if(i == thread_num - 1) {
-			nson_slice(&threads[i].slice, nson, slice_len * i, len - slice_len * i);
-			map_thread_wrapper(&threads[i]);
-		} else {
-			nson_slice(&threads[i].slice, nson, slice_len * i, slice_len);
-			pthread_create(&threads[i].thread, NULL, map_thread_wrapper, &threads[i]);
-		}
+		threads[i].nson = nson;
+		threads[i].fd = p[0];
+		threads[i].bucket_size = bucket_size;
+		pthread_create(&threads[i].thread, NULL, map_thread_wrapper, &threads[i]);
 	}
-	for (i = 0; i < thread_num - 1; i++) {
+
+	fd = fdopen(p[1], "w");
+	for (i = 0; i < len; i++) {
+		fwrite(&i, sizeof(int), 1, fd);
+	}
+	fclose(fd);
+
+	for (i = 0; i < thread_num; i++) {
 		pthread_join(threads[i].thread, NULL);
-		nson_clean(&threads[i].slice);
 	}
+
+	close(p[0]);
 	return 0;
 }
