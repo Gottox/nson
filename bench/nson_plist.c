@@ -24,7 +24,7 @@ bench_nson_to_plist() {
 	int rv;
 	char *str;
 
-	nson_to_plist(&nson, &str);
+	rv = nson_to_plist(&nson, &str);
 
 	assert(rv >= 0);
 	(void)rv;

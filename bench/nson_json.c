@@ -23,7 +23,7 @@ void bench_nson_to_json() {
 	int rv;
 	char *str;
 
-	nson_to_json(&nson, &str);
+	rv = nson_to_json(&nson, &str);
 
 	assert(rv >= 0);
 	(void)rv;
