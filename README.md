@@ -1,7 +1,7 @@
-NSON
-====
+*nson*
+======
 
-Nson is a data framework for C with a very fast JSON and property list parser.
+*nson* is a data framework for C with a very fast JSON and property list parser.
 
 To run the tests suite:
 
