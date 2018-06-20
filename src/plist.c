@@ -26,14 +26,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "config.h"
+#include "nson.h"
+#include "util.h"
+
 #include <assert.h>
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
-
-#include "config.h"
-#include "nson.h"
-#include "util.h"
 
 #define SKIP_SPACES for(; *p && strchr("\n\f\r\t\v ", *p); p++);
 

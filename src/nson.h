@@ -38,6 +38,8 @@
 #ifndef NSON_H
 #define NSON_H
 
+#define _GNU_SOURCE
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>

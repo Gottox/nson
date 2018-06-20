@@ -26,14 +26,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "config.h"
+#include "nson.h"
+
 #include <assert.h>
 #include <string.h>
 #include <search.h>
 #include <unistd.h>
 #include <pthread.h>
-
-#include "config.h"
-#include "nson.h"
 
 static const char base64_table[] =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

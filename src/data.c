@@ -26,6 +26,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "nson.h"
+#include "config.h"
+
 #include <string.h>
 #include <assert.h>
 #include <sys/mman.h>
@@ -35,9 +38,6 @@
 #include <unistd.h>
 #include <assert.h>
 #include <limits.h>
-
-#include "config.h"
-#include "nson.h"
 
 #define SCAL_CMP(a, b) (a > b ? 1 : (a < b ? -1 : 0))
 

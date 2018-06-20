@@ -26,11 +26,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <string.h>
-#include <ctype.h>
-
 #include "config.h"
 #include "nson.h"
+
+#include <string.h>
+#include <ctype.h>
 
 static int
 parse_line(Nson *nson, const char *line, size_t len) {

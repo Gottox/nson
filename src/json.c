@@ -26,15 +26,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "config.h"
+#include "nson.h"
+#include "util.h"
+
 #include <string.h>
 #include <ctype.h>
 #include <search.h>
 #include <inttypes.h>
 #include <assert.h>
-
-#include "config.h"
-#include "nson.h"
-#include "util.h"
 
 static int
 json_parse_utf8(char *dest, const char *src) {
