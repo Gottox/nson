@@ -34,6 +34,8 @@
 #define _NDEBUG
 #endif
 
+#define _GNU_SOURCE
+
 #include <assert.h>
 #include <sys/types.h>
 #include <limits.h>
