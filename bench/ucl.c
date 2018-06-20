@@ -5,6 +5,8 @@
  * Distributed under terms of the MIT license.
  */
 
+#define _GNU_SOURCE
+
 #include "../test/test.h"
 #include "mmap.h"
 
