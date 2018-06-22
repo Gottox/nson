@@ -1,11 +1,11 @@
 VERSION = 0.1
 
 # release flags
-#CFLAGS = -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -fPIC -Werror -Wpedantic -O2 -pthread
+#CFLAGS = -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -fPIC -Werror -Wpedantic -O2 -pthread -flto
 
 # debug flags
-CFLAGS = -Wall -Werror -Wpedantic -O0 -g -fPIC -std=c99 -pthread
-LDFLAGS = -pthread
+CFLAGS = -Wall -Werror -Wpedantic -O0 -g -fPIC -std=c99 -pthread -flto
+LDFLAGS = -pthread -flto
 
 # if you're feeling lucky:
 #CFLAGS += -DNDEBUG

@@ -244,9 +244,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			break;
 		case '"':
 			for(begin = ++p; (p = memchr(p, '"', p + len - doc)); p++) {
-				if(p[-1] != '\\')
-					break;
-				else if(p[-2] == '\\')
+				if(p[-1] != '\\' || p[-2] == '\\')
 					break;
 			}
 			if(p == NULL) {

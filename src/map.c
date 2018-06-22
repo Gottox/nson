@@ -221,7 +221,7 @@ struct ThreadInfo {
 
 static void *
 map_thread_wrapper(void *arg) {
-	int i, rv;
+	int i, rv = 0;
 	struct ThreadInfo *thread = arg;
 	int *buckets = alloca(thread->bucket_size * sizeof(int));
 	size_t bucket_len = 0;
@@ -262,6 +262,7 @@ nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
 		return -1;
 
 	for (i = 0; i < thread_num; i++) {
+		threads[i].rv = 0;
 		threads[i].mapper = mapper;
 		threads[i].user_data = user_data;
 		threads[i].nson = nson;
