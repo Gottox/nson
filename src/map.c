@@ -210,28 +210,38 @@ nson_map(Nson *nson, NsonMapper mapper, void *user_data) {
 }
 
 struct ThreadInfo {
+	short id;
+	size_t chunk_size;
+	size_t len;
 	Nson *nson;
 	void *user_data;
 	NsonMapper mapper;
 	pthread_t thread;
-	int fd;
+	pthread_spinlock_t *lock;
+	off_t *reserved;
 	int rv;
-	uint8_t bucket_size;
 };
 
 static void *
 map_thread_wrapper(void *arg) {
-	int i, rv = 0;
+	int rv = 0;
+	off_t i;
+	size_t end;
 	struct ThreadInfo *thread = arg;
-	int *buckets = alloca(thread->bucket_size * sizeof(int));
-	size_t bucket_len = 0;
+	i = thread->id * thread->chunk_size;
+	end = i + thread->chunk_size;
 
-	while ((bucket_len = read(thread->fd, buckets, thread->bucket_size * sizeof(int))) > 0) {
-		for (i = 0; rv >= 0 && i < bucket_len / sizeof(int); i++) {
-			rv = thread->mapper(buckets[i], nson_mem_get(thread->nson, buckets[i]),
-					thread->user_data);
+	do {
+		for (; i < end && i < thread->len; i++) {
+			thread->mapper(i, nson_mem_get(thread->nson, i), thread->user_data);
 		}
-	}
+		pthread_spin_lock(thread->lock);
+		i = *thread->reserved;
+		end = i + thread->chunk_size;
+		*thread->reserved = end;
+		pthread_spin_unlock(thread->lock);
+	} while(i < thread->len);
+
 	thread->rv = rv;
 
 	return NULL;
@@ -240,9 +250,10 @@ map_thread_wrapper(void *arg) {
 int
 nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
 	struct ThreadInfo *threads;
-	int thread_num, bucket_size, i, p[2];
-	FILE *fd;
+	int thread_num, chunk_size, i;
 	size_t len;
+	pthread_spinlock_t lock;
+	off_t reserved;
 
 	thread_num = (int)sysconf(_SC_NPROCESSORS_ONLN);
 	len = nson_mem_len(nson);
@@ -250,37 +261,37 @@ nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
 		return nson_map(nson, mapper, user_data);
 	} else if(thread_num > len) {
 		thread_num = len;
-		bucket_size = 1;
+		chunk_size = 1;
 	} else {
-		bucket_size = len / thread_num;
-		if(bucket_size > 32)
-			bucket_size = 32;
+		chunk_size = len / thread_num;
+		if(chunk_size > 32)
+			chunk_size = 32;
 	}
 
 	threads = alloca(thread_num * sizeof(*threads));
-	if(pipe(p) < 0)
-		return -1;
+	pthread_spin_init(&lock, PTHREAD_PROCESS_SHARED);
 
+	reserved = thread_num * chunk_size;
 	for (i = 0; i < thread_num; i++) {
 		threads[i].rv = 0;
 		threads[i].mapper = mapper;
 		threads[i].user_data = user_data;
 		threads[i].nson = nson;
-		threads[i].fd = p[0];
-		threads[i].bucket_size = bucket_size;
-		pthread_create(&threads[i].thread, NULL, map_thread_wrapper, &threads[i]);
+		threads[i].id = i;
+		threads[i].len = len;
+		threads[i].chunk_size = chunk_size;
+		threads[i].lock = &lock;
+		threads[i].reserved = &reserved;
+
+		if (i == thread_num - 1)
+			map_thread_wrapper(&threads[i]);
+		else
+			pthread_create(&threads[i].thread, NULL, map_thread_wrapper, &threads[i]);
 	}
 
-	fd = fdopen(p[1], "w");
-	for (i = 0; i < len; i++) {
-		fwrite(&i, sizeof(int), 1, fd);
-	}
-	fclose(fd);
-
-	for (i = 0; i < thread_num; i++) {
+	for (i = 0; i < thread_num - 1; i++) {
 		pthread_join(threads[i].thread, NULL);
 	}
 
-	close(p[0]);
 	return 0;
 }
