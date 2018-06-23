@@ -257,6 +257,7 @@ nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
 
 	thread_num = (int)sysconf(_SC_NPROCESSORS_ONLN);
 	len = nson_mem_len(nson);
+
 	if(thread_num <= 1 || len <= 1) {
 		return nson_map(nson, mapper, user_data);
 	} else if(thread_num > len) {
@@ -293,5 +294,6 @@ nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
 		pthread_join(threads[i].thread, NULL);
 	}
 
+	pthread_spin_destroy(&lock);
 	return 0;
 }
