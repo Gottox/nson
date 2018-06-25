@@ -184,10 +184,12 @@ string:
 			}
 			if (string_tag[0] == 'd') {
 				nson_init_ptr(&tmp, begin, p - begin - 2, NSON_BLOB);
-				tmp.c.mapper = nson_mapper_b64_dec;
+				//tmp.c.mapper = nson_mapper_b64_dec;
+				nson_mapper_b64_dec(0, &tmp, NULL);
 			} else {
 				nson_init_ptr(&tmp, begin, p - begin - 2, NSON_STR);
-				tmp.c.mapper = plist_mapper_string;
+				//tmp.c.mapper = plist_mapper_string;
+				plist_mapper_string(0, &tmp, NULL);
 			}
 			nson_push(stack_top, &tmp);
 			p += rv;
