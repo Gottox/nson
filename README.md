@@ -35,7 +35,6 @@ Goals
    line tools that won't run for long. So NSON avoids building hashmaps and uses
    linear/binary search which is expected to be faster in programs of short
    lifetime.
- * **non-refcount** NSON relies on a memory model explained below instead.
  * **mutex-/lock-less** NSON provides basic thread functionality, which will
    be used for mapping or filtering collections of data. If you need more complex
    threading setups, you must lock the data by your own.
