@@ -299,8 +299,8 @@ walk_array() {
 static void
 issue_nullref() {
 	int rv;
-	Nson nson = { 0 };
-	Nson item_stack = { 0 };
+	Nson nson = { { { 0 } } };
+	Nson item_stack = { { { 0 } } };
 	Nson *item;
 
 	char *src = strdup("[\"1\"]");
