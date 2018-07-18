@@ -296,6 +296,29 @@ walk_array() {
 	nson_clean(&stack);
 }
 
+static void
+issue_nullref() {
+	int rv;
+	Nson nson = { 0 };
+	Nson item_stack = { 0 };
+	Nson *item;
+
+	char *src = strdup("[\"1\"]");
+	int len = strlen(src);
+	rv = nson_parse_json(&nson, src, len);
+	nson.c.alloc = src;
+	nson.c.alloc_size = 0;
+	assert(rv >= 0);
+
+	item = nson_get(&nson, 0);
+
+	nson_move(&item_stack, item);
+	assert(item_stack.c.alloc != 0);
+	memset(src, 'A', len);
+	nson_clean(&nson);
+	assert(strcmp("1", nson_str(&item_stack)) == 0);
+}
+
 DEFINE
 TEST(create_array);
 TEST(add_int_to_array);
@@ -306,4 +329,5 @@ TEST(sort_array);
 TEST(sort_object);
 TEST(walk_array_empty);
 TEST(walk_array);
+TEST(issue_nullref);
 DEFINE_END
