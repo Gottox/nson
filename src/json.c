@@ -107,9 +107,8 @@ json_mapper_unescape(off_t index, Nson* nson, void *user_data) {
 			break;
 		case 'u':
 			rv = json_parse_utf8(p, &p[1]);
-			if(rv < 0)
-				return -1;
-			t_len = rv;
+			if(rv >= 0)
+				t_len = rv;
 			break;
 		}
 		memmove(p + 1, p + t_len, len - (p - dest) - t_len);
