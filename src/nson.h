@@ -91,7 +91,6 @@ typedef struct NsonCommon {
 	enum NsonType type;
 	void *alloc;
 	size_t alloc_size;
-	NsonMapper mapper;
 } NsonCommon;
 
 /**

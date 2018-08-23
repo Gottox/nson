@@ -46,16 +46,11 @@
 static int
 nson_cmp_data(const Nson *a, const Nson *b) {
 	int rv;
-	Nson tmp = { { { 0 } } };
-	if(a->c.mapper) {
-		nson_clone(&tmp, (const Nson *)a);
-		nson_data(&tmp);
-		rv = nson_cmp_data(b, &tmp) * -1;
-		nson_clean(&tmp);
-		return rv;
-	}
 
-	return memcmp(a->d.b, b->d.b, MIN(a->d.len, b->d.len));
+	rv = memcmp(a->d.b, b->d.b, MIN(a->d.len, b->d.len));
+	if(rv == 0 && a->d.len != b->d.len)
+		rv = a->d.len > b->d.len ? 1 : -1;
+	return rv;
 }
 
 int
@@ -133,8 +128,6 @@ size_t
 nson_data_len(Nson *nson) {
 	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 
-	if (nson->c.mapper)
-		nson_data(nson);
 	return nson->d.len;
 }
 
@@ -151,12 +144,7 @@ nson_len(const Nson *nson) {
 const char *
 nson_data(Nson *nson) {
 	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
-	NsonMapper mapper = nson->c.mapper;
 
-	if(mapper) {
-		nson->c.mapper = NULL;
-		mapper(0, nson, NULL);
-	}
 	return nson->d.b;
 }
 
@@ -284,10 +272,6 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 			return nson_map(nson, nson_mapper_clone, NULL);
 		case NSON_STR:
 		case NSON_BLOB:
-			if(nson->c.mapper) {
-				nson_data(nson);
-				break;
-			}
 			len = nson_data_len(nson);
 			data = calloc(len + 1, sizeof(char));
 

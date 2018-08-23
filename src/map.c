@@ -105,11 +105,6 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 	static const char mask = (1 << 6) - 1;
 	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 
-	if(nson->c.mapper == nson_mapper_b64_dec) {
-		nson->c.mapper = NULL;
-		return nson_data_len(nson);
-	}
-
 	const size_t src_len = nson_data_len(nson);
 	const char *src = nson_data(nson);
 

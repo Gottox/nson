@@ -134,15 +134,6 @@ json_escape(const Nson *nson, FILE *fd) {
 	if(fputc('"', fd) < 0)
 		return -1;
 
-	if(nson->c.mapper == json_mapper_unescape) {
-		// Not escaped yet, we can dump it directly
-		len = nson->d.len;
-		if(fwrite(nson->d.b, sizeof(char), len, fd) != len)
-			return -1;
-		else if(fputc('"', fd) < 0)
-			return -1;
-		return len + 2;
-	}
 	nson_clone(&tmp, nson);
 
 	data = nson_data(&tmp);
@@ -251,7 +242,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 				goto out;
 			}
 			nson_init_ptr(&tmp, begin, p - begin, NSON_STR);
-			tmp.c.mapper = json_mapper_unescape;
+			json_mapper_unescape(0, &tmp, NULL);
 			nson_push(stack_top, &tmp);
 			p++;
 			break;
