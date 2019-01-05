@@ -225,8 +225,9 @@ nson_last(Nson *nson) {
 	return &nson->a.arr[nson->a.len - 1];
 }
 
-int
-nson_pop(Nson *dest, Nson *nson) {
+Nson *
+nson_pop(Nson *nson) {
+	Nson *dest = NULL;
 	int rv = 0;
 	if (nson_len(nson) == 0) {
 		dest = NULL;
@@ -237,10 +238,11 @@ nson_pop(Nson *dest, Nson *nson) {
 		rv = nson_move(dest, nson_last(nson));
 
 	if(rv < 0) {
-		return rv;
+		return NULL;
 	}
 
-	return nson->a.len--;
+	nson->a.len--;
+	return dest;
 }
 
 int
@@ -311,18 +313,12 @@ nson_push_all(Nson *nson, Nson *src) {
 
 int
 nson_push_str(Nson *nson, const char *val) {
-	Nson elem;
-
-	nson_init_str(&elem, val);
-	return nson_push(nson, &elem);
+	return nson_push(nson, nson_init_str(val));
 }
 
 int
 nson_push_int(Nson *nson, int64_t val) {
-	Nson elem;
-
-	nson_init_int(&elem, val);
-	return nson_push(nson, &elem);
+	return nson_push(nson, nson_init_int(val));
 }
 
 int
@@ -340,85 +336,85 @@ nson_insert(Nson *nson, const char *key,
 int
 nson_insert_str(Nson *nson, const char *key,
 		const char *val) {
-	Nson elem;
-
-	nson_init_str(&elem, val);
-	return nson_insert(nson, key, &elem);
+	return nson_insert(nson, key, nson_init_str(val));
 }
 
 int
 nson_insert_int(Nson *nson, const char *key,
 		int64_t val) {
-	Nson elem;
-
-	nson_init_int(&elem, val);
-	return nson_insert(nson, key, &elem);
+	return nson_insert(nson, key, nson_init_int(val));
 }
 
-int
-nson_init(Nson *nson, const enum NsonType info) {
-	assert(info != NSON_NONE);
-
-	memset(nson, 0, sizeof(*nson));
+Nson *
+nson_init(const enum NsonType info) {
+	Nson *nson = calloc(1, sizeof(Nson));
 	nson->c.type = info;
 
-	return 0;
+	return nson;
 }
 
-int
-nson_init_ptr(Nson *nson, const char *val, size_t len, enum NsonType info) {
-	int rv = nson_init(nson, info);
-	if(rv < 0)
-		return rv;
+Nson *
+nson_init_ptr(const char *val, size_t len, enum NsonType info) {
+	Nson *nson = nson_init(info);
+	if(nson == NULL)
+		return NULL;
 
 	nson->d.b = val;
 	nson->d.len = len;
-	return rv;
+	return nson;
 }
 
-int
-nson_init_data(Nson *nson, char *val, size_t len, enum NsonType type) {
+Nson *
+nson_init_data(char *val, size_t len, enum NsonType type) {
 	assert(type);
-	if(val == NULL)
-		return nson_init_ptr(nson, NULL, 0, type);
-	int rv = nson_init_ptr(nson, val, len, type);
+	if (val == NULL)
+		return nson_init_ptr(NULL, 0, type);
+	Nson *nson = nson_init_ptr(val, len, type);
+	if (nson == NULL)
+		return NULL;
 	nson->c.alloc = val;
 	nson->c.alloc_size = 0;
-	return rv;
+	return nson;
 }
 
-int
-nson_init_str(Nson *nson, const char *val) {
+Nson *
+nson_init_str(const char *val) {
 	char *dup = strdup(val);
-	if(dup == 0)
-		return -1;
+	if(dup == NULL)
+		return NULL;
 
-	int rv = nson_init_data(nson, dup, strlen(dup), NSON_STR);
-	return rv;
+	Nson *nson = nson_init_data(dup, strlen(dup), NSON_STR);
+	return nson;
 }
 
-int
-nson_init_bool(Nson *nson, bool val) {
-	int rv = nson_init(nson, NSON_BOOL);
+Nson *
+nson_init_bool(bool val) {
+	Nson *nson = nson_init(NSON_BOOL);
+	if (nson == NULL)
+		return NULL;
 	nson->i.i = val;
 
-	return rv;
+	return nson;
 }
 
-int
-nson_init_int(Nson *nson, const int64_t val) {
-	int rv = nson_init(nson, NSON_INT);
+Nson *
+nson_init_int(const int64_t val) {
+	Nson *nson = nson_init(NSON_INT);
+	if (nson == NULL)
+		return NULL;
 	nson->i.i = val;
 
-	return rv;
+	return nson;
 }
 
-int
-nson_init_real(Nson *nson, const double val) {
-	int rv = nson_init(nson, NSON_REAL);
+Nson *
+nson_init_real(const double val) {
+	Nson *nson = nson_init(NSON_REAL);
+	if (nson == NULL)
+		return NULL;
 	nson->r.r = val;
 
-	return rv;
+	return nson;
 }
 
 int
@@ -512,56 +508,14 @@ nson_remove(Nson *nson, off_t index, size_t size) {
 }
 
 Nson *
-nson_walk(Nson *stack, Nson **nson, off_t *index) {
-	Nson stack_item = { { { 0 } } };
-	Nson *item = NULL;
-
-	if (*nson == NULL) {
-		return NULL;
-	}
-
-	enum NsonType type = nson_type(*nson);
-
-	if (type != NSON_OBJ && type != NSON_ARR) {
-		return NULL;
-	}
-
-	(*index)++;
-
-	if (*index < nson_mem_len(*nson)) {
-		item = nson_mem_get(*nson, *index);
-		type = nson_type(item);
-		// PUSH
-		if (type == NSON_OBJ || type == NSON_ARR) {
-			nson_init_ptr(&stack_item, (void *)*nson, *index, NSON_BLOB);
-			nson_push(stack, &stack_item);
-			*nson = item;
-			*index = -1;
-		}
-	// POP
-	} else if (nson_pop(&stack_item, stack)) {
-		item = *nson;
-		*nson = (void *)nson_data(&stack_item);
-		*index = nson_data_len(&stack_item);
-	// TERMINAL
-	} else {
-		item = *nson;
-		*nson = NULL;
-		*index = 0;
-	}
-
-	return item;
-}
-
-int
 nson_slice(Nson *nson, Nson *src, off_t start, size_t len) {
 	if(nson_len(src) < start + len)
-		return -1;
+		return NULL;
 
-	int rv = nson_init(nson, NSON_SLICE);
-	if(rv < 0)
-		return rv;
+	nson = nson_init(NSON_SLICE);
+	if(nson == NULL)
+		return nson;
 	nson->a.arr = nson_get(src, start);
 	nson->a.len = len;
-	return rv;
+	return nson;
 }

@@ -37,7 +37,7 @@ parse_line(Nson *nson, const char *line, size_t len) {
 	off_t i = 0;
 	const char *key, *val;
 	size_t key_len = 0, val_len = 0;
-	Nson elem;
+	Nson *elem;
 
 	for(; isblank(line[i]) && line[i]; i++);
 
@@ -56,11 +56,11 @@ parse_line(Nson *nson, const char *line, size_t len) {
 
 	//for(i = len - 1; isspace(line[i]) && i >= 0; i--, val_len--);
 
-	nson_init_data(&elem, strndup(key, key_len), key_len, NSON_STR);
-	nson_push(nson, &elem);
+	elem = nson_init_data(strndup(key, key_len), key_len, NSON_STR);
+	nson_push(nson, elem);
 
-	nson_init_data(&elem, strndup(val, val_len), val_len, NSON_STR);
-	nson_push(nson, &elem);
+	elem = nson_init_data(strndup(val, val_len), val_len, NSON_STR);
+	nson_push(nson, elem);
 
 	return i;
 }
@@ -70,9 +70,9 @@ nson_parse_ini(Nson *nson, const char *doc, size_t len) {
 	int rv = 0, i;
 	const char *p, *line;
 	memset(nson, 0, sizeof(*nson));
-	rv = nson_init(nson, NSON_OBJ);
-	if(rv < 0)
-		return rv;
+	nson = nson_init(NSON_OBJ);
+	if(nson == NULL)
+		return -1;
 
 	for(i = 0, p = line = doc; *p; line = ++p, i++) {
 		for(; *p != '\n' && *p; p++);

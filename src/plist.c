@@ -34,6 +34,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <err.h>
 
 #define SKIP_SPACES for(; *p && strchr("\n\f\r\t\v ", *p); p++);
 
@@ -75,7 +76,7 @@ plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 	dest[len] = 0;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, len, NSON_STR);
+	nson = nson_init_data(dest, len, NSON_STR);
 
 	return 0;
 }
@@ -110,9 +111,9 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 	const char *begin;
 	const char *p = doc;
 	const char *string_tag = "string";
-	Nson old_top;
+	Nson *old_top;
 	Nson *stack_top;
-	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
+	Nson *stack, *tmp;
 
 
 	rv = skip_tag("<?xml", p, len - (doc - p));
@@ -133,10 +134,10 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 	p += rv;
 
 	memset(nson, 0, sizeof(*nson));
-	nson_init(&tmp, NSON_ARR);
-	nson_init(&stack, NSON_ARR);
-	nson_push(&stack, &tmp);
-	stack_top = nson_get(&stack, 0);
+	stack = nson_init(NSON_ARR);
+	tmp = nson_init(NSON_ARR);
+	nson_push(stack, tmp);
+	stack_top = nson_get(stack, 0);
 
 	do {
 		SKIP_SPACES;
@@ -147,18 +148,18 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 		case 'a':
 			if((rv = skip_tag("array", p, len - (doc - p))) <= 0)
 				break;
-			nson_init(&tmp, NSON_ARR);
-			tmp.a.messy = true;
-			nson_push(&stack, &tmp);
-			stack_top = nson_last(&stack);
+			tmp = nson_init(NSON_ARR);
+			tmp->a.messy = true;
+			nson_push(stack, tmp);
+			stack_top = nson_last(stack);
 			p += rv;
 			break;
 		case 'd':
 			if((rv = skip_tag("dict", p, len - (doc - p))) > 0) {
-				nson_init(&tmp, NSON_OBJ);
-				tmp.a.messy = true;
-				nson_push(&stack, &tmp);
-				stack_top = nson_last(&stack);
+				tmp = nson_init(NSON_OBJ);
+				tmp->a.messy = true;
+				nson_push(stack, tmp);
+				stack_top = nson_last(stack);
 				p += rv;
 			} else if((rv = skip_tag("data", p, len - (doc - p))) > 0) {
 				string_tag = "data";
@@ -183,15 +184,15 @@ string:
 				rv = skip_tag(string_tag, p, len - (doc - p));
 			}
 			if (string_tag[0] == 'd') {
-				nson_init_ptr(&tmp, begin, p - begin - 2, NSON_BLOB);
+				tmp = nson_init_ptr(begin, p - begin - 2, NSON_BLOB);
 				//tmp.c.mapper = nson_mapper_b64_dec;
-				nson_mapper_b64_dec(0, &tmp, NULL);
+				nson_mapper_b64_dec(0, tmp, NULL);
 			} else {
-				nson_init_ptr(&tmp, begin, p - begin - 2, NSON_STR);
+				tmp = nson_init_ptr(begin, p - begin - 2, NSON_STR);
 				//tmp.c.mapper = plist_mapper_string;
-				plist_mapper_string(0, &tmp, NULL);
+				plist_mapper_string(0, tmp, NULL);
 			}
-			nson_push(stack_top, &tmp);
+			nson_push(stack_top, tmp);
 			p += rv;
 			string_tag = "string";
 			break;
@@ -199,10 +200,10 @@ string:
 			if((rv = skip_tag("real", p, len - (doc - p))) <= 0)
 				break;
 			p += rv;
-			p = parse_number(&tmp, p, len - (doc - p));
-			if(nson_type(&tmp) == NSON_INT)
-				nson_init_real(&tmp, nson_real(&tmp));
-			nson_push(stack_top, &tmp);
+			p = parse_number(tmp, p, len - (doc - p));
+			if(nson_type(tmp) == NSON_INT)
+				tmp = nson_init_real(nson_real(tmp));
+			nson_push(stack_top, tmp);
 			if((rv = skip_tag("</real", p, len - (doc - p))) <= 0)
 				break;
 			p += rv;
@@ -212,8 +213,8 @@ string:
 				break;
 			p += rv;
 			p = parse_int(&i_val, p, len - (doc - p));
-			nson_init_int(&tmp, i_val);
-			nson_push(stack_top, &tmp);
+			tmp = nson_init_int(i_val);
+			nson_push(stack_top, tmp);
 			if((rv = skip_tag("</integer", p, len - (doc - p))) <= 0)
 				break;
 			p += rv;
@@ -221,15 +222,15 @@ string:
 		case 't':
 			if((rv = skip_tag("true/", p, len - (doc - p))) <= 0)
 				break;
-			nson_init_bool(&tmp, 1);
-			nson_push(stack_top, &tmp);
+			tmp = nson_init_bool(1);
+			nson_push(stack_top, tmp);
 			p += rv;
 			break;
 		case 'f':
 			if((rv = skip_tag("false/", p, len - (doc - p))) <= 0)
 				break;
-			nson_init_bool(&tmp, 0);
-			nson_push(stack_top, &tmp);
+			tmp = nson_init_bool(0);
+			nson_push(stack_top, tmp);
 			p += rv;
 			break;
 		case '/':
@@ -240,9 +241,9 @@ string:
 					break;
 				if(nson_type(stack_top) != NSON_ARR)
 					goto err;
-				nson_pop(&old_top, &stack);
-				stack_top = nson_last(&stack);
-				nson_push(stack_top, &old_top);
+				old_top = nson_pop(stack);
+				stack_top = nson_last(stack);
+				nson_push(stack_top, old_top);
 				p += rv;
 				break;
 			case 'd':
@@ -250,15 +251,15 @@ string:
 					break;
 				if(nson_type(stack_top) != NSON_OBJ)
 					goto err;
-				nson_pop(&old_top, &stack);
-				stack_top = nson_last(&stack);
-				nson_push(stack_top, &old_top);
+				old_top = nson_pop(stack);
+				stack_top = nson_last(stack);
+				nson_push(stack_top, old_top);
 				p += rv;
 				break;
 			}
 		}
-	} while(nson_len(&stack) > 1 && p - doc < len);
-	if(nson_len(&stack) != 1) {
+	} while(nson_len(stack) > 1 && p - doc < len);
+	if(nson_len(stack) != 1) {
 		// Premature EOF
 		rv = -1;
 		goto err;
@@ -275,7 +276,7 @@ string:
 
 err:
 
-	nson_clean(&stack);
+	nson_clean(stack);
 	return rv;
 }
 
@@ -346,15 +347,15 @@ plist_b64_enc(const Nson *nson, FILE* fd) {
 int
 nson_to_plist_fd(Nson *nson, FILE *fd) {
 	off_t i;
-	Nson stack;
+	Nson *stack;
 	Nson *it;
 
 	fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 		"<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" "
 		"\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"
 		"<plist version=\"1.0\">", fd);
-	nson_init(&stack, NSON_ARR);
-	for(i = -1, it = nson; it; it = nson_walk(&stack, &nson, &i)) {
+	stack = nson_init(NSON_ARR);
+	for(i = -1, it = nson; it; it = nson_walk(stack, &nson, &i)) {
 		switch(nson_type(it)) {
 			case NSON_NONE:
 				abort();

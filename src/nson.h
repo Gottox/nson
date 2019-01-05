@@ -266,7 +266,7 @@ Nson *nson_last(Nson *nson);
  * @brief
  * @return
  */
-int nson_pop(Nson *dest, Nson *nson);
+Nson *nson_pop(Nson *nson);
 
 /**
  * @brief Moves the value of @p src into @p nson
@@ -316,52 +316,49 @@ int nson_insert(Nson *nson, const char *key,
  * @brief
  * @return
  */
-int nson_insert_int(Nson *nson, const char *key,
-		int64_t val);
+int nson_insert_int(Nson *nson, const char *key, int64_t val);
 
 /**
  * @brief
  * @return
  */
-int nson_init(Nson *nson, const enum NsonType info);
+Nson *nson_init(const enum NsonType info);
 
 /**
  * @brief
  * @return
  */
-int nson_init_ptr(Nson *nson, const char *val, size_t len,
-		const enum NsonType info);
+Nson *nson_init_ptr(const char *val, size_t len, const enum NsonType info);
 
 /**
  * @brief
  * @return
  */
-int nson_init_data(Nson *nson, char *val, size_t len,
-		const enum NsonType type);
+Nson *nson_init_data(char *val, size_t len, const enum NsonType type);
 
 /**
  * @brief
  * @return
  */
-int nson_init_str(Nson *nson, const char *val);
+Nson *nson_init_str(const char *val);
 
 /**
  * @brief
  * @return
  */
-int nson_init_int(Nson *nson, const int64_t val);
+Nson *nson_init_int(const int64_t val);
 
 /**
  * @brief
  * @return
  */
-int nson_init_bool(Nson *nson, const bool val);
+Nson *nson_init_bool(const bool val);
 
 /**
  * @brief
  * @return
  */
-int nson_init_real(Nson *nson, const double val);
+Nson *nson_init_real(const double val);
 
 /**
  * @brief
@@ -391,7 +388,7 @@ Nson *nson_walk(Nson *stack, Nson **nson, off_t *index);
  * @brief
  * @return
  */
-int nson_slice(Nson *nson, Nson *src, off_t start, size_t len);
+Nson *nson_slice(Nson *nson, Nson *src, off_t start, size_t len);
 
 /* MAP */
 

@@ -46,7 +46,7 @@ parse_number(Nson *nson, const char *p, size_t len) {
 
 	p = parse_int(&i_val, p, len);
 	if (*p != '.') {
-		nson_init_int(nson, i_val);
+		nson = nson_init_int(i_val);
 		return p;
 	}
 
@@ -58,7 +58,7 @@ parse_number(Nson *nson, const char *p, size_t len) {
 	else
 		r_val -= i_val;
 
-	nson_init_real(nson, r_val);
+	nson = nson_init_real(r_val);
 
 	return p;
 }

@@ -91,7 +91,7 @@ nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
 		return -1;
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, j, NSON_BLOB);
+	nson = nson_init_data(dest, j, NSON_BLOB);
 
 	return i;
 }
@@ -135,7 +135,7 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 	}
 
 	nson_clean(nson);
-	nson_init_data(nson, dest, dest_len, NSON_STR);
+	nson = nson_init_data(dest, dest_len, NSON_STR);
 
 	return dest_len;
 }
