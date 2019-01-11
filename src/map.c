@@ -142,7 +142,7 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 
 Nson *
 nson_get_by_key(const Nson *nson, const char *key) {
-	Nson needle = { .d.b = (char *)key, .d.len = strlen(key) };
+	Nson needle = { .d.buf = nson_buf_wrap_0(key), .d.len = strlen(key) };
 	Nson *result;
 	size_t len, size;
 

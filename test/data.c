@@ -26,7 +26,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "../src/nson.h"
+#include "../src/util.h"
 
 #include "test.h"
 
@@ -184,14 +184,11 @@ walk_array_empty() {
 	int rv;
 	off_t index = -1;
 	Nson nson;
-	Nson stack;
+	NsonStack stack = { 0 };
 	Nson *item;
 	Nson *stack_top;
 
 	rv = NSON(&nson, [ ]);
-	assert(rv >= 0);
-
-	rv = nson_init(&stack, NSON_ARR);
 	assert(rv >= 0);
 
 	item = stack_top = &nson;
@@ -199,27 +196,23 @@ walk_array_empty() {
 	assert(item == stack_top);
 	assert(index == -1);
 
-	item = nson_walk(&stack, &stack_top, &index);
+	item = stack_walk(&stack, &stack_top, &index);
 	assert(nson_type(item) == NSON_ARR);
 	assert(item == &nson);
-	assert(stack_top == NULL);
-	assert(index == 0);
 
-	item = nson_walk(&stack, &stack_top, &index);
+	item = stack_walk(&stack, &stack_top, &index);
 	assert(item == NULL);
-	assert(stack_top == NULL);
-	assert(index == 0);
 
 	nson_clean(&nson);
-	nson_clean(&stack);
+	stack_clean(&stack);
 }
 
 static void
-walk_array() {
+walk_array_tree() {
 	int rv;
 	off_t index = -1;
 	Nson nson;
-	Nson stack;
+	NsonStack stack = { 0 };
 	Nson *item;
 	Nson *stack_top;
 
@@ -228,7 +221,6 @@ walk_array() {
 	]);
 	assert(rv >= 0);
 
-	rv = nson_init(&stack, NSON_ARR);
 	assert(rv >= 0);
 
 	{
@@ -237,54 +229,55 @@ walk_array() {
 		assert(item == stack_top);
 		assert(index == -1);
 
-		item = nson_walk(&stack, &stack_top, &index);
+		item = stack_walk(&stack, &stack_top, &index);
 		assert(nson_type(item) == NSON_INT);
 		assert(nson_int(item) == 1);
 		assert(index == 0);
 
 		{
-			item = nson_walk(&stack, &stack_top, &index);
+			item = stack_walk(&stack, &stack_top, &index);
 			assert(nson_type(item) == NSON_ARR);
 			assert(item == stack_top);
 			assert(index == -1);
 
-			item = nson_walk(&stack, &stack_top, &index);
+			item = stack_walk(&stack, &stack_top, &index);
 			assert(nson_type(item) == NSON_INT);
 			assert(nson_int(item) == 2);
 			assert(index == 0);
 		}
-		item = nson_walk(&stack, &stack_top, &index);
+		item = stack_walk(&stack, &stack_top, &index);
 		assert(nson_type(item) == NSON_ARR);
 		assert(item != stack_top);
+		printf("%li\n", index);
 		assert(index == 1);
 
-		item = nson_walk(&stack, &stack_top, &index);
+		item = stack_walk(&stack, &stack_top, &index);
 		assert(nson_type(item) == NSON_INT);
 		assert(nson_int(item) == 3);
 		assert(index == 2);
 
 		{
-			item = nson_walk(&stack, &stack_top, &index);
+			item = stack_walk(&stack, &stack_top, &index);
 			assert(nson_type(item) == NSON_ARR);
 			assert(item == stack_top);
 			assert(index == -1);
 
-			item = nson_walk(&stack, &stack_top, &index);
+			item = stack_walk(&stack, &stack_top, &index);
 			assert(nson_type(item) == NSON_INT);
 			assert(nson_int(item) == 4);
 			assert(index == 0);
 		}
-		item = nson_walk(&stack, &stack_top, &index);
+		item = stack_walk(&stack, &stack_top, &index);
 		assert(nson_type(item) == NSON_ARR);
 		assert(item != stack_top);
 		assert(index == 3);
 
-		item = nson_walk(&stack, &stack_top, &index);
+		item = stack_walk(&stack, &stack_top, &index);
 		assert(nson_type(item) == NSON_INT);
 		assert(nson_int(item) == 5);
 		assert(index == 4);
 	}
-	item = nson_walk(&stack, &stack_top, &index);
+	item = stack_walk(&stack, &stack_top, &index);
 	assert(nson_type(item) == NSON_ARR);
 	assert(item == &nson);
 	assert(stack_top == NULL);
@@ -293,7 +286,7 @@ walk_array() {
 	(void)rv;
 
 	nson_clean(&nson);
-	nson_clean(&stack);
+	stack_clean(&stack);
 }
 
 static void
@@ -325,6 +318,6 @@ TEST(check_messy_object);
 TEST(sort_array);
 TEST(sort_object);
 TEST(walk_array_empty);
-TEST(walk_array);
+TEST(walk_array_tree);
 TEST(issue_nullref);
 DEFINE_END

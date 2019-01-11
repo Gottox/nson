@@ -9,11 +9,13 @@ HDR = \
 	src/util.h \
 
 SRC = \
+	src/buf.c \
 	src/data.c \
 	src/util.c \
 	src/map.c \
 	src/json.c \
 	src/ini.c \
+	src/stack.c \
 	src/plist.c \
 
 OBJ = $(SRC:.c=.o)
