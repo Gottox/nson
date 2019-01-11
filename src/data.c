@@ -363,21 +363,12 @@ nson_init(Nson *nson, const enum NsonType info) {
 }
 
 int
-nson_init_ptr(Nson *nson, char *val, size_t len, enum NsonType info) {
+nson_init_data(Nson *nson, char *val, size_t len, enum NsonType info) {
 	int rv = nson_init(nson, info);
 	if(rv < 0)
 		return rv;
 
 	nson->d.buf = nson_buf_wrap(val, len);
-	return rv;
-}
-
-int
-nson_init_data(Nson *nson, char *val, size_t len, enum NsonType type) {
-	assert(type);
-	if(val == NULL)
-		return nson_init_ptr(nson, NULL, 0, type);
-	int rv = nson_init_ptr(nson, val, len, type);
 	return rv;
 }
 

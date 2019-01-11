@@ -188,11 +188,11 @@ string:
 				goto err;
 			}
 			if (string_tag[0] == 'd') {
-				nson_init_ptr(&tmp, buf, p - begin - 2, NSON_BLOB);
+				nson_init_data(&tmp, buf, p - begin - 2, NSON_BLOB);
 				//tmp.c.mapper = nson_mapper_b64_dec;
 				nson_mapper_b64_dec(0, &tmp, NULL);
 			} else {
-				nson_init_ptr(&tmp, buf, p - begin - 2, NSON_STR);
+				nson_init_data(&tmp, buf, p - begin - 2, NSON_STR);
 				//tmp.c.mapper = plist_mapper_string;
 				plist_mapper_string(0, &tmp, NULL);
 			}

@@ -246,7 +246,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 				rv = -1;
 				goto out;
 			}
-			nson_init_ptr(&tmp, buf, p - begin, NSON_STR);
+			nson_init_data(&tmp, buf, p - begin, NSON_STR);
 			json_mapper_unescape(0, &tmp, NULL);
 			nson_push(stack_top, &tmp);
 			p++;
@@ -280,7 +280,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 				rv = -1;
 				goto out;
 			}
-			nson_init_ptr(&tmp, NULL, 0, NSON_STR);
+			nson_init_data(&tmp, NULL, 0, NSON_STR);
 			nson_push(stack_top, &tmp);
 			p += 4;
 			break;

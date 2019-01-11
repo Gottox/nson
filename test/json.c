@@ -268,10 +268,9 @@ void stringify_utf8() {
 
 void stringify_nullbyte() {
 	int rv;
-	char *str = malloc(4);
+	char *str;
 	Nson nson;
-	memcpy(str, "a\0b", 4);
-	rv = nson_init_ptr(&nson, str, 3, NSON_STR);
+	rv = nson_init_data(&nson, "a\0b", 3, NSON_STR);
 	assert(rv >= 0);
 
 	assert(strcmp(nson_str(&nson), "a") == 0);
@@ -340,9 +339,8 @@ void stringify_data() {
 	int rv;
 	Nson nson;
 	char *result;
-	char *str = memcpy(malloc(11), "Hello World", 11);
 
-	rv = nson_init_ptr(&nson, str, 11, NSON_BLOB);
+	rv = nson_init_data(&nson, "Hello World", 11, NSON_BLOB);
 
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);
