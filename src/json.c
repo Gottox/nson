@@ -358,14 +358,10 @@ json_b64_enc(const Nson *nson, FILE* fd) {
 int
 nson_to_json_fd(Nson *nson, FILE* fd) {
 	off_t i;
-	Nson stack;
-	//NsonStack stack = { 0 };
+	NsonStack stack = { 0 };
 	Nson *it;
 
-	
-	//for(i = -1, it = nson; it; it = stack_walk(&stack, &nson, &i)) {
-	nson_init(&stack, NSON_ARR);
-	for(i = -1, it = nson; it; it = nson_walk(&stack, &nson, &i)) {
+	for(i = -1, it = nson; it; it = stack_walk(&stack, &nson, &i)) {
 		switch(nson_type(it)) {
 			case NSON_NONE:
 				abort();

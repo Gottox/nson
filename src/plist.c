@@ -352,16 +352,13 @@ int
 nson_to_plist_fd(Nson *nson, FILE *fd) {
 	off_t i;
 	Nson *it;
-	Nson stack;
-	//NsonStack stack = { 0 };
+	NsonStack stack = { 0 };
 
 	fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 		"<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" "
 		"\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"
 		"<plist version=\"1.0\">", fd);
-	//for(i = -1, it = nson; it; it = stack_walk(&stack, &nson, &i)) {
-	nson_init(&stack, NSON_ARR);
-	for(i = -1, it = nson; it; it = nson_walk(&stack, &nson, &i)) {
+	for(i = -1, it = nson; it; it = stack_walk(&stack, &nson, &i)) {
 		switch(nson_type(it)) {
 			case NSON_NONE:
 				abort();
