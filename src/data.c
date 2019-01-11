@@ -46,11 +46,13 @@
 static int
 nson_cmp_data(const Nson *a, const Nson *b) {
 	int rv;
+	const int len_a = nson_buf_len(a->d.buf);
+	const int len_b = nson_buf_len(b->d.buf);
+	const int min_len = MIN(len_a, len_b);
 
-	rv = memcmp(a->d.b, b->d.b, MIN(a->d.len, b->d.len));
-	rv = memcmp(nson_buf_unwrap(a->d.buf), nson_buf_unwrap(b->d.buf), MIN(a->d.len, b->d.len));
-	if(rv == 0 && a->d.len != b->d.len)
-		rv = a->d.len > b->d.len ? 1 : -1;
+	rv = memcmp(nson_buf_unwrap(a->d.buf), nson_buf_unwrap(b->d.buf), min_len);
+	if(rv == 0 && len_a != len_b)
+		rv = len_a > len_b ? 1 : -1;
 	return rv;
 }
 
@@ -105,7 +107,6 @@ nson_clean(Nson *nson) {
 	int rv = 0;
 
 	if (nson_type(nson) == NSON_BLOB || nson_type(nson) == NSON_STR) {
-		free(nson->d.b);
 		nson_buf_release(nson->d.buf);
 	}
 
@@ -126,7 +127,7 @@ size_t
 nson_data_len(Nson *nson) {
 	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 
-	return nson->d.len;
+	return nson_buf_len(nson->d.buf);
 }
 
 size_t
@@ -143,8 +144,7 @@ const char *
 nson_data(Nson *nson) {
 	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 
-	//return nson_buf_unwrap(nson->d.buf);
-	return nson->d.b;
+	return nson_buf_unwrap(nson->d.buf);
 }
 
 enum NsonType
@@ -274,10 +274,7 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 			data = calloc(len + 1, sizeof(char));
 
 			memcpy(data, nson_data(nson), len * sizeof(char));
-			nson->d.b = data;
-			//nson->d.buf = nson_buf_wrap(data, len);
-			nson->d.b = data;
-			nson->d.len = len;
+			nson->d.buf = nson_buf_wrap(data, len);
 			break;
 		default:
 			break;
@@ -371,9 +368,7 @@ nson_init_ptr(Nson *nson, char *val, size_t len, enum NsonType info) {
 	if(rv < 0)
 		return rv;
 
-	nson->d.b = val;
 	nson->d.buf = nson_buf_wrap(val, len);
-	nson->d.len = len;
 	return rv;
 }
 

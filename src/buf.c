@@ -9,7 +9,7 @@
 #include <string.h>
 
 const char *
-nson_buf_unwrap(NsonBuf *buf) {
+nson_buf_unwrap(const NsonBuf *buf) {
 	return buf->buf;
 }
 
@@ -22,6 +22,11 @@ nson_buf_wrap(const char *val, size_t len) {
 	}
 	memcpy(buf->buf, val, len);
 	return buf;
+}
+
+size_t
+nson_buf_len(const NsonBuf *buf) {
+	return buf->len;
 }
 
 NsonBuf *

@@ -108,8 +108,8 @@ typedef struct NsonBuf {
 typedef struct NsonData {
 	struct NsonCommon c;
 	NsonBuf *buf;
-	char *b;
-	size_t len;
+	//char *b;
+	//size_t len;
 } NsonData;
 
 /**
@@ -500,7 +500,9 @@ int nson_to_plist(Nson *nson, char **str);
  */
 int nson_to_plist_fd(Nson *nson, FILE* fd);
 
-const char *nson_buf_unwrap(NsonBuf *buf);
+const char *nson_buf_unwrap(const NsonBuf *buf);
+
+size_t nson_buf_len(const NsonBuf *buf);
 
 NsonBuf *nson_buf_wrap(const char *val, size_t len);
 

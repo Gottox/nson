@@ -289,7 +289,7 @@ plist_escape(Nson *nson, FILE *fd) {
 	off_t i = 0, last_write = 0;
 	size_t len;
 	char *escape = NULL;
-	const char *str = nson->d.b;
+	const char *str = nson_data(nson);
 
 	if(str == NULL) {
 		return 0;
