@@ -194,8 +194,7 @@ nson_map(Nson *nson, NsonMapper mapper, void *user_data) {
 	int rv = 0;
 	off_t i;
 	size_t len;
-	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ
-			|| nson_type(nson) == NSON_SLICE);
+	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ);
 
 	len = nson_mem_len(nson);
 	for (i = 0; rv >= 0 && i < len; i++) {

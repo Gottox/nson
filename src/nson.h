@@ -77,7 +77,6 @@ enum NsonType {
 	NSON_REAL,
 
 	NSON_ARR,
-	NSON_SLICE,
 	NSON_OBJ,
 
 	NSON_BLOB,
@@ -396,12 +395,6 @@ size_t nson_mem_len(const Nson *nson);
  * @return
  */
 Nson *nson_walk(Nson *stack, Nson **nson, off_t *index);
-
-/**
- * @brief
- * @return
- */
-int nson_slice(Nson *nson, Nson *src, off_t start, size_t len);
 
 /* MAP */
 

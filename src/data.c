@@ -170,8 +170,7 @@ nson_real(const Nson *nson) {
 
 Nson *
 nson_get(const Nson *nson, off_t index) {
-	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ
-			|| nson_type(nson) == NSON_SLICE);
+	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ);
 	if(nson_type(nson) == NSON_OBJ)
 		index = index * 2 + 1;
 	return nson_mem_get(nson, index);
@@ -477,8 +476,7 @@ nson_load(NsonParser parser, Nson *nson, const char *file) {
 
 Nson *
 nson_mem_get(const Nson *nson, off_t index) {
-	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ
-			|| nson_type(nson) == NSON_SLICE);
+	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ);
 	assert(index < nson->a.len);
 
 	return &nson->a.arr[index];
@@ -486,8 +484,7 @@ nson_mem_get(const Nson *nson, off_t index) {
 
 size_t
 nson_mem_len(const Nson *nson) {
-	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ
-			|| nson_type(nson) == NSON_SLICE);
+	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ);
 
 	return nson->a.len;
 }
@@ -553,17 +550,4 @@ nson_walk(Nson *stack, Nson **nson, off_t *index) {
 	}
 
 	return item;
-}
-
-int
-nson_slice(Nson *nson, Nson *src, off_t start, size_t len) {
-	if(nson_len(src) < start + len)
-		return -1;
-
-	int rv = nson_init(nson, NSON_SLICE);
-	if(rv < 0)
-		return rv;
-	nson->a.arr = nson_get(src, start);
-	nson->a.len = len;
-	return rv;
 }
