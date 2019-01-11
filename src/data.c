@@ -103,12 +103,8 @@ nson_clean(Nson *nson) {
 	off_t i;
 	int rv = 0;
 
-	if (nson->c.alloc == NULL) {
-	} else if (nson->c.alloc_size != 0) {
-		if(munmap(nson->c.alloc, nson->c.alloc_size) < 0)
-			return -1;
-	} else {
-		free(nson->c.alloc);
+	if (nson_type(nson) == NSON_BLOB || nson_type(nson) == NSON_STR) {
+		free(nson->d.b);
 	}
 
 	if(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ) {
@@ -276,8 +272,8 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 			data = calloc(len + 1, sizeof(char));
 
 			memcpy(data, nson_data(nson), len * sizeof(char));
-			nson->c.alloc = data;
-			nson->c.alloc_size = 0;
+			nson->d.b = data;
+			nson->d.len = len;
 			break;
 		default:
 			break;
@@ -366,7 +362,7 @@ nson_init(Nson *nson, const enum NsonType info) {
 }
 
 int
-nson_init_ptr(Nson *nson, const char *val, size_t len, enum NsonType info) {
+nson_init_ptr(Nson *nson, char *val, size_t len, enum NsonType info) {
 	int rv = nson_init(nson, info);
 	if(rv < 0)
 		return rv;
@@ -382,8 +378,6 @@ nson_init_data(Nson *nson, char *val, size_t len, enum NsonType type) {
 	if(val == NULL)
 		return nson_init_ptr(nson, NULL, 0, type);
 	int rv = nson_init_ptr(nson, val, len, type);
-	nson->c.alloc = val;
-	nson->c.alloc_size = 0;
 	return rv;
 }
 
@@ -468,8 +462,10 @@ nson_load(NsonParser parser, Nson *nson, const char *file) {
 
 	int rv = parser(nson, (char *)mf, st.st_size);
 
-	nson->c.alloc = mf;
-	nson->c.alloc_size = mapsize;
+	if (munmap(mf, mapsize) < 0) {
+		rv = -1;
+	}
+
 	return rv;
 }
 

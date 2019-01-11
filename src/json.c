@@ -196,6 +196,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	off_t row = 0;
 	const char *p = doc;
 	const char *begin, *line_start = p;
+	char *buf;
 	Nson *stack_top;
 	Nson old_top;
 	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
@@ -233,15 +234,19 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			p++;
 			break;
 		case '"':
-			for(begin = ++p; (p = memchr(p, '"', p + len - doc)); p++) {
+			for (begin = ++p; (p = memchr(p, '"', p + len - doc)); p++) {
 				if(p[-1] != '\\' || p[-2] == '\\')
 					break;
 			}
-			if(p == NULL) {
+			if (p == NULL) {
 				rv = -1;
 				goto out;
 			}
-			nson_init_ptr(&tmp, begin, p - begin, NSON_STR);
+			if ( (buf = nson_memdup(begin, p - begin + 1)) == NULL) {
+				rv = -1;
+				goto out;
+			}
+			nson_init_ptr(&tmp, buf, p - begin, NSON_STR);
 			json_mapper_unescape(0, &tmp, NULL);
 			nson_push(stack_top, &tmp);
 			p++;

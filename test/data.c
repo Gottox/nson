@@ -306,14 +306,11 @@ issue_nullref() {
 	char *src = strdup("[\"1\"]");
 	int len = strlen(src);
 	rv = nson_parse_json(&nson, src, len);
-	nson.c.alloc = src;
-	nson.c.alloc_size = 0;
 	assert(rv >= 0);
 
 	item = nson_get(&nson, 0);
 
 	nson_move(&item_stack, item);
-	assert(item_stack.c.alloc != 0);
 	memset(src, 'A', len);
 	nson_clean(&nson);
 	assert(strcmp("1", nson_str(&item_stack)) == 0);

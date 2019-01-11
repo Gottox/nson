@@ -89,8 +89,6 @@ enum NsonType {
  * */
 typedef struct NsonCommon {
 	enum NsonType type;
-	void *alloc;
-	size_t alloc_size;
 } NsonCommon;
 
 /**
@@ -99,7 +97,7 @@ typedef struct NsonCommon {
  */
 typedef struct NsonData {
 	struct NsonCommon c;
-	const char *b;
+	char *b;
 	size_t len;
 } NsonData;
 
@@ -329,7 +327,7 @@ int nson_init(Nson *nson, const enum NsonType info);
  * @brief
  * @return
  */
-int nson_init_ptr(Nson *nson, const char *val, size_t len,
+int nson_init_ptr(Nson *nson, char *val, size_t len,
 		const enum NsonType info);
 
 /**

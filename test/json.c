@@ -268,9 +268,10 @@ void stringify_utf8() {
 
 void stringify_nullbyte() {
 	int rv;
-	char *str;
+	char *str = malloc(4);
 	Nson nson;
-	rv = nson_init_ptr(&nson, "a\0b", 3, NSON_STR);
+	memcpy(str, "a\0b", 4);
+	rv = nson_init_ptr(&nson, str, 3, NSON_STR);
 	assert(rv >= 0);
 
 	assert(strcmp(nson_str(&nson), "a") == 0);
@@ -337,10 +338,11 @@ stringify_object() {
 
 void stringify_data() {
 	int rv;
-	Nson nson = { .c.alloc_size = 1, .c.alloc = (void *)1 };
+	Nson nson;
 	char *result;
+	char *str = memcpy(malloc(11), "Hello World", 11);
 
-	rv = nson_init_ptr(&nson, "Hello World", 11, NSON_BLOB);
+	rv = nson_init_ptr(&nson, str, 11, NSON_BLOB);
 
 	assert(rv >= 0);
 	nson_to_json(&nson, &result);

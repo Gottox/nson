@@ -294,7 +294,7 @@ stringify_data() {
 	Nson nson;
 	char *str;
 
-	rv = nson_init_ptr(&nson, "Hello World", 11, NSON_BLOB);
+	rv = nson_init_ptr(&nson, strdup("Hello World"), 11, NSON_BLOB);
 	assert(rv >= 0);
 	nson_to_plist(&nson, &str);
 	assert(strstr(str, "<data>SGVsbG8gV29ybGQ=</data>"));

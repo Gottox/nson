@@ -10,6 +10,7 @@ HDR = \
 
 SRC = \
 	src/data.c \
+	src/util.c \
 	src/map.c \
 	src/json.c \
 	src/ini.c \

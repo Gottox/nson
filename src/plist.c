@@ -110,6 +110,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 	const char *begin;
 	const char *p = doc;
 	const char *string_tag = "string";
+	char *buf;
 	Nson old_top;
 	Nson *stack_top;
 	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
@@ -182,12 +183,16 @@ string:
 				p++;
 				rv = skip_tag(string_tag, p, len - (doc - p));
 			}
+			if ( (buf = nson_memdup(begin, p - begin + 1)) == NULL) {
+				rv = -1;
+				goto err;
+			}
 			if (string_tag[0] == 'd') {
-				nson_init_ptr(&tmp, begin, p - begin - 2, NSON_BLOB);
+				nson_init_ptr(&tmp, buf, p - begin - 2, NSON_BLOB);
 				//tmp.c.mapper = nson_mapper_b64_dec;
 				nson_mapper_b64_dec(0, &tmp, NULL);
 			} else {
-				nson_init_ptr(&tmp, begin, p - begin - 2, NSON_STR);
+				nson_init_ptr(&tmp, buf, p - begin - 2, NSON_STR);
 				//tmp.c.mapper = plist_mapper_string;
 				plist_mapper_string(0, &tmp, NULL);
 			}
