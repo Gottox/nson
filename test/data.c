@@ -204,7 +204,6 @@ walk_array_empty() {
 	assert(item == NULL);
 
 	nson_clean(&nson);
-	stack_clean(&stack);
 }
 
 static void
@@ -286,7 +285,6 @@ walk_array_tree() {
 	(void)rv;
 
 	nson_clean(&nson);
-	stack_clean(&stack);
 }
 
 static void

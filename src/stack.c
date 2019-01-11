@@ -33,15 +33,16 @@ stack_walk(NsonStack *stack, Nson **nson, off_t *index) {
 			*nson = item;
 			*index = -1;
 		}
-		// POP
+	// POP
 	} else if (stack_pop(stack, &tmp, index)) {
 		item = *nson;
 		*nson = tmp;
-		// TERMINAL
+	// TERMINAL
 	} else {
 		item = *nson;
 		*nson = NULL;
 		*index = 0;
+		stack_clean(stack);
 	}
 
 	return item;
