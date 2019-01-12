@@ -79,21 +79,23 @@ json_parse_utf8(char *dest, const char *src) {
 	}
 }
 
-static int
-json_mapper_unescape(off_t index, Nson* nson, void *user_data) {
-	size_t t_len = 0, len;
+NsonBuf *
+json_unescape(char *src, size_t len) {
+	size_t t_len = 0;
 	char *p;
 	int rv;
-	char *dest;
-	enum NsonType type;
+	NsonBuf *dest;
 
-	type = nson_type(nson);
-	len = nson_data_len(nson);
-	dest = strndup(nson_data(nson), len);
+	dest = nson_buf_new(len);
 
-	for(p = dest; (p = strchr(p, '\\')); p++) {
+	for(p = nson_buf_unwrap(dest); len; p++, src++, len--) {
+		if (*src != '\\') {
+			*p = *src;
+			continue;
+		}
+
 		t_len = 1;
-		switch(p[1]) {
+		switch(src[1]) {
 		case 't':
 			*p = '\t';
 			break;
@@ -111,15 +113,12 @@ json_mapper_unescape(off_t index, Nson* nson, void *user_data) {
 				t_len = rv;
 			break;
 		}
-		memmove(p + 1, p + t_len, len - (p - dest) - t_len);
-		len -= t_len - 1;
+		src += t_len - 1;
 	}
-	dest[len] = 0;
+	*p = 0;
+	dest->len = p - dest->buf;
 
-	nson_clean(nson);
-	nson_init_data(nson, dest, len, type);
-
-	return 0;
+	return dest;
 }
 
 static int
@@ -246,8 +245,8 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 				rv = -1;
 				goto out;
 			}
-			nson_init_data(&tmp, buf, p - begin, NSON_STR);
-			json_mapper_unescape(0, &tmp, NULL);
+			nson_init(&tmp, NSON_STR);
+			tmp.d.buf = json_unescape(buf, p - begin);
 			nson_push(stack_top, &tmp);
 			p++;
 			break;
@@ -309,6 +308,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		}
 	} while(nson_len(&stack) > 1 && p - doc < len);
 
+
 	if(nson_len(&stack) != 1) {
 		// Premature EOF
 		rv = -1;
@@ -318,7 +318,6 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 
 	rv = p - doc;
 out:
-
 	nson_clean(&stack);
 	return rv;
 }

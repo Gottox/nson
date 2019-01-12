@@ -493,9 +493,11 @@ int nson_to_plist(Nson *nson, char **str);
  */
 int nson_to_plist_fd(Nson *nson, FILE* fd);
 
-const char *nson_buf_unwrap(const NsonBuf *buf);
+char *nson_buf_unwrap(NsonBuf *buf);
 
 size_t nson_buf_len(const NsonBuf *buf);
+
+NsonBuf *nson_buf_new(size_t len);
 
 NsonBuf *nson_buf_wrap(const char *val, size_t len);
 

@@ -8,15 +8,24 @@
 #include "util.h"
 #include <string.h>
 
-const char *
-nson_buf_unwrap(const NsonBuf *buf) {
+char *
+nson_buf_unwrap(NsonBuf *buf) {
 	return buf->buf;
 }
 
 NsonBuf *
-nson_buf_wrap(const char *val, size_t len) {
+nson_buf_new(size_t len) {
 	NsonBuf *buf = calloc(1, sizeof(char *) * len + sizeof(NsonBuf));
 	buf->len = len;
+	if (buf == NULL) {
+		return NULL;
+	}
+	return buf;
+}
+
+NsonBuf *
+nson_buf_wrap(const char *val, size_t len) {
+	NsonBuf *buf = nson_buf_new(len);
 	if (buf == NULL) {
 		return NULL;
 	}
