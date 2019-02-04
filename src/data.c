@@ -196,6 +196,7 @@ nson_push(Nson *nson, Nson *val) {
 
 	arr = nson_mem_get(nson, len);
 	nson_move(arr, val);
+	val->c.parent = nson;
 
 	if(nson->a.messy || len <= 2)
 		return 0;
@@ -245,6 +246,7 @@ int
 nson_move(Nson *nson, Nson *src) {
 	memcpy(nson, src, sizeof(*src));
 	memset(src, 0, sizeof(*src));
+	nson->c.parent = NULL;
 	return 0;
 }
 
@@ -254,7 +256,9 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 	size_t len;
 	Nson *arr;
 	char *data;
+	Nson *parent = user_data;
 
+	nson->c.parent = parent;
 	switch(nson_type(nson)) {
 		case NSON_ARR:
 		case NSON_OBJ:
@@ -267,7 +271,7 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 			if (rv < 0)
 				return rv;
 			memcpy(nson->a.arr, arr, nson_mem_len(nson) * sizeof(*arr));
-			return nson_map(nson, nson_mapper_clone, NULL);
+			return nson_map(nson, nson_mapper_clone, nson);
 		case NSON_STR:
 		case NSON_BLOB:
 			len = nson_data_len(nson);
@@ -285,6 +289,7 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 int
 nson_clone(Nson *nson, const Nson *src) {
 	memcpy(nson, src, sizeof(*src));
+	nson->c.parent = NULL;
 	return nson_mapper_clone(0, nson, NULL);
 }
 
@@ -299,6 +304,9 @@ nson_push_all(Nson *nson, Nson *src) {
 	nson_mem_capacity(nson, nson_len + src_len);
 
 	memcpy(&nson->a.arr[nson_len], &src->a.arr, src_len);
+	for(int i = 0; i < nson_mem_len(nson); i++) {
+		nson_mem_get(nson, 1)->c.parent = nson;
+	}
 
 	src->a.len = 0;
 	nson_clean(src);
