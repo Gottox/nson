@@ -34,7 +34,7 @@ nson_buf_wrap(const char *val, size_t len) {
 }
 
 size_t
-nson_buf_len(const NsonBuf *buf) {
+nson_buf_siz(const NsonBuf *buf) {
 	return buf->len;
 }
 

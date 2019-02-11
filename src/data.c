@@ -46,8 +46,8 @@
 static int
 nson_cmp_data(const Nson *a, const Nson *b) {
 	int rv;
-	const int len_a = nson_buf_len(a->d.buf);
-	const int len_b = nson_buf_len(b->d.buf);
+	const int len_a = nson_buf_siz(a->d.buf);
+	const int len_b = nson_buf_siz(b->d.buf);
 	const int min_len = MIN(len_a, len_b);
 
 	rv = memcmp(nson_buf_unwrap(a->d.buf), nson_buf_unwrap(b->d.buf), min_len);
@@ -127,7 +127,7 @@ size_t
 nson_data_len(Nson *nson) {
 	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 
-	return nson_buf_len(nson->d.buf);
+	return nson_buf_siz(nson->d.buf);
 }
 
 size_t
