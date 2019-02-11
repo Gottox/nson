@@ -109,8 +109,6 @@ typedef struct NsonBuf {
 typedef struct NsonData {
 	struct NsonCommon c;
 	NsonBuf *buf;
-	//char *b;
-	//size_t len;
 } NsonData;
 
 /**
