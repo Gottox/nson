@@ -83,8 +83,9 @@ nson_mem_capacity(Nson *nson, const size_t size) {
 	Nson *arr;
 	const size_t old = nson_mem_len(nson);
 
-	if(size == old)
+	if (size == old) {
 		return size;
+	}
 
 	arr = nson->a.arr;
 	nson->a.len = size;
