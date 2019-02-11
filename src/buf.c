@@ -16,10 +16,12 @@ nson_buf_unwrap(NsonBuf *buf) {
 NsonBuf *
 nson_buf_new(size_t len) {
 	NsonBuf *buf = calloc(1, sizeof(char *) * len + sizeof(NsonBuf));
-	buf->len = len;
 	if (buf == NULL) {
 		return NULL;
 	}
+	buf->len = len;
+	nson_buf_retain(buf);
+
 	return buf;
 }
 
