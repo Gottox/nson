@@ -42,7 +42,7 @@ static int
 plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 	size_t len;
 	off_t t_len;
-	int rv, val;
+	int rv = -1, val;
 	char *dest;
 	char *p;
 	assert(nson_type(nson) & NSON_STR);
@@ -60,8 +60,7 @@ plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 		} else if(strncmp("amp;", &p[1], 4) == 0) {
 			t_len = 5;
 			*p = '&';
-		} else if ('#' == p[1]){
-			t_len = -1;
+		} else if ('#' == p[1]) {
 			// TODO: UTF8 escape codes
 			if(sscanf(p, "&#%d;%n", &val, &rv) == 0 || rv < 0)
 				continue;
