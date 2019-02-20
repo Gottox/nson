@@ -35,7 +35,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 
-#define SKIP_SPACES for(; *p && strchr("\n\f\r\t\v ", *p); p++);
+#define SKIP_SPACES do { for(; *p && strchr("\n\f\r\t\v ", *p); p++); } while(0)
 
 
 static int
