@@ -337,7 +337,7 @@ int nson_init(Nson *nson, const enum NsonType info);
  * @brief
  * @return
  */
-int nson_init_data(Nson *nson, char *val, size_t len,
+int nson_init_data(Nson *nson, const char *val, const size_t len,
 		const enum NsonType type);
 
 /**

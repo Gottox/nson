@@ -372,7 +372,7 @@ nson_init(Nson *nson, const enum NsonType info) {
 }
 
 int
-nson_init_data(Nson *nson, char *val, size_t len, enum NsonType info) {
+nson_init_data(Nson *nson, const char *val, const size_t len, enum NsonType info) {
 	int rv = nson_init(nson, info);
 	if(rv < 0)
 		return rv;
@@ -383,12 +383,7 @@ nson_init_data(Nson *nson, char *val, size_t len, enum NsonType info) {
 
 int
 nson_init_str(Nson *nson, const char *val) {
-	char *dup = strdup(val);
-	if(dup == 0)
-		return -1;
-
-	int rv = nson_init_data(nson, dup, strlen(dup), NSON_STR);
-	return rv;
+	return nson_init_data(nson, val, strlen(val), NSON_STR);
 }
 
 int
