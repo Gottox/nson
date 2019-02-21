@@ -269,7 +269,7 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 			nson->a.len = 0;
 
 			rv = nson_mem_capacity(nson, len);
-			if (rv < 0)
+			if (rv < 0 || nson->a.arr == NULL)
 				return rv;
 			memcpy(nson->a.arr, arr, nson_mem_len(nson) * sizeof(*arr));
 			return nson_map(nson, nson_mapper_clone, nson);
