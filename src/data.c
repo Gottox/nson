@@ -334,9 +334,13 @@ nson_push_int(Nson *nson, int64_t val) {
 int
 nson_insert(Nson *nson, const char *key,
 		Nson* val) {
+	size_t old_len = nson_mem_len(nson);
 	assert(nson_type(nson) == NSON_OBJ);
-
-	if (nson_push_str(nson, key) < 0 || nson_push(nson, val) < 0) {
+	if (nson_push_str(nson, key) < 0) {
+		return -1;
+	}
+	if (nson_push(nson, val) < 0) {
+		nson_clean(nson_mem_get(nson, old_len));
 		nson->a.len -= nson->a.len % 2;
 		return -1;
 	}
