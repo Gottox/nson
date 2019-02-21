@@ -50,14 +50,14 @@ nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
 	char *p;
 	int8_t v;
 	off_t i, j;
+	NsonBuf *dest_buf;
 	char *dest;
-	size_t dest_len;
 	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 	const size_t src_len = nson_data_len(nson);
 	const char *src = nson_data(nson);
 
-	dest_len = (src_len + 3) / 4 * 3;
-	dest = calloc(dest_len + 1, sizeof(*dest));
+	dest_buf = nson_buf_new((src_len + 3) / 4 * 3);
+	dest = nson_buf_unwrap(dest_buf);
 	if (!dest)
 		return -1;
 
@@ -87,11 +87,14 @@ nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
 
 	for(; i % 4 != 0 && i < src_len && src[i] == '='; i++);
 
-	if(i % 4 != 0)
+	if(i % 4 != 0) {
+		free(dest);
 		return -1;
+	}
 
-	nson_clean(nson);
-	nson_init_data(nson, dest, j, NSON_BLOB);
+	nson_buf_release(nson->d.buf);
+	nson->d.buf = nson_buf_retain(dest_buf);
+	nson->d.buf->len = j;
 
 	return i;
 }
@@ -100,7 +103,7 @@ int
 nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 	off_t i, j;
 	char *dest;
-	size_t dest_len;
+	NsonBuf *dest_buf;
 	int reminder = 0;
 	static const char mask = (1 << 6) - 1;
 	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
@@ -108,8 +111,8 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 	const size_t src_len = nson_data_len(nson);
 	const char *src = nson_data(nson);
 
-	dest_len = (src_len + 2) / 3 * 4;
-	dest = calloc(dest_len + 1, sizeof(*dest));
+	dest_buf = nson_buf_new((src_len + 2) / 3 * 4);
+	dest = nson_buf_unwrap(dest_buf);
 	if (!dest)
 		return -1;
 
@@ -129,15 +132,15 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 			break;
 		}
 	}
-	if(dest_len != j) {
+	if(nson_buf_siz(dest_buf) != j) {
 		dest[j] = base64_table[reminder & mask];
-		memset(&dest[j + 1], '=', dest_len - j - 1);
+		memset(&dest[j + 1], '=', nson_buf_siz(dest_buf) - j - 1);
 	}
 
-	nson_clean(nson);
-	nson_init_data(nson, dest, dest_len, NSON_STR);
+	nson_buf_release(nson->d.buf);
+	nson->d.buf = nson_buf_retain(dest_buf);
 
-	return dest_len;
+	return nson_buf_siz(dest_buf);
 }
 
 Nson *
