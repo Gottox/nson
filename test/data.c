@@ -305,6 +305,8 @@ issue_nullref() {
 	memset(src, 'A', len);
 	nson_clean(&nson);
 	assert(strcmp("1", nson_str(&item_stack)) == 0);
+	nson_clean(&item_stack);
+	free(src);
 }
 
 DEFINE
