@@ -37,44 +37,50 @@
 
 #define SKIP_SPACES do { for(; *p && strchr("\n\f\r\t\v ", *p); p++); } while(0)
 
-
 static int
 plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 	size_t len;
-	off_t t_len;
-	int rv = -1, val;
+	const char *src, *chunk_start, *chunk_end;
 	char *dest;
-	char *p;
+	int val;
+	int rv;
 	assert(nson_type(nson) & NSON_STR);
+	NsonBuf *dest_buf;
 
 	len = nson_data_len(nson);
-	dest = strndup(nson_data(nson), len);
+	src = nson_data(nson);
+	dest_buf = nson_buf_new(len);
+	dest = nson_buf_unwrap(dest_buf);
 
-	for(p = dest; (p = strchr(p, '&')); p++) {
-		if(strncmp("lt;", &p[1], 3) == 0) {
-			t_len = 4;
-			*p = '<';
-		} else if(strncmp("gt;", &p[1], 3) == 0) {
-			t_len = 4;
-			*p = '>';
-		} else if(strncmp("amp;", &p[1], 4) == 0) {
-			t_len = 5;
-			*p = '&';
-		} else if ('#' == p[1]) {
+	for(chunk_start = src;(chunk_end = strchr(chunk_start, '&')); dest++) {
+		memcpy(dest, chunk_start, chunk_end - chunk_start);
+		dest += chunk_end - chunk_start;
+		chunk_start = chunk_end + 1;
+
+		if (chunk_start[0] == '#') {
 			// TODO: UTF8 escape codes
-			if(sscanf(p, "&#%d;%n", &val, &rv) == 0 || rv < 0)
+			if(sscanf(chunk_start, "#%d;%n", &val, &rv) == 0 || rv < 0)
 				continue;
-			t_len = rv;
-			*p = val;
-		} else
-			continue;
-		memmove(p + 1, p + t_len, len - (p - dest) - t_len);
-		len -= t_len - 1;
+			chunk_start += rv;
+			*dest = val;
+		} else if(strncmp("lt;", chunk_start, 3) == 0) {
+			chunk_start += 3;
+			*dest = '<';
+		} else if(strncmp("gt;", chunk_start, 3) == 0) {
+			chunk_start += 3;
+			*dest = '>';
+		} else if(strncmp("amp;", chunk_start, 4) == 0) {
+			chunk_start += 4;
+			*dest = '&';
+		} else {
+			*dest = '&';
+		}
 	}
-	dest[len] = 0;
+	memcpy(dest, chunk_start, src + len - chunk_start);
 
-	nson_clean(nson);
-	nson_init_data(nson, dest, len, NSON_STR);
+	nson_buf_release(nson->d.buf);
+	nson->d.buf = dest_buf;
+	nson_buf_retain(nson->d.buf);
 
 	return 0;
 }
