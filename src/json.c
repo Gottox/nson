@@ -37,32 +37,12 @@
 #include <assert.h>
 
 static int
-json_parse_utf8(char *dest, const char *src) {
-	off_t i = 0;
-	uint16_t chr = 0;
+json_parse_utf8(char *dest, const char *src, size_t len) {
+	// TODO: Honor len parameter
+	int64_t chr = 0;
+	const char *p = src;
 
-	if(src[i] != 'u')
-		return -1;
-	i++;
-
-	for (; i < 5; i++) {
-		switch(src[i]) {
-		case '0': case '1': case '2': case '3': case '4':
-		case '5': case '6': case '7': case '8': case '9':
-			chr = (16 * chr) + src[i] - '0';
-			break;
-		case 'a': case 'b': case 'c':
-		case 'd': case 'e': case 'f':
-			chr = (16 * chr) + src[i] - 'a' + 10;
-			break;
-		case 'A': case 'B': case 'C':
-		case 'D': case 'E': case 'F':
-			chr = (16 * chr) + src[i] - 'A' + 10;
-			break;
-		default:
-			return 0;
-		}
-	}
+	p = parse_hex(&chr, p, 5);
 
 	if (chr < 0x0080) {
 		*dest = chr;
@@ -108,7 +88,7 @@ json_unescape(char *src, size_t len) {
 		case '\\':
 			break;
 		case 'u':
-			rv = json_parse_utf8(p, &p[1]);
+			rv = json_parse_utf8(p, &src[2], len);
 			if(rv >= 0)
 				t_len = rv;
 			break;
