@@ -226,6 +226,19 @@ utf8_0080() {
 }
 
 static void
+utf8_substr_0080() {
+	int rv;
+	Nson nson;
+	rv = nson_init_str(&nson, "Hello \u0024 World");
+
+	assert(rv >= 0);
+	assert(strcmp(nson_str(&nson), "Hello $ World") == 0);
+
+	nson_clean(&nson);
+	(void)rv;
+}
+
+static void
 utf8_0800() {
 	int rv;
 	Nson nson;
@@ -367,6 +380,7 @@ TEST(unclosed_string);
 TEST_OFF(page_sized);
 TEST_OFF(huge_file);
 TEST(utf8_0080);
+TEST(utf8_substr_0080);
 TEST(utf8_0800);
 TEST(utf8_FFFF);
 TEST(stringify_utf8);
