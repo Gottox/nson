@@ -58,6 +58,7 @@ plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 		chunk_start = chunk_end + 1;
 
 		if (chunk_start[0] == '#') {
+			rv = -1;
 			// TODO: UTF8 escape codes
 			if(sscanf(chunk_start, "#%d;%n", &val, &rv) == 0 || rv < 0)
 				continue;
