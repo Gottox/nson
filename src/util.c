@@ -98,4 +98,23 @@ nson_memdup(const char *src, const int siz) {
 	return memcpy(dup, src, siz);
 }
 
+size_t
+to_utf8(char *dest, const uint64_t chr, const size_t len) {
+	if (chr < 0x0080 && len <= 1) {
+		*dest = chr;
+		return 1;
+	} else if (chr < 0x0800 && len <= 2) {
+		dest[0] = ((chr >> 6) & 0x1F) | 0xC0;
+		dest[1] = (chr & 0x3F) | 0x80;
+		return 2;
+	} else if (len <= 3){
+		dest[0] = ((chr >> 12) & 0x0F) | 0xE0;
+		dest[1] = ((chr >> 6) & 0x3F) | 0x80;
+		dest[2] = (chr & 0x3F) | 0x80;
+		return 3;
+	}
+
+	return 0;
+}
+
 #endif /* !UTIL_H */

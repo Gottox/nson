@@ -44,19 +44,7 @@ json_parse_utf8(char *dest, const char *src, size_t len) {
 
 	p = parse_hex(&chr, p, 5);
 
-	if (chr < 0x0080) {
-		*dest = chr;
-		return 1;
-	} else if (chr < 0x0800) {
-		dest[0] = ((chr >> 6) & 0x1F) | 0xC0;
-		dest[1] = (chr & 0x3F) | 0x80;
-		return 2;
-	} else {
-		dest[0] = ((chr >> 12) & 0x0F) | 0xE0;
-		dest[1] = ((chr >> 6) & 0x3F) | 0x80;
-		dest[2] = (chr & 0x3F) | 0x80;
-		return 3;
-	}
+	return to_utf8(dest, chr, 5);
 }
 
 NsonBuf *
