@@ -42,8 +42,7 @@ plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 	size_t len;
 	const char *src, *chunk_start, *chunk_end;
 	char *dest;
-	int val;
-	int rv;
+	int64_t val;
 	assert(nson_type(nson) & NSON_STR);
 	NsonBuf *dest_buf;
 
@@ -58,12 +57,16 @@ plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 		chunk_start = chunk_end + 1;
 
 		if (chunk_start[0] == '#') {
-			rv = -1;
+			chunk_start = parse_int(&val, &chunk_start[1], len - (chunk_start - src));
+			printf("%li\n", val);
 			// TODO: UTF8 escape codes
-			if(sscanf(chunk_start, "#%d;%n", &val, &rv) == 0 || rv < 0)
-				continue;
-			chunk_start += rv;
-			*dest = val;
+			if (chunk_start[0] == ';') {
+				chunk_start++;
+				*dest = val;
+			}
+			else {
+				*dest = '&';
+			}
 		} else if(strncmp("lt;", chunk_start, 3) == 0) {
 			chunk_start += 3;
 			*dest = '<';
