@@ -143,6 +143,18 @@ parse_string_escape_dec() {
 }
 
 static void
+parse_string_escape_substr_dec() {
+	int rv;
+	Nson nson;
+	rv = nson_parse_plist(&nson, PLIST("<string>Hello &#126; World</string>"));
+	assert(rv >= 0);
+	assert(strcmp("Hello ~ World", nson_str(&nson)) == 0);
+	nson_clean(&nson);
+
+	(void)rv;
+}
+
+static void
 parse_array_empty() {
 	int rv;
 	Nson nson;
@@ -346,6 +358,7 @@ TEST(parse_string_escape_lt);
 TEST(parse_string_escape_gt);
 TEST(parse_string_escape_amp);
 TEST(parse_string_escape_dec);
+TEST(parse_string_escape_substr_dec);
 TEST(parse_array_empty);
 TEST(parse_array_1);
 TEST(parse_array_2);
