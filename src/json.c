@@ -53,7 +53,7 @@ json_parse_utf8(char *dest, const char *src) {
 			break;
 		case 'a': case 'b': case 'c':
 		case 'd': case 'e': case 'f':
-			chr = (16 * chr) + tolower(src[i]) - 'a' + 10;
+			chr = (16 * chr) + src[i] - 'a' + 10;
 			break;
 		case 'A': case 'B': case 'C':
 		case 'D': case 'E': case 'F':
