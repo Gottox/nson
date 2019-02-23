@@ -115,7 +115,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 	int64_t i_val;
 	const char *begin;
 	const char *p = doc;
-	const char *string_tag = "string";
+	static const char *string_tag = "string";
 	char *buf;
 	Nson old_top;
 	Nson *stack_top;
