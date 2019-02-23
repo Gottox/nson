@@ -29,6 +29,34 @@ parse_dec(int64_t *i, const char *p, size_t len) {
 }
 
 const char *
+parse_hex(uint64_t *i, const char *p, size_t len) {
+	int64_t val;
+
+	for(val = 0; ; p++) {
+		switch(*p) {
+		case '0': case '1': case '2': case '3': case '4':
+		case '5': case '6': case '7': case '8': case '9':
+			val = (16 * val) + *p - '0';
+			break;
+		case 'a': case 'b': case 'c':
+		case 'd': case 'e': case 'f':
+			val = (16 * val) + *p - 'a' + 10;
+			break;
+		case 'A': case 'B': case 'C':
+		case 'D': case 'E': case 'F':
+			val = (16 * val) + *p - 'A' + 10;
+			break;
+		default:
+			break;
+		}
+	}
+
+	*i = val;
+
+	return p;
+}
+
+const char *
 parse_real(double *r, const char *p, size_t len) {
 	double val;
 

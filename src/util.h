@@ -31,6 +31,8 @@ void stack_clean(NsonStack *stack);
 
 const char *parse_dec(int64_t *i, const char *p, size_t len);
 
+const char *parse_hex(int64_t *i, const char *p, size_t len);
+
 const char *parse_real(double *r, const char *p, size_t len);
 
 const char *parse_number(Nson *nson, const char *p, size_t len);
