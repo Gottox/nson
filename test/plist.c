@@ -190,8 +190,8 @@ parse_array_2() {
 				"</array>"));
 	assert(rv >= 0);
 	assert(nson_len(&nson) == 2);
-	assert(nson_int(nson_get(&nson, 0)) == 1);
-	assert(nson_int(nson_get(&nson, 1)) == 0);
+	assert(nson_bool(nson_get(&nson, 0)) == 1);
+	assert(nson_bool(nson_get(&nson, 1)) == 0);
 	nson_clean(&nson);
 
 	(void)rv;
