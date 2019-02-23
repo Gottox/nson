@@ -28,32 +28,33 @@ parse_dec(int64_t *i, const char *p, size_t len) {
 	return p;
 }
 
-const char *
-parse_hex(uint64_t *i, const char *p, size_t len) {
-	int64_t val;
+size_t
+parse_hex(uint64_t *dest, const char *src, size_t len) {
+	int64_t val = 0;
+	size_t i;
 
-	for(val = 0; ; p++) {
-		switch(*p) {
+	for(i = 0; i < len; i++) {
+		switch(src[i]) {
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
-			val = (16 * val) + *p - '0';
+			val = (16 * val) + src[i] - '0';
 			break;
 		case 'a': case 'b': case 'c':
 		case 'd': case 'e': case 'f':
-			val = (16 * val) + *p - 'a' + 10;
+			val = (16 * val) + src[i] - 'a' + 10;
 			break;
 		case 'A': case 'B': case 'C':
 		case 'D': case 'E': case 'F':
-			val = (16 * val) + *p - 'A' + 10;
+			val = (16 * val) + src[i] - 'A' + 10;
 			break;
 		default:
-			break;
+			goto out;
 		}
 	}
 
-	*i = val;
-
-	return p;
+out:
+	*dest = val;
+	return i;
 }
 
 const char *
@@ -100,14 +101,14 @@ nson_memdup(const char *src, const int siz) {
 
 size_t
 to_utf8(char *dest, const uint64_t chr, const size_t len) {
-	if (chr < 0x0080 && len <= 1) {
+	if (chr < 0x0080 && len >= 1) {
 		*dest = chr;
 		return 1;
-	} else if (chr < 0x0800 && len <= 2) {
+	} else if (chr < 0x0800 && len >= 2) {
 		dest[0] = ((chr >> 6) & 0x1F) | 0xC0;
 		dest[1] = (chr & 0x3F) | 0x80;
 		return 2;
-	} else if (len <= 3){
+	} else if (len >= 3){
 		dest[0] = ((chr >> 12) & 0x0F) | 0xE0;
 		dest[1] = ((chr >> 6) & 0x3F) | 0x80;
 		dest[2] = (chr & 0x3F) | 0x80;

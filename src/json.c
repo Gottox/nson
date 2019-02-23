@@ -36,57 +36,55 @@
 #include <inttypes.h>
 #include <assert.h>
 
-static int
-json_parse_utf8(char *dest, const char *src, size_t len) {
-	// TODO: Honor len parameter
-	int64_t chr = 0;
-	const char *p = src;
+static NsonBuf *
+json_unescape(const char *src, const size_t len) {
+	const char *chunk_start, *chunk_end;
+	NsonBuf *dest_buf;
+	char *dest;
+	uint64_t utf_val;
 
-	p = parse_hex(&chr, p, 5);
+	dest_buf = nson_buf_new(len);
+	dest = nson_buf_unwrap(dest_buf);
 
-	return to_utf8(dest, chr, 5);
-}
+	for (chunk_start = src; (chunk_end = strchr(chunk_start, '\\'));) {
+		memcpy(dest, chunk_start, chunk_end - chunk_start);
+		dest += chunk_end - chunk_start;
+		chunk_start = chunk_end + 1;
 
-NsonBuf *
-json_unescape(char *src, size_t len) {
-	size_t t_len = 0;
-	char *p;
-	int rv;
-	NsonBuf *dest;
-
-	dest = nson_buf_new(len);
-
-	for(p = nson_buf_unwrap(dest); len; p++, src++, len--) {
-		if (*src != '\\') {
-			*p = *src;
+		if (chunk_start[0] == 'u') {
+			// TODO: correctly supply upper bounds.
+			if (parse_hex(&utf_val, &chunk_start[1], 4) != 4)
+				break;
+			// TODO: correctly supply upper bounds.
+			dest += to_utf8(dest, utf_val, 3);
+			chunk_start += 5;
 			continue;
 		}
 
-		t_len = 1;
-		switch(src[1]) {
+		switch(chunk_start[0]) {
 		case 't':
-			*p = '\t';
+			*dest = '\t';
 			break;
 		case 'n':
-			*p = '\n';
+			*dest = '\n';
 			break;
 		case 'r':
-			*p = '\r';
+			*dest = '\r';
 			break;
 		case '\\':
+			*dest = '\\';
 			break;
-		case 'u':
-			rv = json_parse_utf8(p, &src[2], len);
-			if(rv >= 0)
-				t_len = rv;
+		default:
+			*dest = chunk_start[0];
 			break;
 		}
-		src += t_len - 1;
+		dest += 1;
+		chunk_start += 1;
 	}
-	*p = 0;
-	dest->len = p - dest->buf;
+	memcpy(dest, chunk_start, src + len - chunk_start);
+	dest_buf->len = src + len - chunk_start;
 
-	return dest;
+	return dest_buf;
 }
 
 static int
