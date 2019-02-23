@@ -216,9 +216,10 @@ static void
 utf8_0080() {
 	int rv;
 	Nson nson;
-	rv = nson_init_str(&nson, "\u0024");
+	rv = nson_parse_json(&nson, NSON_P("\"\\u0024\""));
 
 	assert(rv >= 0);
+	printf("%s\n", nson_str(&nson));
 	assert(strcmp(nson_str(&nson), "$") == 0);
 
 	nson_clean(&nson);
@@ -229,10 +230,37 @@ static void
 utf8_substr_0080() {
 	int rv;
 	Nson nson;
-	rv = nson_init_str(&nson, "Hello \u0024 World");
+	rv = nson_parse_json(&nson, NSON_P("\"Hello \\u0024 World\""));
 
 	assert(rv >= 0);
 	assert(strcmp(nson_str(&nson), "Hello $ World") == 0);
+
+	nson_clean(&nson);
+	(void)rv;
+}
+
+static void
+utf8_substr_0080_2() {
+	int rv;
+	Nson nson;
+	rv = nson_parse_json(&nson, NSON_P("\"Hello \\u002400\""));
+
+	assert(rv >= 0);
+	printf("%s\n", nson_str(&nson));
+	assert(strcmp(nson_str(&nson), "Hello $00") == 0);
+
+	nson_clean(&nson);
+	(void)rv;
+}
+
+static void
+utf8_incorrect_08() {
+	int rv;
+	Nson nson;
+	rv = nson_init_str(&nson, "Hello \\u08");
+
+	assert(rv >= 0);
+	assert(strcmp(nson_str(&nson), "Hello \\u08") == 0);
 
 	nson_clean(&nson);
 	(void)rv;
@@ -379,8 +407,10 @@ TEST(unclosed_array_with_one_element);
 TEST(unclosed_string);
 TEST_OFF(page_sized);
 TEST_OFF(huge_file);
+TEST(utf8_incorrect_08);
 TEST(utf8_0080);
 TEST(utf8_substr_0080);
+TEST(utf8_substr_0080_2);
 TEST(utf8_0800);
 TEST(utf8_FFFF);
 TEST(stringify_utf8);
