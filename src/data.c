@@ -256,7 +256,6 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 	int rv;
 	size_t len;
 	Nson *arr;
-	char *data;
 	Nson *parent = user_data;
 
 	nson->c.parent = parent;
@@ -275,11 +274,7 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 			return nson_map(nson, nson_mapper_clone, nson);
 		case NSON_STR:
 		case NSON_BLOB:
-			len = nson_data_len(nson);
-			data = calloc(len + 1, sizeof(char));
-
-			memcpy(data, nson_data(nson), len * sizeof(char));
-			nson->d.buf = nson_buf_wrap(data, len);
+			nson_buf_retain(nson->d.buf);
 			break;
 		default:
 			break;
