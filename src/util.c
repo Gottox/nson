@@ -12,7 +12,7 @@
 #include <string.h>
 
 const char *
-parse_int(int64_t *i, const char *p, size_t len) {
+parse_dec(int64_t *i, const char *p, size_t len) {
 	int64_t val;
 	int sign = *p == '-' ? -1 : 1;
 
@@ -45,7 +45,7 @@ parse_number(Nson *nson, const char *p, size_t len) {
 	int64_t i_val;
 	double r_val;
 
-	p = parse_int(&i_val, p, len);
+	p = parse_dec(&i_val, p, len);
 	if (*p != '.') {
 		nson_init_int(nson, i_val);
 		return p;
