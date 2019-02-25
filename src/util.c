@@ -5,7 +5,7 @@
  * Distributed under terms of the MIT license.
  */
 
-#include "nson.h"
+#include "internal.h"
 #include <string.h>
 
 const char *
