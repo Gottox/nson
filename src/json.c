@@ -212,21 +212,22 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			p++;
 			break;
 		case '"':
-			(void)json_unescape;
-			// Skip quote
-			p++;
+			p++; // Skip quote
 			rv = json_str_len(p, p + len - doc);
 			if (rv < 0) {
 				goto out;
 			}
 			nson_init(&tmp, NSON_STR);
-			tmp.d.buf = json_unescape(p, rv);
+			tmp.d.buf = nson_buf_retain(json_unescape(p, rv));
 			nson_push(stack_top, &tmp);
-			p += rv + 1;
-			// Skip text + quote
+			if (p[rv] != '"') {
+				rv = -1;
+				goto out;
+			}
+			p += rv + 1; // Skip text + quote
 			break;
 		case '\n':
-			line_start = p;
+			line_start = p + 1;
 			row++;
 		case '\f':
 		case '\r':
