@@ -2,7 +2,7 @@
 
 BENCH_JSON=bench/bench-file.json
 BENCH_PLIST=bench/bench-file.plist
-RANGE="HEAD~10..HEAD"
+RANGE="HEAD~20..HEAD"
 #RANGE="099a41b..HEAD"
 CFLAGS="$(grep '^CFLAGS[^_A-Z]' config.mk | cut -d= -f 2-) -Wno-error -std=gnu11"
 WARMUP=0
@@ -30,6 +30,7 @@ cd find_regression
 git checkout $head 2> /dev/null
 
 git log --reverse --format='%h' "$RANGE" | while read -r hash; do
+	msg=
 	git checkout .
 	git checkout "$hash" 2> /dev/null
 	git clean -f 2> /dev/null
@@ -64,7 +65,6 @@ git log --reverse --format='%h' "$RANGE" | while read -r hash; do
 	if ! [ "$result" ]; then
 		result=0
 		msg="Run Error"
-		exit 0
 	fi
 	printf '%s\t%s\t%s\n' "$hash" "$result" "$msg"
 done | tee "$plotfile"
