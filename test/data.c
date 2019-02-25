@@ -29,6 +29,7 @@
 #include "../src/internal.h"
 
 #include "test.h"
+#include "common.h"
 
 static void
 create_array() {

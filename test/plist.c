@@ -27,6 +27,7 @@
  */
 
 #include "test.h"
+#include "common.h"
 
 #include "../src/nson.h"
 
