@@ -96,7 +96,9 @@ json_unescape(const char *src, const size_t len) {
 		chunk_start += 1;
 	}
 	memcpy(dest, chunk_start, src + len - chunk_start);
-	dest_buf->len = src + len - chunk_start;
+	dest += src + len - chunk_start;
+
+	nson_buf_shrink(dest_buf, dest - dest_buf->buf);
 
 	return dest_buf;
 }

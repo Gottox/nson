@@ -12,7 +12,7 @@
 
 typedef struct NsonBuf {
 	unsigned int ref_count;
-	size_t len;
+	size_t siz;
 	/* ISO C forbids zero-size array. So use 1 here and use the additional byte
 	 * for zero termination. */
 	char buf[1];
@@ -56,6 +56,8 @@ NsonBuf *nson_buf_wrap(const char *val, size_t len);
 NsonBuf *nson_buf_wrap_0(const char *val);
 
 NsonBuf *nson_buf_retain(NsonBuf *buf);
+
+int nson_buf_shrink(NsonBuf *buf, size_t new_siz);
 
 void nson_buf_release(NsonBuf *buf);
 
