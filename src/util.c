@@ -8,9 +8,10 @@
 #include "internal.h"
 #include <string.h>
 
-const char *
-parse_dec(int64_t *i, const char *p, size_t len) {
+off_t
+parse_dec(int64_t *i, const char *src, size_t len) {
 	int64_t val;
+	const char *p = src;
 	int sign = *p == '-' ? -1 : 1;
 
 	if(*p == '-' || *p == '+')
@@ -22,7 +23,7 @@ parse_dec(int64_t *i, const char *p, size_t len) {
 
 	*i = val;
 
-	return p;
+	return p - src;
 }
 
 size_t
@@ -71,7 +72,7 @@ parse_number(Nson *nson, const char *p, size_t len) {
 	int64_t i_val;
 	double r_val;
 
-	p = parse_dec(&i_val, p, len);
+	p += parse_dec(&i_val, p, len);
 	if (*p != '.') {
 		nson_init_int(nson, i_val);
 		return p;

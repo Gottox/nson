@@ -63,7 +63,8 @@ plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 		chunk_start = chunk_end + 1;
 
 		if (chunk_start[0] == '#') {
-			chunk_start = parse_dec(&val, &chunk_start[1], len - (chunk_start - src));
+			chunk_start++;
+			chunk_start += parse_dec(&val, chunk_start, len - (chunk_start - src));
 			printf("%li\n", val);
 			// TODO: UTF8 escape codes
 			if (chunk_start[0] == ';') {
@@ -231,7 +232,7 @@ string:
 			if((rv = skip_tag("integer", p, len - (doc - p))) <= 0)
 				break;
 			p += rv;
-			p = parse_dec(&i_val, p, len - (doc - p));
+			p += parse_dec(&i_val, p, len - (doc - p));
 			nson_init_int(&tmp, i_val);
 			nson_push(stack_top, &tmp);
 			if((rv = skip_tag("</integer", p, len - (doc - p))) <= 0)

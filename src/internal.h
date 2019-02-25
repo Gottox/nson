@@ -29,7 +29,7 @@ int stack_pop(NsonStack *stack, Nson **element, off_t *index);
 
 void stack_clean(NsonStack *stack);
 
-const char *parse_dec(int64_t *i, const char *p, size_t len);
+off_t parse_dec(int64_t *i, const char *p, size_t len);
 
 size_t parse_hex(uint64_t *dest, const char *src, size_t len);
 
