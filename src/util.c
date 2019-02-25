@@ -56,18 +56,6 @@ out:
 }
 
 const char *
-parse_real(double *r, const char *p, size_t len) {
-	double val;
-
-	for(val = 0; *p >= '0' && *p <= '9'; p++)
-		val = (val * 0.1) + *p - '0';
-
-	*r = val * 0.1;
-
-	return p;
-}
-
-const char *
 parse_number(Nson *nson, const char *p, size_t len) {
 	int64_t i_val;
 	double r_val;
@@ -79,7 +67,9 @@ parse_number(Nson *nson, const char *p, size_t len) {
 	}
 
 	p++;
-	p = parse_real(&r_val, p, len);
+	for(r_val = 0; *p >= '0' && *p <= '9'; p++)
+		r_val = (r_val * 0.1) + *p - '0';
+	r_val *= 0.1;
 
 	if(i_val >= 0)
 		r_val += i_val;
