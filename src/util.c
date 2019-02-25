@@ -26,7 +26,7 @@ parse_dec(int64_t *i, const char *src, size_t len) {
 	return p - src;
 }
 
-size_t
+off_t
 parse_hex(uint64_t *dest, const char *src, size_t len) {
 	int64_t val = 0;
 	size_t i;
