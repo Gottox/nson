@@ -27,7 +27,7 @@
  */
 
 #include "config.h"
-#include "nson.h"
+#include "internal.h"
 
 #include <assert.h>
 #include <string.h>

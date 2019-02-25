@@ -50,6 +50,7 @@
 #define NSON_P(s) s, strlen(s)
 
 union Nson;
+struct NsonBuf;
 
 /**
  * @brief function pointer that is used to parse a buffer
@@ -92,23 +93,12 @@ typedef struct NsonCommon {
 } NsonCommon;
 
 /**
- * @brief 
- */
-typedef struct NsonBuf {
-	unsigned int ref_count;
-	size_t len;
-	/* ISO C forbids zero-size array. So use 1 here and use the additional byte
-	 * for zero termination. */
-	char buf[1];
-} NsonBuf;
-
-/**
  * @brief fields that are used to save arbitrary binary or
  * string data.
  */
 typedef struct NsonData {
 	struct NsonCommon c;
-	NsonBuf *buf;
+	struct NsonBuf *buf;
 } NsonData;
 
 /**
@@ -491,19 +481,5 @@ int nson_to_plist(Nson *nson, char **str);
  * @return
  */
 int nson_to_plist_fd(Nson *nson, FILE* fd);
-
-char *nson_buf_unwrap(NsonBuf *buf);
-
-size_t nson_buf_siz(const NsonBuf *buf);
-
-NsonBuf *nson_buf_new(size_t len);
-
-NsonBuf *nson_buf_wrap(const char *val, size_t len);
-
-NsonBuf *nson_buf_wrap_0(const char *val);
-
-NsonBuf *nson_buf_retain(NsonBuf *buf);
-
-void nson_buf_release(NsonBuf *buf);
 
 #endif /* !NSON_H */
