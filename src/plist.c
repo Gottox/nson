@@ -37,6 +37,12 @@
 
 #define SKIP_SPACES do { for(; *p && strchr("\n\f\r\t\v ", *p); p++); } while(0)
 
+static char *
+nson_memdup(const char *src, const int siz) {
+	char *dup = malloc(siz);
+	return memcpy(dup, src, siz);
+}
+
 static int
 plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 	size_t len;

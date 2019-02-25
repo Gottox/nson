@@ -37,8 +37,6 @@ const char *parse_real(double *r, const char *p, size_t len);
 
 const char *parse_number(Nson *nson, const char *p, size_t len);
 
-char *nson_memdup(const char *src, const int siz);
-
 size_t to_utf8(char *dest, const uint64_t chr, const size_t len);
 
 #endif /* !UTIL_H */

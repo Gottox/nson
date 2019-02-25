@@ -93,12 +93,6 @@ parse_number(Nson *nson, const char *p, size_t len) {
 	return p;
 }
 
-char *
-nson_memdup(const char *src, const int siz) {
-	char *dup = malloc(siz);
-	return memcpy(dup, src, siz);
-}
-
 size_t
 to_utf8(char *dest, const uint64_t chr, const size_t len) {
 	if (chr < 0x0080 && len >= 1) {
