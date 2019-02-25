@@ -82,7 +82,7 @@ parse_number(Nson *nson, const char *src, size_t len) {
 	return p - src;
 }
 
-size_t
+off_t
 to_utf8(char *dest, const uint64_t chr, const size_t len) {
 	if (chr < 0x0080 && len >= 1) {
 		*dest = chr;
