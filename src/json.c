@@ -41,7 +41,7 @@ json_str_len(const char *src, const size_t len) {
 	const char *chunk;
 
 	for (chunk = src; (chunk = memchr(chunk, '"', chunk + len - src)); chunk++) {
-		if(chunk[-1] != '\\' || chunk[-2] == '\\')
+		if (chunk[-1] != '\\' || chunk[-2] == '\\')
 			break;
 	}
 	if (chunk == NULL) {
@@ -119,7 +119,7 @@ json_escape(const Nson *nson, FILE *fd) {
 	len = nson_data_len(&tmp);
 
 	for(; i < len; i++) {
-		switch(data[i]) {
+		switch (data[i]) {
 		case '\t':
 			c[1] = 't';
 			break;
@@ -136,14 +136,14 @@ json_escape(const Nson *nson, FILE *fd) {
 
 		if(c[1] != 0) {
 			rv = -1;
-			if(fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0)
+			if (fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0)
 				goto cleanup;
-			if(fwrite(c, sizeof(*data), 2, fd) == 0)
+			if (fwrite(c, sizeof(*data), 2, fd) == 0)
 				goto cleanup;
 			last_write = i+1;
 			c[1] = 0;
 		}
-		else if(iscntrl(data[i])) {
+		else if (iscntrl(data[i])) {
 			rv = -1;
 			if(fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0)
 				goto cleanup;
@@ -153,7 +153,7 @@ json_escape(const Nson *nson, FILE *fd) {
 		}
 	}
 
-	if(i != last_write &&
+	if (i != last_write &&
 			fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0)
 		return -1;
 	fputc('"', fd);
