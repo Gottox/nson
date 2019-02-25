@@ -5,7 +5,7 @@
  * Distributed under terms of the MIT license.
  */
 
-#include "util.h"
+#include "internal.h"
 
 Nson *
 stack_walk(NsonStack *stack, Nson **nson, off_t *index) {

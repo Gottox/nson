@@ -8,7 +8,7 @@
 #define _GNU_SOURCE
 
 #include "../test/test.h"
-#include "../src/util.h"
+#include "../src/internal.h"
 #include "mmap.h"
 #include <assert.h>
 #include <ctype.h>

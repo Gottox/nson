@@ -6,7 +6,7 @@ include config.mk
 
 HDR = \
 	src/nson.h \
-	src/util.h \
+	src/internal.h \
 
 SRC = \
 	src/buf.c \

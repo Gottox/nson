@@ -1,5 +1,5 @@
 /*
- * util.h
+ * util.c
  * Copyright (C) 2018 tox <tox@rootkit>
  *
  * Distributed under terms of the MIT license.

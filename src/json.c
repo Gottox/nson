@@ -28,7 +28,7 @@
 
 #include "config.h"
 #include "nson.h"
-#include "util.h"
+#include "internal.h"
 
 #include <string.h>
 #include <ctype.h>
