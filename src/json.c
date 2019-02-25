@@ -366,7 +366,7 @@ nson_to_json_fd(Nson *nson, FILE* fd) {
 				break;
 		}
 		if (i == -1 || !nson || nson_mem_len(nson) == i + 1) {
-		} else if(nson_type(nson) == NSON_OBJ) {
+		} else if (nson_type(nson) == NSON_OBJ) {
 			fputc(i % 2 ? ',' : ':', fd);
 		} else {
 			fputc(',', fd);
