@@ -5,9 +5,6 @@
  * Distributed under terms of the MIT license.
  */
 
-#ifndef NSON_UTIL_H
-#define NSON_UTIL_H
-
 #include "nson.h"
 #include <string.h>
 
@@ -111,5 +108,3 @@ to_utf8(char *dest, const uint64_t chr, const size_t len) {
 
 	return 0;
 }
-
-#endif /* !UTIL_H */
