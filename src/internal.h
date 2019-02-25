@@ -33,7 +33,7 @@ off_t parse_dec(int64_t *i, const char *p, size_t len);
 
 off_t parse_hex(uint64_t *dest, const char *src, size_t len);
 
-const char *parse_number(Nson *nson, const char *p, size_t len);
+off_t parse_number(Nson *nson, const char *p, size_t len);
 
 size_t to_utf8(char *dest, const uint64_t chr, const size_t len);
 

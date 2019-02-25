@@ -247,7 +247,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		case '7':
 		case '8':
 		case '9':
-			p = parse_number(&tmp, p, len - (doc - p));
+			p += parse_number(&tmp, p, len - (doc - p));
 			nson_push(stack_top, &tmp);
 			break;
 		case 'n':

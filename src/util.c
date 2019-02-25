@@ -55,15 +55,16 @@ out:
 	return i;
 }
 
-const char *
-parse_number(Nson *nson, const char *p, size_t len) {
+off_t
+parse_number(Nson *nson, const char *src, size_t len) {
+	const char *p = src;
 	int64_t i_val;
 	double r_val;
 
 	p += parse_dec(&i_val, p, len);
 	if (*p != '.') {
 		nson_init_int(nson, i_val);
-		return p;
+		return p - src;
 	}
 
 	p++;
@@ -78,7 +79,7 @@ parse_number(Nson *nson, const char *p, size_t len) {
 
 	nson_init_real(nson, r_val);
 
-	return p;
+	return p - src;
 }
 
 size_t

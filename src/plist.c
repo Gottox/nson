@@ -220,7 +220,7 @@ string:
 			if((rv = skip_tag("real", p, len - (doc - p))) <= 0)
 				break;
 			p += rv;
-			p = parse_number(&tmp, p, len - (doc - p));
+			p += parse_number(&tmp, p, len - (doc - p));
 			if(nson_type(&tmp) == NSON_INT)
 				nson_init_real(&tmp, nson_real(&tmp));
 			nson_push(stack_top, &tmp);
