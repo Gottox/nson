@@ -5,8 +5,8 @@
  * Distributed under terms of the MIT license.
  */
 
-#ifndef NSON_UTIL_H
-#define NSON_UTIL_H
+#ifndef NSON_INTERNAL_H
+#define NSON_INTERNAL_H
 
 #include "nson.h"
 
@@ -39,4 +39,4 @@ const char *parse_number(Nson *nson, const char *p, size_t len);
 
 size_t to_utf8(char *dest, const uint64_t chr, const size_t len);
 
-#endif /* !UTIL_H */
+#endif /* !INTERNAL_H */
