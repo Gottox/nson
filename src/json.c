@@ -36,6 +36,20 @@
 #include <inttypes.h>
 #include <assert.h>
 
+static int
+json_str_len(const char *src, const size_t len) {
+	const char *chunk;
+
+	for (chunk = src; (chunk = memchr(chunk, '"', chunk + len - src)); chunk++) {
+		if(chunk[-1] != '\\' || chunk[-2] == '\\')
+			break;
+	}
+	if (chunk == NULL) {
+		return -1;
+	}
+	return chunk - src;
+}
+
 static NsonBuf *
 json_unescape(const char *src, const size_t len) {
 	const char *chunk_start, *chunk_end;
@@ -160,8 +174,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	int rv = 0;
 	off_t row = 0;
 	const char *p = doc;
-	const char *begin, *line_start = p;
-	char *buf;
+	const char *line_start = p;
 	Nson *stack_top;
 	Nson old_top;
 	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
@@ -199,22 +212,18 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			p++;
 			break;
 		case '"':
-			for (begin = ++p; (p = memchr(p, '"', p + len - doc)); p++) {
-				if(p[-1] != '\\' || p[-2] == '\\')
-					break;
-			}
-			if (p == NULL) {
-				rv = -1;
-				goto out;
-			}
-			if ( (buf = nson_memdup(begin, p - begin + 1)) == NULL) {
-				rv = -1;
+			(void)json_unescape;
+			// Skip quote
+			p++;
+			rv = json_str_len(p, p + len - doc);
+			if (rv < 0) {
 				goto out;
 			}
 			nson_init(&tmp, NSON_STR);
-			tmp.d.buf = json_unescape(buf, p - begin);
+			tmp.d.buf = json_unescape(p, rv);
 			nson_push(stack_top, &tmp);
-			p++;
+			p += rv + 1;
+			// Skip text + quote
 			break;
 		case '\n':
 			line_start = p;
