@@ -14,11 +14,13 @@ parse_dec(int64_t *i, const char *src, size_t len) {
 	const char *p = src;
 	int sign = *p == '-' ? -1 : 1;
 
-	if(*p == '-' || *p == '+')
+	if (*p == '-' || *p == '+') {
 		p++;
+	}
 
-	for(val = 0; *p >= '0' && *p <= '9'; p++)
+	for (val = 0; *p >= '0' && *p <= '9'; p++) {
 		val = (val * 10) + *p - '0';
+	}
 	val *= sign;
 
 	*i = val;
@@ -31,7 +33,7 @@ parse_hex(uint64_t *dest, const char *src, size_t len) {
 	int64_t val = 0;
 	size_t i;
 
-	for(i = 0; i < len; i++) {
+	for (i = 0; i < len; i++) {
 		switch(src[i]) {
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
@@ -68,14 +70,16 @@ parse_number(Nson *nson, const char *src, size_t len) {
 	}
 
 	p++;
-	for(r_val = 0; *p >= '0' && *p <= '9'; p++)
+	for (r_val = 0; *p >= '0' && *p <= '9'; p++) {
 		r_val = (r_val * 0.1) + *p - '0';
+	}
 	r_val *= 0.1;
 
-	if(i_val >= 0)
+	if (i_val >= 0) {
 		r_val += i_val;
-	else
+	} else {
 		r_val -= i_val;
+	}
 
 	nson_init_real(nson, r_val);
 
@@ -91,7 +95,7 @@ to_utf8(char *dest, const uint64_t chr, const size_t len) {
 		dest[0] = ((chr >> 6) & 0x1F) | 0xC0;
 		dest[1] = (chr & 0x3F) | 0x80;
 		return 2;
-	} else if (len >= 3){
+	} else if (len >= 3) {
 		dest[0] = ((chr >> 12) & 0x0F) | 0xE0;
 		dest[1] = ((chr >> 6) & 0x3F) | 0x80;
 		dest[2] = (chr & 0x3F) | 0x80;
