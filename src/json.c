@@ -46,7 +46,7 @@ json_unescape(const char *src, const size_t len) {
 	dest_buf = nson_buf_new(len);
 	dest = nson_buf_unwrap(dest_buf);
 
-	for (chunk_start = src; (chunk_end = strchr(chunk_start, '\\'));) {
+	for (chunk_start = src; (chunk_end = memchr(chunk_start, '\\', src + len - chunk_start));) {
 		memcpy(dest, chunk_start, chunk_end - chunk_start);
 		dest += chunk_end - chunk_start;
 		chunk_start = chunk_end + 1;
