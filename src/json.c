@@ -41,8 +41,9 @@ json_str_len(const char *src, const size_t len) {
 	const char *chunk;
 
 	for (chunk = src; (chunk = memchr(chunk, '"', chunk + len - src)); chunk++) {
-		if (chunk[-1] != '\\' || chunk[-2] == '\\')
+		if (chunk[-1] != '\\' || chunk[-2] == '\\') {
 			break;
+		}
 	}
 	if (chunk == NULL) {
 		return -1;
@@ -67,8 +68,9 @@ json_unescape(const char *src, const size_t len) {
 
 		if (chunk_start[0] == 'u') {
 			// TODO: correctly supply upper bounds.
-			if (parse_hex(&utf_val, &chunk_start[1], 4) != 4)
+			if (parse_hex(&utf_val, &chunk_start[1], 4) != 4) {
 				break;
+			}
 			// TODO: correctly supply upper bounds.
 			dest += to_utf8(dest, utf_val, 3);
 			chunk_start += 5;
@@ -112,15 +114,16 @@ json_escape(const Nson *nson, FILE *fd) {
 	const char *data;
 	size_t len;
 
-	if(fputc('"', fd) < 0)
+	if (fputc('"', fd) < 0) {
 		return -1;
+	}
 
 	nson_clone(&tmp, nson);
 
 	data = nson_data(&tmp);
 	len = nson_data_len(&tmp);
 
-	for(; i < len; i++) {
+	for (; i < len; i++) {
 		switch (data[i]) {
 		case '\t':
 			c[1] = 't';
@@ -136,28 +139,33 @@ json_escape(const Nson *nson, FILE *fd) {
 			break;
 		}
 
-		if(c[1] != 0) {
+		if (c[1] != 0) {
 			rv = -1;
-			if (fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0)
+			if (fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0) {
 				goto cleanup;
-			if (fwrite(c, sizeof(*data), 2, fd) == 0)
+			}
+			if (fwrite(c, sizeof(*data), 2, fd) == 0) {
 				goto cleanup;
+			}
 			last_write = i+1;
 			c[1] = 0;
 		}
 		else if (iscntrl(data[i])) {
 			rv = -1;
-			if(fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0)
+			if (fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0) {
 				goto cleanup;
-			if(fprintf(fd, "\\u%04x", data[i]) == 0)
+			}
+			if (fprintf(fd, "\\u%04x", data[i]) == 0) {
 				goto cleanup;
+			}
 			last_write = i+1;
 		}
 	}
 
 	if (i != last_write &&
-			fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0)
+			fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0) {
 		return -1;
+	}
 	fputc('"', fd);
 
 	rv = i;
@@ -191,7 +199,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 
 	stack_top = nson_get(&stack, 0);
 	// Skip leading Whitespaces
-	for(; isspace(*p); p++);
+	for (; isspace(*p); p++);
 	do {
 		switch(*p) {
 		case '[':
@@ -253,7 +261,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			nson_push(stack_top, &tmp);
 			break;
 		case 'n':
-			if(strncmp(p, "null", 4)) {
+			if (strncmp(p, "null", 4)) {
 				rv = -1;
 				goto out;
 			}
@@ -262,7 +270,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			p += 4;
 			break;
 		case 't':
-			if(strncmp(p, "true", 4)) {
+			if (strncmp(p, "true", 4)) {
 				rv = -1;
 				goto out;
 			}
@@ -271,7 +279,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			p += 4;
 			break;
 		case 'f':
-			if(strncmp(p, "false", 5)) {
+			if (strncmp(p, "false", 5)) {
 				rv = -1;
 				goto out;
 			}
@@ -284,10 +292,10 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			goto out;
 			nson_push(stack_top, &tmp);
 		}
-	} while(nson_len(&stack) > 1 && p - doc < len);
+	} while (nson_len(&stack) > 1 && p - doc < len);
 
 
-	if(nson_len(&stack) != 1) {
+	if (nson_len(&stack) != 1) {
 		// Premature EOF
 		rv = -1;
 		goto out;
@@ -305,8 +313,9 @@ nson_to_json(Nson *nson, char **str) {
 	int rv;
 	size_t size = 0;
 	FILE *fd = open_memstream(str, &size);
-	if(fd == NULL)
+	if (fd == NULL) {
 		return -1;
+	}
 
 	rv = nson_to_json_fd(nson, fd);
 	fclose(fd);
@@ -318,16 +327,18 @@ json_b64_enc(const Nson *nson, FILE* fd) {
 	int rv = 0;
 	Nson tmp;
 
-	if(nson_clone(&tmp, nson))
+	if (nson_clone(&tmp, nson)) {
 		rv = -1;
-	if(nson_mapper_b64_enc(0, &tmp, NULL) < 0)
+	}
+	if (nson_mapper_b64_enc(0, &tmp, NULL) < 0) {
 		rv = -1;
-	else if(fputc('"', fd) < 0)
+	} else if (fputc('"', fd) < 0) {
 		rv = -1;
-	else if(fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) == 0)
+	} else if (fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) == 0) {
 		rv = -1;
-	else if(fputc('"', fd) < 0)
+	} else if (fputc('"', fd) < 0) {
 		rv = -1;
+	}
 	nson_clean(&tmp);
 	return rv;
 }
@@ -338,7 +349,7 @@ nson_to_json_fd(Nson *nson, FILE* fd) {
 	NsonStack stack = { 0 };
 	Nson *it;
 
-	for(i = -1, it = nson; it; it = stack_walk(&stack, &nson, &i)) {
+	for (i = -1, it = nson; it; it = stack_walk(&stack, &nson, &i)) {
 		switch(nson_type(it)) {
 			case NSON_NONE:
 				abort();
