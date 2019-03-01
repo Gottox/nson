@@ -37,6 +37,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <limits.h>
+#include <errno.h>
 
 #define SCAL_CMP(a, b) (a > b ? 1 : (a < b ? -1 : 0))
 
@@ -89,6 +90,10 @@ nson_mem_capacity(Nson *nson, const size_t size) {
 	arr = nson->a.arr;
 	nson->a.len = size;
 
+	if (size && size > SIZE_MAX / sizeof(*arr)) {
+		errno = ENOMEM;
+		return -1;
+	}
 	arr = realloc(arr, sizeof(*arr) * size);
 	if(!arr) {
 		nson->a.len = old;
