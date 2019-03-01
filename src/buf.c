@@ -28,6 +28,7 @@
 
 #include "internal.h"
 #include <string.h>
+#include <errno.h>
 
 char *
 nson_buf_unwrap(NsonBuf *buf) {
@@ -36,10 +37,15 @@ nson_buf_unwrap(NsonBuf *buf) {
 
 NsonBuf *
 nson_buf_new(size_t siz) {
-	NsonBuf *buf = calloc(1, sizeof(char *) * siz + sizeof(NsonBuf));
+	if (siz > (SIZE_MAX - sizeof(NsonBuf)) / sizeof(char)) {
+		errno = ENOMEM;
+		return NULL;
+	}
+	NsonBuf *buf = malloc(sizeof(char) * siz + sizeof(NsonBuf));
 	if (buf == NULL) {
 		return NULL;
 	}
+	memset(buf, 0, sizeof(char) * siz + sizeof(NsonBuf));
 	buf->siz = siz;
 	nson_buf_retain(buf);
 
