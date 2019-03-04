@@ -29,6 +29,9 @@
 #include "internal.h"
 #include <string.h>
 
+static const char base64_table[] =
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
 off_t
 parse_dec(int64_t *i, const char *src, size_t len) {
 	int64_t val;
@@ -75,6 +78,55 @@ parse_hex(uint64_t *dest, const char *src, size_t len) {
 
 out:
 	*dest = val;
+	return i;
+}
+
+off_t
+parse_b64(NsonBuf **dest_buf, const char *src, const size_t len) {
+	char *p;
+	int8_t v;
+	off_t i, j;
+	char *dest;
+
+	(*dest_buf) = nson_buf_new((len + 3) / 4 * 3);
+	if (*dest_buf == NULL)
+		return -1;
+	dest = nson_buf_unwrap(*dest_buf);
+
+	for (i = j = 0; i < len && src[i] != '='; i++) {
+		p = memchr(base64_table, src[i], 64);
+		if(p == NULL)
+			break;
+		v = p - base64_table;
+
+		switch(i % 4) {
+		case 0:
+			dest[j] = v << 2;
+			break;
+		case 1:
+			dest[j++] |= v >> 4;
+			dest[j] = v << 4;
+			break;
+		case 2:
+			dest[j++] |= v >> 2;
+			dest[j] = v << 6;
+			break;
+		case 3:
+			dest[j++] |= v;
+			break;
+		}
+	}
+
+	//printf("%i\n", strncmp(&src[i], "===", i % 4));
+	for(; i % 4 != 0 && i < len && src[i] == '='; i++);
+
+	if(i % 4 != 0) {
+		nson_buf_release(*dest_buf);
+		return -1;
+	}
+
+	nson_buf_shrink(*dest_buf, j);
+
 	return i;
 }
 
