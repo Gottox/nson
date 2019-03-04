@@ -35,27 +35,16 @@
 
 #define SKIP_SPACES do { for(; *p && strchr("\n\f\r\t\v ", *p); p++); } while(0)
 
-static char *
-nson_memdup(const char *src, const int siz) {
-	char *dup = malloc(siz);
-	return memcpy(dup, src, siz);
-}
-
 static int
-plist_mapper_string(off_t index, Nson *nson, void *user_data) {
-	size_t len;
-	const char *src, *chunk_start, *chunk_end;
+parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
+	const char *chunk_start, *chunk_end;
 	char *dest;
 	int64_t val;
-	assert(nson_type(nson) & NSON_STR);
-	NsonBuf *dest_buf;
 
-	len = nson_data_len(nson);
-	src = nson_data(nson);
-	dest_buf = nson_buf_new(len);
-	dest = nson_buf_unwrap(dest_buf);
+	(*dest_buf) = nson_buf_new(len);
+	dest = nson_buf_unwrap(*dest_buf);
 
-	for(chunk_start = src;(chunk_end = strchr(chunk_start, '&')); dest++) {
+	for(chunk_start = src;(chunk_end = memchr(chunk_start, '&', chunk_start + len - src)); dest++) {
 		memcpy(dest, chunk_start, chunk_end - chunk_start);
 		dest += chunk_end - chunk_start;
 		chunk_start = chunk_end + 1;
@@ -86,10 +75,8 @@ plist_mapper_string(off_t index, Nson *nson, void *user_data) {
 		}
 	}
 	memcpy(dest, chunk_start, src + len - chunk_start);
-
-	nson_buf_release(nson->d.buf);
-	nson->d.buf = dest_buf;
-	nson_buf_retain(nson->d.buf);
+	dest += src + len - chunk_start;
+	nson_buf_shrink(*dest_buf, dest - nson_buf_unwrap(*dest_buf));
 
 	return 0;
 }
@@ -124,7 +111,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 	const char *begin;
 	const char *p = doc;
 	static const char *string_tag = "string";
-	char *buf;
+	NsonBuf *buf;
 	Nson old_top;
 	Nson *stack_top;
 	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
@@ -205,19 +192,14 @@ string:
 				p++;
 				rv = skip_tag(string_tag, p, len - (doc - p));
 			}
-			if ( (buf = nson_memdup(begin, p - begin + 1)) == NULL) {
-				rv = -1;
-				goto err;
-			}
 			if (string_tag[0] == 'd') {
-				nson_init_data(&tmp, buf, p - begin - 2, NSON_BLOB);
-				//tmp.c.mapper = nson_mapper_b64_dec;
-				nson_mapper_b64_dec(0, &tmp, NULL);
+				parse_b64(&buf, begin, p - begin - 2);
+				nson_init(&tmp, NSON_BLOB);
 			} else {
-				nson_init_data(&tmp, buf, p - begin - 2, NSON_STR);
-				//tmp.c.mapper = plist_mapper_string;
-				plist_mapper_string(0, &tmp, NULL);
+				parse_string(&buf, begin, p - begin - 2);
+				nson_init(&tmp, NSON_STR);
 			}
+			tmp.d.buf = nson_buf_retain(buf);
 			nson_push(stack_top, &tmp);
 			p += rv;
 			string_tag = "string";
