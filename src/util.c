@@ -33,7 +33,7 @@ static const char base64_table[] =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 off_t
-parse_dec(int64_t *i, const char *src, size_t len) {
+parse_dec(int64_t *dest, const char *src, size_t len) {
 	int64_t val;
 	const char *p = src;
 	int sign = *p == '-' ? -1 : 1;
@@ -47,7 +47,7 @@ parse_dec(int64_t *i, const char *src, size_t len) {
 	}
 	val *= sign;
 
-	*i = val;
+	*dest = val;
 
 	return p - src;
 }
