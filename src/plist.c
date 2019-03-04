@@ -52,7 +52,6 @@ parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 		if (chunk_start[0] == '#') {
 			chunk_start++;
 			chunk_start += parse_dec(&val, chunk_start, len - (chunk_start - src));
-			printf("%li\n", val);
 			// TODO: UTF8 escape codes
 			if (chunk_start[0] == ';') {
 				chunk_start++;
