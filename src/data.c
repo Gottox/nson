@@ -375,6 +375,18 @@ nson_init(Nson *nson, const enum NsonType info) {
 }
 
 int
+nson_init_buf(Nson *nson, NsonBuf *val, enum NsonType info) {
+	int rv = nson_init(nson, info);
+	if(rv < 0) {
+		return rv;
+	}
+
+	nson->d.buf = nson_buf_retain(val);
+	return rv;
+}
+
+
+int
 nson_init_data(Nson *nson, const char *val, const size_t len, enum NsonType info) {
 	int rv = nson_init(nson, info);
 	if(rv < 0)

@@ -84,4 +84,6 @@ int nson_buf_shrink(NsonBuf *buf, size_t new_siz);
 
 void nson_buf_release(NsonBuf *buf);
 
+int nson_init_buf(Nson *nson, NsonBuf *val, enum NsonType info);
+
 #endif /* !INTERNAL_H */
