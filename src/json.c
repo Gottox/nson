@@ -52,6 +52,7 @@ json_str_len(const char *src, const size_t len) {
 static NsonBuf *
 json_unescape(const char *src, const size_t len) {
 	const char *chunk_start, *chunk_end;
+	size_t chunk_len;
 	NsonBuf *dest_buf;
 	char *dest;
 	uint64_t utf_val;
@@ -60,8 +61,10 @@ json_unescape(const char *src, const size_t len) {
 	dest = nson_buf_unwrap(dest_buf);
 
 	for (chunk_start = src; (chunk_end = memchr(chunk_start, '\\', src + len - chunk_start));) {
-		memcpy(dest, chunk_start, chunk_end - chunk_start);
-		dest += chunk_end - chunk_start;
+		chunk_len = chunk_end - chunk_start;
+
+		memcpy(dest, chunk_start, chunk_len);
+		dest += chunk_len;
 		chunk_start = chunk_end + 1;
 
 		if (chunk_start[0] == 'u') {
@@ -95,8 +98,9 @@ json_unescape(const char *src, const size_t len) {
 		dest += 1;
 		chunk_start += 1;
 	}
-	memcpy(dest, chunk_start, src + len - chunk_start);
-	dest += src + len - chunk_start;
+	chunk_len = src + len - chunk_start;
+	memcpy(dest, chunk_start, chunk_len);
+	dest += chunk_len;
 
 	nson_buf_shrink(dest_buf, dest - dest_buf->buf);
 
