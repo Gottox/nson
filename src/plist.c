@@ -195,12 +195,12 @@ string:
 			}
 			if (string_tag[0] == 'd') {
 				parse_b64(&buf, begin, p - begin - 2);
-				nson_init(&tmp, NSON_BLOB);
+				nson_init_buf(&tmp, buf, NSON_BLOB);
 			} else {
 				parse_string(&buf, begin, p - begin - 2);
-				nson_init(&tmp, NSON_STR);
+				nson_init_buf(&tmp, buf, NSON_STR);
 			}
-			tmp.d.buf = nson_buf_retain(buf);
+			nson_buf_release(buf);
 			nson_push(stack_top, &tmp);
 			p += rv;
 			string_tag = "string";
