@@ -60,14 +60,14 @@ nson_buf_wrap(const char *val, size_t siz) {
 	return buf;
 }
 
-size_t
-nson_buf_siz(const NsonBuf *buf) {
-	return buf->siz;
-}
-
 NsonBuf *
 nson_buf_wrap_0(const char *val) {
 	return nson_buf_wrap(val, strlen(val));
+}
+
+size_t
+nson_buf_siz(const NsonBuf *buf) {
+	return buf->siz;
 }
 
 NsonBuf *
