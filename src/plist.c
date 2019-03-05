@@ -38,6 +38,7 @@
 static int
 parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 	const char *chunk_start, *chunk_end;
+	size_t chunk_len;
 	char *dest;
 	int64_t val;
 
@@ -45,8 +46,10 @@ parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 	dest = nson_buf_unwrap(*dest_buf);
 
 	for(chunk_start = src;(chunk_end = memchr(chunk_start, '&', chunk_start + len - src)); dest++) {
-		memcpy(dest, chunk_start, chunk_end - chunk_start);
-		dest += chunk_end - chunk_start;
+		chunk_len = chunk_end - chunk_start;
+
+		memcpy(dest, chunk_start, chunk_len);
+		dest += chunk_len;
 		chunk_start = chunk_end + 1;
 
 		if (chunk_start[0] == '#') {
@@ -71,11 +74,12 @@ parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 			*dest = '&';
 		}
 	}
-	memcpy(dest, chunk_start, src + len - chunk_start);
-	dest += src + len - chunk_start;
+	chunk_len = src + len - chunk_start;
+	memcpy(dest, chunk_start, chunk_len);
+	dest += chunk_len;
 	nson_buf_shrink(*dest_buf, dest - nson_buf_unwrap(*dest_buf));
 
-	return 0;
+	return dest - nson_buf_unwrap(*dest_buf);
 }
 
 int
