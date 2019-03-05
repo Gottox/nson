@@ -47,9 +47,7 @@ nson_buf_new(size_t siz) {
 	}
 	memset(buf, 0, sizeof(char) * siz + sizeof(NsonBuf));
 	buf->siz = siz;
-	nson_buf_retain(buf);
-
-	return buf;
+	return nson_buf_retain(buf);
 }
 
 NsonBuf *
