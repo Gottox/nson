@@ -49,16 +49,15 @@ json_str_len(const char *src, const size_t len) {
 	return chunk - src;
 }
 
-static NsonBuf *
-json_unescape(const char *src, const size_t len) {
+static int
+parse_json_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 	const char *chunk_start, *chunk_end;
 	size_t chunk_len;
-	NsonBuf *dest_buf;
 	char *dest;
 	uint64_t utf_val;
 
-	dest_buf = nson_buf_new(len);
-	dest = nson_buf_unwrap(dest_buf);
+	(*dest_buf) = nson_buf_new(len);
+	dest = nson_buf_unwrap(*dest_buf);
 
 	for (chunk_start = src; (chunk_end = memchr(chunk_start, '\\', src + len - chunk_start));) {
 		chunk_len = chunk_end - chunk_start;
@@ -102,13 +101,13 @@ json_unescape(const char *src, const size_t len) {
 	memcpy(dest, chunk_start, chunk_len);
 	dest += chunk_len;
 
-	nson_buf_shrink(dest_buf, dest - dest_buf->buf);
+	nson_buf_shrink(*dest_buf, dest - nson_buf_unwrap(*dest_buf));
 
-	return dest_buf;
+	return dest - nson_buf_unwrap(*dest_buf);
 }
 
 static int
-json_escape(const Nson *nson, FILE *fd) {
+json_escape_string(const Nson *nson, FILE *fd) {
 	int rv = 0;
 	off_t i = 0, last_write = 0;
 	char c[] = { '\\', 0 };
@@ -190,6 +189,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	Nson *stack_top;
 	Nson old_top;
 	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
+	NsonBuf *buf;
 
 	memset(nson, 0, sizeof(*nson));
 	nson_init(&tmp, NSON_ARR);
@@ -233,9 +233,10 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 				rv = -1;
 				goto out;
 			}
-			nson_init(&tmp, NSON_STR);
-			tmp.d.buf = nson_buf_retain(json_unescape(&doc[i], rv));
+			parse_json_string(&buf, &doc[i], rv);
+			nson_init_buf(&tmp, buf, NSON_STR);
 			nson_push(stack_top, &tmp);
+			nson_buf_release(buf);
 			i += rv + 1; // Skip text + quote
 			break;
 		case '\n':
@@ -357,7 +358,7 @@ nson_to_json_fd(Nson *nson, FILE* fd) {
 				abort();
 				break;
 			case NSON_STR:
-				json_escape(it, fd);
+				json_escape_string(it, fd);
 				break;
 			case NSON_BLOB:
 				json_b64_enc(it, fd);
