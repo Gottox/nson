@@ -120,6 +120,20 @@ parse_string_escape_gt() {
 }
 
 static void
+parse_string_escape_gt2() {
+	int rv;
+	Nson nson;
+	rv = nson_parse_plist(&nson, PLIST("<array><string>xcb-util-keysyms&gt;=0.3.9_1</string><string>xcb-util-keysyms&gt;=0.3.9_1</string></array>"));
+	assert(rv >= 0);
+	assert(nson_type(&nson) == NSON_ARR);
+	assert(strcmp("xcb-util-keysyms>=0.3.9_1", nson_str(nson_get(&nson, 0))) == 0);
+	nson_clean(&nson);
+
+	(void)rv;
+}
+
+
+static void
 parse_string_escape_amp() {
 	int rv;
 	Nson nson;
@@ -357,6 +371,7 @@ TEST(parse_false);
 TEST(parse_string);
 TEST(parse_string_escape_lt);
 TEST(parse_string_escape_gt);
+TEST(parse_string_escape_gt2);
 TEST(parse_string_escape_amp);
 TEST(parse_string_escape_dec);
 TEST(parse_string_escape_substr_dec);
