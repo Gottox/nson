@@ -45,7 +45,9 @@ parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 	(*dest_buf) = nson_buf_new(len);
 	dest = nson_buf_unwrap(*dest_buf);
 
-	for(chunk_start = src;(chunk_end = memchr(chunk_start, '&', chunk_start + len - src)); dest++) {
+	for(chunk_start = src;
+			(chunk_end = memchr(chunk_start, '&', len - (chunk_start - src)));
+			dest++) {
 		chunk_len = chunk_end - chunk_start;
 
 		memcpy(dest, chunk_start, chunk_len);
