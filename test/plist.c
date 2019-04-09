@@ -132,7 +132,6 @@ parse_string_escape_gt2() {
 	(void)rv;
 }
 
-
 static void
 parse_string_escape_amp() {
 	int rv;

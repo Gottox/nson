@@ -85,6 +85,31 @@ parse_empty_string() {
 }
 
 static void
+parse_string_escape_newline() {
+	int rv;
+	Nson nson;
+	rv = nson_parse_json(&nson, NSON_P("\"a\\nb\""));
+	assert(rv >= 0);
+	assert(strcmp("a\nb", nson_str(&nson)) == 0);
+	nson_clean(&nson);
+
+	(void)rv;
+}
+
+static void
+parse_string_escape_newline2() {
+	int rv;
+	Nson nson;
+	rv = nson_parse_json(&nson, NSON_P("[\"a\\nb\",\"c\nd\"]"));
+	assert(rv >= 0);
+	assert(strcmp("a\nb", nson_str(nson_get(&nson, 0))) == 0);
+	assert(strcmp("c\nd", nson_str(nson_get(&nson, 1))) == 0);
+	nson_clean(&nson);
+
+	(void)rv;
+}
+
+static void
 object_with_one_element() {
 	int rv;
 	Nson nson;
@@ -399,6 +424,8 @@ TEST(parse_true);
 TEST(parse_double);
 TEST(parse_number);
 TEST(parse_empty_string);
+TEST(parse_string_escape_newline);
+TEST(parse_string_escape_newline2);
 TEST(object_with_one_element);
 TEST(object_with_multiple_elements);
 TEST(access_str_as_arr);
