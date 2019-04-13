@@ -314,6 +314,11 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 		goto err;
 	}
 	i += rv;
+
+	if (nson_len(stack_top) == 0) {
+		rv = -1;
+		goto err;
+	}
 	nson_move(nson, nson_get(stack_top, 0));
 
 	rv = i;
