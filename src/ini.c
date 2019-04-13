@@ -55,10 +55,10 @@ parse_line(Nson *nson, const char *line, size_t len) {
 
 	//for(i = len - 1; isspace(line[i]) && i >= 0; i--, val_len--);
 
-	nson_init_data(&elem, strndup(key, key_len), key_len, NSON_STR);
+	nson_init_data(&elem, key, key_len, NSON_STR);
 	nson_push(nson, &elem);
 
-	nson_init_data(&elem, strndup(val, val_len), val_len, NSON_STR);
+	nson_init_data(&elem, val, val_len, NSON_STR);
 	nson_push(nson, &elem);
 
 	return i;
