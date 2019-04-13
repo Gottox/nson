@@ -33,7 +33,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 
-#define SKIP_SPACES do { for(; *p && strchr("\n\f\r\t\v ", *p); p++); } while(0)
+#define SKIP_SPACES do { for(; doc[i] && strchr("\n\f\r\t\v ", doc[i]); i++); } while(0)
 
 static int
 parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
@@ -111,12 +111,34 @@ skip_tag(const char *tag, const char *p, const size_t len) {
 	return p - begin + 1;
 }
 
+static off_t
+measure_string_len(const char *str, const char *end_tag, size_t len) {
+	int rv;
+	const char *p = str;
+
+	for (rv = 0; rv == 0;) {
+		if(!(p = memchr(p, '<', len - (str - p)))) {
+			return -1;
+		}
+		p++;
+		if(*p != '/') {
+			continue;
+		}
+		p++;
+		rv = skip_tag(end_tag, p, len - (str - p));
+		if (rv < 0)
+			return -1;
+	}
+
+	return p - str;
+}
+
 int
 nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 	int rv = 0;
+	off_t i = 0;
 	int64_t i_val;
-	const char *begin;
-	const char *p = doc;
+	off_t begin;
 	static const char *string_tag = "string";
 	NsonBuf *buf;
 	Nson old_top;
@@ -124,25 +146,25 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
 
 
-	rv = skip_tag("<?xml", p, len - (doc - p));
+	rv = skip_tag("<?xml", &doc[i], len - i);
 	if (rv <= 0) {
 		return -1;
 	}
-	p += rv;
+	i += rv;
 	SKIP_SPACES;
 
-	rv = skip_tag("<!DOCTYPE", p, len - (doc - p));
+	rv = skip_tag("<!DOCTYPE", &doc[i], len - i);
 	if (rv <= 0) {
 		return -1;
 	}
-	p += rv;
+	i += rv;
 	SKIP_SPACES;
 
-	rv = skip_tag("<plist", p, len - (doc - p));
+	rv = skip_tag("<plist", &doc[i], len - i);
 	if (rv <= 0) {
 		return -1;
 	}
-	p += rv;
+	i += rv;
 
 	memset(nson, 0, sizeof(*nson));
 	nson_init(&tmp, NSON_ARR);
@@ -152,29 +174,29 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 
 	do {
 		SKIP_SPACES;
-		if(*p != '<') {
+		if(doc[i] != '<') {
 			goto err;
 		}
-		p++;
-		switch(*p) {
+		i++;
+		switch(doc[i]) {
 		case 'a':
-			if((rv = skip_tag("array", p, len - (doc - p))) <= 0) {
+			if((rv = skip_tag("array", &doc[i], len - i)) <= 0) {
 				break;
 			}
 			nson_init(&tmp, NSON_ARR);
 			tmp.a.messy = true;
 			nson_push(&stack, &tmp);
 			stack_top = nson_last(&stack);
-			p += rv;
+			i += rv;
 			break;
 		case 'd':
-			if((rv = skip_tag("dict", p, len - (doc - p))) > 0) {
+			if((rv = skip_tag("dict", &doc[i], len - i)) > 0) {
 				nson_init(&tmp, NSON_OBJ);
 				tmp.a.messy = true;
 				nson_push(&stack, &tmp);
 				stack_top = nson_last(&stack);
-				p += rv;
-			} else if((rv = skip_tag("data", p, len - (doc - p))) > 0) {
+				i += rv;
+			} else if((rv = skip_tag("data", &doc[i], len - i)) > 0) {
 				string_tag = "data";
 				goto string;
 			}
@@ -182,84 +204,74 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 		case 'k':
 			string_tag = "key";
 		case 's':
-			if((rv = skip_tag(string_tag, p, len - (doc - p))) <= 0) {
+			if((rv = skip_tag(string_tag, &doc[i], len - i)) <= 0) {
 				break;
 			}
 string:
-			p += rv;
-			begin = p;
-			for (rv = 0; rv == 0;) {
-				if(!(p = memchr(p, '<', len - (doc - p)))) {
-					goto err;
-				}
-				p++;
-				if(*p != '/') {
-					continue;
-				}
-				p++;
-				rv = skip_tag(string_tag, p, len - (doc - p));
-			}
+			i += rv;
+			begin = i;
+			i += measure_string_len(&doc[i], string_tag, len - i);
 			if (string_tag[0] == 'd') {
-				parse_b64(&buf, begin, p - begin - 2);
+				parse_b64(&buf, &doc[begin], i - begin - 2);
 				nson_init_buf(&tmp, buf, NSON_BLOB);
 			} else {
-				parse_string(&buf, begin, p - begin - 2);
+				parse_string(&buf, &doc[begin], i - begin - 2);
 				nson_init_buf(&tmp, buf, NSON_STR);
 			}
 			nson_buf_release(buf);
 			nson_push(stack_top, &tmp);
-			p += rv;
+			i += rv;
 			string_tag = "string";
 			break;
 		case 'r':
-			if((rv = skip_tag("real", p, len - (doc - p))) <= 0) {
+			if((rv = skip_tag("real", &doc[i], len - i)) <= 0) {
 				break;
 			}
-			p += rv;
-			p += parse_number(&tmp, p, len - (doc - p));
+			i += rv;
+			i += parse_number(&tmp, &doc[i], len - i);
 			if(nson_type(&tmp) == NSON_INT) {
 				nson_init_real(&tmp, nson_real(&tmp));
 			}
 			nson_push(stack_top, &tmp);
-			if((rv = skip_tag("</real", p, len - (doc - p))) <= 0) {
+			if((rv = skip_tag("</real", &doc[i], len - i)) <= 0) {
 				break;
 			}
-			p += rv;
+			i += rv;
 			break;
 		case 'i':
-			if((rv = skip_tag("integer", p, len - (doc - p))) <= 0) {
+			if((rv = skip_tag("integer", &doc[i], len - i)) <= 0) {
 				break;
 			}
-			p += rv;
-			p += parse_dec(&i_val, p, len - (doc - p));
+			i += rv;
+			i += parse_dec(&i_val, &doc[i], len - i);
 			nson_init_int(&tmp, i_val);
 			nson_push(stack_top, &tmp);
-			if((rv = skip_tag("</integer", p, len - (doc - p))) <= 0) {
+			if((rv = skip_tag("</integer", &doc[i], len - i)) <= 0) {
 				break;
 			}
-			p += rv;
+			i += rv;
 			break;
 		case 't':
-			if((rv = skip_tag("true/", p, len - (doc - p))) <= 0) {
+			if((rv = skip_tag("true/", &doc[i], len - i)) <= 0) {
 				break;
 			}
 			nson_init_bool(&tmp, 1);
 			nson_push(stack_top, &tmp);
-			p += rv;
+			i += rv;
 			break;
 		case 'f':
-			if((rv = skip_tag("false/", p, len - (doc - p))) <= 0) {
+			if((rv = skip_tag("false/", &doc[i], len - i)) <= 0) {
 				break;
 			}
 			nson_init_bool(&tmp, 0);
 			nson_push(stack_top, &tmp);
-			p += rv;
+			i += rv;
 			break;
 		case '/':
-			p++;
-			switch(*p) {
+			i++;
+			switch(doc[i]) {
 			case 'a':
-				if((rv = skip_tag("array", p, len - (doc - p))) <= 0) {
+				if((rv = skip_tag("array", &doc[i], len - i)) <= 0) {
 					break;
 				}
 				if(nson_type(stack_top) != NSON_ARR) {
@@ -268,10 +280,10 @@ string:
 				nson_pop(&old_top, &stack);
 				stack_top = nson_last(&stack);
 				nson_push(stack_top, &old_top);
-				p += rv;
+				i += rv;
 				break;
 			case 'd':
-				if((rv = skip_tag("dict", p, len - (doc - p))) <= 0) {
+				if((rv = skip_tag("dict", &doc[i], len - i)) <= 0) {
 					break;
 				}
 				if(nson_type(stack_top) != NSON_OBJ) {
@@ -280,11 +292,11 @@ string:
 				nson_pop(&old_top, &stack);
 				stack_top = nson_last(&stack);
 				nson_push(stack_top, &old_top);
-				p += rv;
+				i += rv;
 				break;
 			}
 		}
-	} while(nson_len(&stack) > 1 && p - doc < len);
+	} while(nson_len(&stack) > 1 && i < len);
 	if(nson_len(&stack) != 1) {
 		// Premature EOF
 		rv = -1;
@@ -292,14 +304,14 @@ string:
 	}
 	SKIP_SPACES;
 
-	rv = skip_tag("</plist", p, len - (doc - p));
+	rv = skip_tag("</plist", &doc[i], len - i);
 	if (rv <= 0) {
 		return -1;
 	}
-	p += rv;
+	i += rv;
 	nson_move(nson, nson_get(stack_top, 0));
 
-	rv = p - doc;
+	rv = i;
 
 err:
 
