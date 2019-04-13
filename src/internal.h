@@ -31,6 +31,10 @@
 
 #include "nson.h"
 
+#define SCAL_CMP(a, b) (a > b ? 1 : (a < b ? -1 : 0))
+
+#define MIN(a, b) (a < b ? a : b)
+
 typedef struct NsonBuf {
 	unsigned int ref_count;
 	size_t siz;
@@ -38,6 +42,7 @@ typedef struct NsonBuf {
 	 * for zero termination. */
 	char buf[1];
 } NsonBuf;
+
 
 typedef struct NsonStackElement {
 	Nson *element;

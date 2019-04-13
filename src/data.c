@@ -39,10 +39,6 @@
 #include <limits.h>
 #include <errno.h>
 
-#define SCAL_CMP(a, b) (a > b ? 1 : (a < b ? -1 : 0))
-
-#define MIN(a, b) (a < b ? a : b)
-
 static int
 nson_cmp_data(const Nson *a, const Nson *b) {
 	int rv;
