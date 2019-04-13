@@ -117,7 +117,7 @@ measure_string_len(const char *str, const char *end_tag, size_t len) {
 	const char *p = str;
 
 	for (rv = 0; rv == 0;) {
-		if(!(p = memchr(p, '<', len - (str - p)))) {
+		if(!(p = memchr(p, '<', len - (p - str)))) {
 			return -1;
 		}
 		p++;
@@ -125,7 +125,7 @@ measure_string_len(const char *str, const char *end_tag, size_t len) {
 			continue;
 		}
 		p++;
-		rv = skip_tag(end_tag, p, len - (str - p));
+		rv = skip_tag(end_tag, p, len - (p - str));
 		if (rv < 0)
 			return -1;
 	}
