@@ -330,6 +330,7 @@ void stringify_utf8() {
 	assert(strcmp(str, "\"€\"") == 0);
 
 	free(str);
+	nson_clean(&nson);
 	(void)rv;
 }
 
