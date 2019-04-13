@@ -6,7 +6,6 @@ VERSION = 0.1
 # debug flags
 CFLAGS = -Wall -Werror -Wpedantic -O0 -g -fPIC -std=c99 -pthread
 LDFLAGS = -pthread
-FUZZ_SEED = 3050124378
 
 TST_CFLAGS = -fsanitize=address -g
 FZZ_CFLAGS = -fsanitize=fuzzer,address
