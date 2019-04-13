@@ -271,6 +271,9 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			break;
 		case '/':
 			i++;
+			if (i >= len) {
+				goto err;
+			}
 			switch(doc[i]) {
 			case 'a':
 				if((rv = skip_tag("array", &doc[i], len - i)) <= 0) {
