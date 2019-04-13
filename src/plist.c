@@ -111,7 +111,7 @@ skip_tag(const char *tag, const char *p, const size_t len) {
 	return p - begin + 1;
 }
 
-static off_t
+static size_t
 measure_string_len(const char *str, const char *end_tag, size_t len) {
 	int rv;
 	const char *p = str;
@@ -130,7 +130,7 @@ measure_string_len(const char *str, const char *end_tag, size_t len) {
 			return -1;
 	}
 
-	return p - str;
+	return p - str - 2;
 }
 
 int
@@ -138,7 +138,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 	int rv = 0;
 	off_t i = 0;
 	int64_t i_val;
-	off_t begin;
+	size_t str_len;
 	static const char *string_tag = "string";
 	NsonBuf *buf;
 	Nson old_top;
@@ -197,8 +197,15 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 				stack_top = nson_last(&stack);
 				i += rv;
 			} else if((rv = skip_tag("data", &doc[i], len - i)) > 0) {
-				string_tag = "data";
-				goto string;
+				i += rv;
+				str_len = measure_string_len(&doc[i], "data", len - i);
+				parse_b64(&buf, &doc[i], str_len);
+				nson_init_buf(&tmp, buf, NSON_BLOB);
+				nson_buf_release(buf);
+				nson_push(stack_top, &tmp);
+				i += str_len + 2;
+				rv = skip_tag("data", &doc[i], len - i);
+				i += rv;
 			}
 			break;
 		case 'k':
@@ -207,19 +214,14 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			if((rv = skip_tag(string_tag, &doc[i], len - i)) <= 0) {
 				break;
 			}
-string:
 			i += rv;
-			begin = i;
-			i += measure_string_len(&doc[i], string_tag, len - i);
-			if (string_tag[0] == 'd') {
-				parse_b64(&buf, &doc[begin], i - begin - 2);
-				nson_init_buf(&tmp, buf, NSON_BLOB);
-			} else {
-				parse_string(&buf, &doc[begin], i - begin - 2);
-				nson_init_buf(&tmp, buf, NSON_STR);
-			}
+			str_len = measure_string_len(&doc[i], string_tag, len - i);
+			parse_string(&buf, &doc[i], str_len);
+			nson_init_buf(&tmp, buf, NSON_STR);
 			nson_buf_release(buf);
 			nson_push(stack_top, &tmp);
+			i += str_len + 2;
+			rv = skip_tag(string_tag, &doc[i], len - i);
 			i += rv;
 			string_tag = "string";
 			break;
