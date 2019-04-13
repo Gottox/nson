@@ -30,7 +30,11 @@ TST = \
 	test/map.c \
 
 TST_BIN = $(TST:.c=-test)
-TST_CFLAGS =
+
+FZZ = \
+	fuzzer/plist.c \
+
+FZZ_BIN = $(FZZ:.c=-fuzz)
 
 BCH = \
 	bench/naiv.c \
@@ -73,9 +77,13 @@ bench/%-bench: bench/%.c test/test.h $(OBJ)
 	@echo CCBENCH $@
 	@$(CC) $(CFLAGS) $(LDFLAGS) $(BCH_CFLAGS) $(OBJ) $< -o $@
 
-test/%-test: test/%.c test/test.h $(OBJ)
+test/%-test: test/%.c test/test.h $(SRC)
 	@echo CCTEST $@
-	@$(CC) $(CFLAGS) $(LDFLAGS) $(TST_CFLAGS) $(OBJ) $< -o $@
+	@$(CC) $(CFLAGS) $(LDFLAGS) $(TST_CFLAGS) $(SRC) $< -o $@
+
+fuzzer/%-fuzz: fuzzer/%.c $(OBJ)
+	@echo CCFUZZ $@
+	@$(CC) $(CFLAGS) $(LDFLAGS) $(FZZ_CFLAGS) $(SRC) $< -o $@
 
 %.o: %.c $(HDR)
 	@echo CC $@
@@ -86,6 +94,9 @@ check: $(TST_BIN)
 
 speed: $(BCH_BIN) $(BENCH_JSON) $(BENCH_PLIST)
 	@for i in $(BCH_BIN); do ./$$i; done
+
+fuzz: $(FZZ_BIN)
+	@for i in $(FZZ_BIN); do ./$$i -only_ascii=1 -detect_leaks=0 $${i%-fuzz}-corpus; done
 
 doc: doxygen.conf $(TST) $(SRC) $(HDR) README.md
 	@sed -i "/^PROJECT_NUMBER\s/ s/=.*/= $(VERSION)/" $<
@@ -109,10 +120,10 @@ clean:
 	@echo cleaning...
 	@rm -rf doc cov
 	@rm -f *.gcnp *.gcda
-	@rm -f $(TST_BIN) $(BCH_BIN) $(OBJ) $(BIN) libnson.so* libnson.a
+	@rm -f $(TST_BIN) $(BCH_BIN) $(FZZ_BIN) $(OBJ) $(BIN) libnson.so* libnson.a
 	#@rm -f $(BENCH_JSON) $(BENCH_PLIST)
 
-.PHONY: check all clean speed coverage
+.PHONY: check all clean speed coverage fuzz
 
 
 # vim:ft=make
