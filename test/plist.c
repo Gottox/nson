@@ -362,6 +362,15 @@ stringify_true() {
 	(void)rv;
 }
 
+static void
+fuzz_parse_memleak() {
+	const char *input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\x0a<!DOCTYPE plist PUBLIC \"-//A    ist-0.0.dtd\">\x0a<plist version=\"1.0\">\x0a<te/ur>\x0a</plist>\x0a";
+	int rv;
+	Nson nson;
+	rv = nson_parse_plist(&nson, input, strlen(input));
+	nson_clean(&nson);
+}
+
 DEFINE
 TEST(parse_real);
 TEST(parse_int);
@@ -387,4 +396,5 @@ TEST(stringify_object_with_2_members);
 TEST(stringify_data);
 TEST(stringify_escape);
 TEST(stringify_true);
+TEST(fuzz_parse_memleak);
 DEFINE_END
