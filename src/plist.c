@@ -33,7 +33,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 
-#define SKIP_SPACES do { for(; doc[i] && strchr("\n\f\r\t\v ", doc[i]); i++); } while(0)
+#define SKIP_SPACES do { for(; i < len && doc[i] && strchr("\n\f\r\t\v ", doc[i]); i++); } while(0)
 
 static int
 parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
@@ -174,7 +174,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 
 	do {
 		SKIP_SPACES;
-		if(doc[i] != '<') {
+		if (i + 1 >= len || doc[i] != '<') {
 			goto err;
 		}
 		i++;
