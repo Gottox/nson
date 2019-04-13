@@ -308,7 +308,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 
 	rv = skip_tag("</plist", &doc[i], len - i);
 	if (rv <= 0) {
-		return -1;
+		goto err;
 	}
 	i += rv;
 	nson_move(nson, nson_get(stack_top, 0));
