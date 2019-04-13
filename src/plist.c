@@ -92,9 +92,13 @@ nson_load_plist(Nson *nson, const char *file) {
 inline static int
 skip_tag(const char *tag, const char *p, const size_t len) {
 	const char *begin = p;
-	if(strncmp(p, tag, strlen(tag)) != 0)
+	const int tag_len = strlen(tag);
+	const int cmp_siz = MIN(len, tag_len);
+	if (len <= tag_len)
 		return 0;
-	p += strlen(tag);
+	if (strncmp(p, tag, cmp_siz) != 0)
+		return 0;
+	p += tag_len;
 
 	if(*p == '>')
 		return p - begin + 1;
