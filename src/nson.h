@@ -168,7 +168,7 @@ size_t nson_len(const Nson *nson);
  *
  * @return the number of child elements of @p nson
  */
-size_t nson_data_len(Nson *nson);
+size_t nson_data_len(const Nson *nson);
 
 /**
  * @brief Alias for nson_data
@@ -180,7 +180,7 @@ size_t nson_data_len(Nson *nson);
  * NSON_STR or NSON_BLOB
  * @return a pointer to the data referenced by @p nson
  */
-const char *nson_data(Nson *nson);
+const char *nson_data(const Nson *nson);
 
 /**
  * @brief Compares two Nson Objects.

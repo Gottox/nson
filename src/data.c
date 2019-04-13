@@ -129,7 +129,7 @@ nson_clean(Nson *nson) {
 }
 
 size_t
-nson_data_len(Nson *nson) {
+nson_data_len(const Nson *nson) {
 	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 
 	return nson_buf_siz(nson->d.buf);
@@ -146,7 +146,7 @@ nson_len(const Nson *nson) {
 }
 
 const char *
-nson_data(Nson *nson) {
+nson_data(const Nson *nson) {
 	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 
 	return nson_buf_unwrap(nson->d.buf);
