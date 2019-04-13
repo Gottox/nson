@@ -111,7 +111,6 @@ json_escape_string(const Nson *nson, FILE *fd) {
 	int rv = 0;
 	off_t i = 0, last_write = 0;
 	char c[] = { '\\', 0 };
-	Nson tmp = { { { 0 } } };
 	const char *data;
 	size_t len;
 
@@ -119,10 +118,8 @@ json_escape_string(const Nson *nson, FILE *fd) {
 		return -1;
 	}
 
-	nson_clone(&tmp, nson);
-
-	data = nson_data(&tmp);
-	len = nson_data_len(&tmp);
+	data = nson_data(nson);
+	len = nson_data_len(nson);
 
 	for (; i < len; i++) {
 		switch (data[i]) {
@@ -171,7 +168,6 @@ json_escape_string(const Nson *nson, FILE *fd) {
 
 	rv = i;
 cleanup:
-	nson_clean(&tmp);
 	return rv;
 }
 
