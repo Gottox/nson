@@ -137,7 +137,7 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 	}
 
 	nson_buf_release(nson->d.buf);
-	nson->d.buf = nson_buf_retain(dest_buf);
+	nson->d.buf = dest_buf;
 
 	return nson_buf_siz(dest_buf);
 }
