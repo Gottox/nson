@@ -36,6 +36,9 @@ off_t
 parse_dec(int64_t *dest, const char *src, size_t len) {
 	int64_t val;
 	const char *p = src;
+	if (len < 1) {
+		return -1;
+	}
 	int sign = *p == '-' ? -1 : 1;
 
 	if (*p == '-' || *p == '+') {
