@@ -98,8 +98,9 @@ parse_b64(NsonBuf **dest_buf, const char *src, const size_t len) {
 
 	for (i = j = 0; i < len && src[i] != '='; i++) {
 		p = memchr(base64_table, src[i], 64);
-		if(p == NULL)
-			break;
+		if(p == NULL) {
+			goto err;
+		}
 		v = p - base64_table;
 
 		switch(i % 4) {
@@ -120,10 +121,10 @@ parse_b64(NsonBuf **dest_buf, const char *src, const size_t len) {
 		}
 	}
 
-	//printf("%i\n", strncmp(&src[i], "===", i % 4));
 	for(; i % 4 != 0 && i < len && src[i] == '='; i++);
 
 	if(i % 4 != 0) {
+err:
 		nson_buf_release(*dest_buf);
 		return -1;
 	}
