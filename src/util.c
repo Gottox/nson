@@ -34,25 +34,25 @@ static const char base64_table[] =
 
 off_t
 parse_dec(int64_t *dest, const char *src, size_t len) {
+	off_t i = 0;
 	int64_t val;
-	const char *p = src;
 	if (len < 1) {
 		return -1;
 	}
-	int sign = *p == '-' ? -1 : 1;
+	int sign = src[i] == '-' ? -1 : 1;
 
-	if (*p == '-' || *p == '+') {
-		p++;
+	if (src[i] == '-' || src[i] == '+') {
+		i++;
 	}
 
-	for (val = 0; *p >= '0' && *p <= '9'; p++) {
-		val = (val * 10) + *p - '0';
+	for (val = 0; src[i] >= '0' && src[i] <= '9'; i++) {
+		val = (val * 10) + src[i] - '0';
 	}
 	val *= sign;
 
 	*dest = val;
 
-	return p - src;
+	return i;
 }
 
 off_t
