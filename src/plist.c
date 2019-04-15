@@ -111,7 +111,7 @@ skip_tag(const char *tag, const char *p, const size_t len) {
 	return p - begin + 1;
 }
 
-static size_t
+static off_t
 measure_string_len(const char *str, const char *end_tag, size_t len) {
 	int rv;
 	const char *p = str;
@@ -138,7 +138,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 	int rv = 0;
 	off_t i = 0;
 	int64_t i_val;
-	size_t str_len;
+	off_t str_len;
 	static const char *string_tag = "string";
 	NsonBuf *buf;
 	Nson old_top;
@@ -198,7 +198,11 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 				i += rv;
 			} else if((rv = skip_tag("data", &doc[i], len - i)) > 0) {
 				i += rv;
-				str_len = measure_string_len(&doc[i], "data", len - i);
+				rv = measure_string_len(&doc[i], "data", len - i);
+				if (rv < 0) {
+					goto err;
+				}
+				str_len = rv;
 				rv = parse_b64(&buf, &doc[i], str_len);
 				if (rv < 0) {
 					goto err;
@@ -218,7 +222,11 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 				break;
 			}
 			i += rv;
-			str_len = measure_string_len(&doc[i], string_tag, len - i);
+			rv = measure_string_len(&doc[i], string_tag, len - i);
+			if (rv < 0) {
+				goto err;
+			}
+			str_len = rv;
 			parse_string(&buf, &doc[i], str_len);
 			nson_init_buf(&tmp, buf, NSON_STR);
 			nson_buf_release(buf);
