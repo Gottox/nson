@@ -365,45 +365,48 @@ stringify_true() {
 static void
 fuzz_parse_memleak() {
 	const char *input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\x0a<!DOCTYPE plist PUBLIC \"-//A    ist-0.0.dtd\">\x0a<plist version=\"1.0\">\x0a<te/ur>\x0a</plist>\x0a";
-	int rv;
 	Nson nson;
-	rv = nson_parse_plist(&nson, input, strlen(input));
+	nson_parse_plist(&nson, input, strlen(input));
 	nson_clean(&nson);
 }
 
 static void
 fuzz_parse_assert() {
 	const char *input = "<?xml i->\x0a<!DOCTYPE pl is->\x0a<plist e> \x0a</                                                                                                  </plist                             ist>\x0a";
-	int rv;
 	Nson nson;
-	rv = nson_parse_plist(&nson, input, strlen(input));
+	nson_parse_plist(&nson, input, strlen(input));
 	nson_clean(&nson);
 }
 
 static void
 fuzz_parse_crash() {
 	const char *input = "<?xml eUarray>\x0a<!DOCTYPE>\x0a<plist v\x0b=\"en0r.0\">\x0a<data datTYPE>\x0a<plist v\x0b=\"en0r.0\">\x0a";
-	int rv;
 	Nson nson;
-	rv = nson_parse_plist(&nson, input, strlen(input));
+	nson_parse_plist(&nson, input, strlen(input));
 	nson_clean(&nson);
 }
 
 static void
 fuzz_parse_crash2() {
 	const char *input = "<?xml eUarray>\x0a<!DOCTYPE>\x0a<plist v\x0b=\"en1r.0\">\x0a<data >z\x0a";
-	int rv;
 	Nson nson;
-	rv = nson_parse_plist(&nson, input, strlen(input));
+	nson_parse_plist(&nson, input, strlen(input));
 	nson_clean(&nson);
 }
 
 static void
 fuzz_parse_assert2() {
 	const char *input = "<?xml lC  ist v1.<Uarray>\x0a<!DOCTYPE>\x0a<plist >\x0a<data >gue/>\x0a</plist9a >\x0aue/>\x0a</plit veray>\x0a";
-	int rv;
 	Nson nson;
-	rv = nson_parse_plist(&nson, input, strlen(input));
+	nson_parse_plist(&nson, input, strlen(input));
+	nson_clean(&nson);
+}
+
+static void
+fuzz_parse_crash3() {
+	const char *input = "<?xml><!DOCTYPE><plist><string>\x0a";
+	Nson nson;
+	nson_parse_plist(&nson, input, strlen(input));
 	nson_clean(&nson);
 }
 
@@ -437,4 +440,5 @@ TEST(fuzz_parse_assert);
 TEST(fuzz_parse_crash);
 TEST(fuzz_parse_crash2);
 TEST(fuzz_parse_assert2);
+TEST(fuzz_parse_crash3);
 DEFINE_END
