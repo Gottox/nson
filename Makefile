@@ -32,6 +32,7 @@ TST = \
 TST_BIN = $(TST:.c=-test)
 
 FZZ = \
+	fuzzer/json.c \
 	fuzzer/plist.c \
 
 FZZ_BIN = $(FZZ:.c=-fuzz)
@@ -96,7 +97,7 @@ speed: $(BCH_BIN) $(BENCH_JSON) $(BENCH_PLIST)
 	@for i in $(BCH_BIN); do ./$$i; done
 
 fuzz: $(FZZ_BIN)
-	@for i in $(FZZ_BIN); do ./$$i -only_ascii=1 $${i%-fuzz}-corpus -max_total_time=5 -dict=$${i%-fuzz}-dict.txt; done
+	@for i in $(FZZ_BIN); do ./$$i -only_ascii=1 $${i%-fuzz}-corpus -max_total_time=5 -dict=$${i%-fuzz}-dict.txt || exit 1; done
 
 doc: doxygen.conf $(TST) $(SRC) $(HDR) README.md
 	@sed -i "/^PROJECT_NUMBER\s/ s/=.*/= $(VERSION)/" $<
