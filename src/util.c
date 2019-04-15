@@ -147,7 +147,7 @@ parse_number(Nson *nson, const char *src, size_t len) {
 	}
 
 	i++;
-	for (r_val = 0; src[i] >= '0' && src[i] <= '9'; i++) {
+	for (r_val = 0; i < len && src[i] >= '0' && src[i] <= '9'; i++) {
 		r_val = (r_val * 0.1) + src[i] - '0';
 	}
 	r_val *= 0.1;
