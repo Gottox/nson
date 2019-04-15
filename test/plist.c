@@ -418,6 +418,14 @@ fuzz_parse_crash4() {
 	nson_clean(&nson);
 }
 
+static void
+fuzz_parse_crash5() {
+	const char *input = "<?xml>\x0a<!DOCTYPE><plist></array>";
+	Nson nson;
+	nson_parse_plist(&nson, input, strlen(input));
+	nson_clean(&nson);
+}
+
 DEFINE
 TEST(parse_real);
 TEST(parse_int);
@@ -450,4 +458,5 @@ TEST(fuzz_parse_crash2);
 TEST(fuzz_parse_assert2);
 TEST(fuzz_parse_crash3);
 TEST(fuzz_parse_crash4);
+TEST(fuzz_parse_crash5);
 DEFINE_END

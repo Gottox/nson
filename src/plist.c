@@ -296,8 +296,14 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 				if(nson_type(stack_top) != NSON_ARR) {
 					goto err;
 				}
+				if(nson_len(&stack) == 0) {
+					goto err;
+				}
 				nson_pop(&old_top, &stack);
 				stack_top = nson_last(&stack);
+				if(stack_top == NULL) {
+					goto err;
+				}
 				nson_push(stack_top, &old_top);
 				i += rv;
 				break;
@@ -308,8 +314,14 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 				if(nson_type(stack_top) != NSON_OBJ) {
 					goto err;
 				}
+				if(nson_len(&stack) == 0) {
+					goto err;
+				}
 				nson_pop(&old_top, &stack);
 				stack_top = nson_last(&stack);
+				if(stack_top == NULL) {
+					goto err;
+				}
 				nson_push(stack_top, &old_top);
 				i += rv;
 				break;
