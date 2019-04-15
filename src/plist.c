@@ -199,7 +199,10 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			} else if((rv = skip_tag("data", &doc[i], len - i)) > 0) {
 				i += rv;
 				str_len = measure_string_len(&doc[i], "data", len - i);
-				parse_b64(&buf, &doc[i], str_len);
+				rv = parse_b64(&buf, &doc[i], str_len);
+				if (rv < 0) {
+					goto err;
+				}
 				nson_init_buf(&tmp, buf, NSON_BLOB);
 				nson_buf_release(buf);
 				nson_push(stack_top, &tmp);
