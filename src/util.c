@@ -45,7 +45,7 @@ parse_dec(int64_t *dest, const char *src, size_t len) {
 		i++;
 	}
 
-	for (val = 0; src[i] >= '0' && src[i] <= '9'; i++) {
+	for (val = 0; i < len && src[i] >= '0' && src[i] <= '9'; i++) {
 		val = (val * 10) + src[i] - '0';
 	}
 	val *= sign;
