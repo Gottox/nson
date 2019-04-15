@@ -136,19 +136,19 @@ err:
 
 off_t
 parse_number(Nson *nson, const char *src, size_t len) {
-	const char *p = src;
+	off_t i = 0;
 	int64_t i_val;
 	double r_val;
 
-	p += parse_dec(&i_val, p, len);
-	if (*p != '.') {
+	i = parse_dec(&i_val, src, len);
+	if (i >= len || src[i] != '.') {
 		nson_init_int(nson, i_val);
-		return p - src;
+		return i;
 	}
 
-	p++;
-	for (r_val = 0; *p >= '0' && *p <= '9'; p++) {
-		r_val = (r_val * 0.1) + *p - '0';
+	i++;
+	for (r_val = 0; src[i] >= '0' && src[i] <= '9'; i++) {
+		r_val = (r_val * 0.1) + src[i] - '0';
 	}
 	r_val *= 0.1;
 
@@ -160,7 +160,7 @@ parse_number(Nson *nson, const char *src, size_t len) {
 
 	nson_init_real(nson, r_val);
 
-	return p - src;
+	return i;
 }
 
 off_t
