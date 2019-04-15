@@ -121,6 +121,9 @@ measure_string_len(const char *str, const char *end_tag, size_t len) {
 			return -1;
 		}
 		p++;
+		if ((p - str) >= len){
+			return -1;
+		}
 		if(*p != '/') {
 			continue;
 		}
