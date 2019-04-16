@@ -219,6 +219,10 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		case '}':
 			nson_pop(&old_top, &stack);
 			stack_top = nson_last(&stack);
+			if(stack_top == NULL) {
+				rv = -1;
+				goto out;
+			}
 			nson_push(stack_top, &old_top);
 			i++;
 			break;
