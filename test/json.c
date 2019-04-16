@@ -420,6 +420,14 @@ void stringify_data() {
 	(void)rv;
 }
 
+static void
+fuzz_parse_crash() {
+	const char input[1] = ",";
+	Nson nson;
+	nson_parse_json(&nson, input, sizeof(input));
+	nson_clean(&nson);
+}
+
 DEFINE
 TEST(parse_true);
 TEST(parse_double);
@@ -448,4 +456,5 @@ TEST(stringify_empty_array);
 TEST(stringify_empty_object);
 TEST(stringify_object);
 TEST(stringify_data);
+TEST(fuzz_parse_crash);
 DEFINE_END

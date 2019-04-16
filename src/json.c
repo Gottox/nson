@@ -297,7 +297,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	} while (nson_len(&stack) > 1 && i < len);
 
 
-	if (nson_len(&stack) != 1) {
+	if (nson_len(&stack) != 1 || nson_len(stack_top) != 1) {
 		// Premature EOF
 		rv = -1;
 		goto out;
