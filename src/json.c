@@ -267,7 +267,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			nson_push(stack_top, &tmp);
 			break;
 		case 'n':
-			if (strncmp(&doc[i], "null", 4)) {
+			if (len - i > 4 && memcmp(&doc[i], "null", 4)) {
 				rv = -1;
 				goto out;
 			}
@@ -276,7 +276,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			i += 4;
 			break;
 		case 't':
-			if (strncmp(&doc[i], "true", 4)) {
+			if (len - i > 4 && memcmp(&doc[i], "true", 4)) {
 				rv = -1;
 				goto out;
 			}
@@ -285,7 +285,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			i += 4;
 			break;
 		case 'f':
-			if (strncmp(&doc[i], "false", 5)) {
+			if (len - i > 5 && memcmp(&doc[i], "false", 5)) {
 				rv = -1;
 				goto out;
 			}
