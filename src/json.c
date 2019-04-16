@@ -197,7 +197,10 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 
 	stack_top = nson_get(&stack, 0);
 	// Skip leading Whitespaces
-	for (i = 0; isspace(doc[i]); i++);
+	for (i = 0; i < len && isspace(doc[i]); i++);
+	if (i >= len) {
+		return -1;
+	}
 	do {
 		switch(doc[i]) {
 		case '[':
