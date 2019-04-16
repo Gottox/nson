@@ -87,7 +87,6 @@ enum NsonType {
  * */
 typedef struct NsonCommon {
 	enum NsonType type;
-	union Nson *parent;
 } NsonCommon;
 
 /**
