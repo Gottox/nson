@@ -44,6 +44,13 @@ nson_cmp_stable(const void *a, const void *b) {
 	return rv ? rv : (na - nb);
 }
 
+static int
+nson_search_key(const void *key, const void *elem) {
+	if (nson_type(elem) != NSON_STR)
+		return -1;
+	return strcmp(key, nson_str(elem));
+}
+
 int
 nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
 	char *p;
@@ -144,18 +151,21 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 
 Nson *
 nson_get_by_key(const Nson *nson, const char *key) {
-	Nson needle = { .d.buf = nson_buf_wrap_0(key) };
 	Nson *result;
 	size_t len, size;
 
 	assert(nson_type(nson) == NSON_OBJ);
 	len = nson->a.len / 2;
-	size = sizeof(needle) * 2;
+	size = sizeof(*nson) * 2;
 	if (nson->a.messy)
-		result = lfind(&needle, nson->a.arr, &len, size, nson_cmp);
+		result = lfind(key, nson->a.arr, &len, size, nson_search_key);
 	else
-		result = bsearch(&needle, nson->a.arr, len, size, nson_cmp);
-	return result;
+		result = bsearch(key, nson->a.arr, len, size, nson_search_key);
+
+	if (result == NULL)
+		return NULL;
+	else
+		return result + 1;
 }
 
 int
