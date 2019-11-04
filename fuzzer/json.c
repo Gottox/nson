@@ -10,5 +10,6 @@
 int LLVMFuzzerTestOneInput(char *data, size_t size) {
 	Nson nson;
 	nson_parse_json(&nson, data, size);
+	nson_clean(&nson);
 	return 0;  // Non-zero return values are reserved for future use.
 }
