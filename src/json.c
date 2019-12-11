@@ -36,9 +36,9 @@
 
 static int
 json_str_len(const char *src, const size_t len) {
-	const char *chunk;
+	const char *chunk = src;
 
-	for (chunk = src; (chunk = memchr(chunk, '"', chunk + len - src)); chunk++) {
+	for (; (chunk = memchr(chunk, '"', len - (chunk - src))); chunk++) {
 		if (chunk[-1] != '\\' || chunk[-2] == '\\') {
 			break;
 		}
