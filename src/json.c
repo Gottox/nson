@@ -67,6 +67,11 @@ parse_json_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 		dest += chunk_len;
 		chunk_start = chunk_end + 1;
 
+		if (chunk_start == src + len) {
+			// We're at the end of the string, break here
+			// TODO: it's an invalid string, return result code!
+			break;
+		}
 		if (chunk_start[0] == 'u') {
 			// TODO: correctly supply upper bounds.
 			if (parse_hex(&utf_val, &chunk_start[1], 4) != 4) {

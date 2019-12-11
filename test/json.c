@@ -444,6 +444,14 @@ fuzz_parse_crash_string() {
 	nson_clean(&nson);
 }
 
+static void
+fuzz_parse_crash2() {
+	const char input[9] = "\"0L~\\\\\\\"\\";
+	Nson nson;
+	nson_parse_json(&nson, input, sizeof(input));
+	nson_clean(&nson);
+}
+
 DEFINE
 TEST(parse_true);
 TEST(parse_double);
@@ -475,4 +483,5 @@ TEST(stringify_data);
 TEST(fuzz_parse_crash);
 TEST(fuzz_parse_leak);
 TEST(fuzz_parse_crash_string);
+TEST(fuzz_parse_crash2);
 DEFINE_END
