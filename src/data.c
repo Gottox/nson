@@ -90,7 +90,7 @@ nson_mem_capacity(Nson *nson, const size_t size) {
 		errno = ENOMEM;
 		return -1;
 	}
-	arr = realloc(arr, sizeof(*arr) * size);
+	arr = reallocarray(arr, size, sizeof(*arr));
 	if(!arr) {
 		nson->a.len = old;
 		return -1;

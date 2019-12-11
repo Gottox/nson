@@ -73,7 +73,7 @@ stack_walk(NsonStack *stack, Nson **nson, off_t *index) {
 int
 stack_push(NsonStack *stack, Nson *element, off_t index) {
 	stack->len++;
-	stack->arr = realloc(stack->arr, stack->len * sizeof(NsonStackElement));
+	stack->arr = reallocarray(stack->arr, stack->len, sizeof(NsonStackElement));
 
 	NsonStackElement *last = &stack->arr[stack->len-1];
 	last->element = element;
