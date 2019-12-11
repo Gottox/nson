@@ -1,0 +1,20 @@
+name: Check
+on:
+- push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: voidlinux/voidlinux
+    steps:
+    - name: install dependencies
+      run: |
+        xbps-install -Syu
+        xbps-install -yu
+        xbps-install -Sy base-devel clang
+    - uses: actions/checkout@v1
+    - name: make
+      run: make CC=clang
+    - name: make check
+      run: make check CC=clang
+    - name: make fuzz
+      run: make fuzz CC=clang
