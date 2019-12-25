@@ -5,6 +5,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container: voidlinux/voidlinux
+    strategy:
+      matrix:
+        cc: [gcc, clang]
     steps:
     - name: install dependencies
       run: |
@@ -15,6 +18,14 @@ jobs:
     - name: make
       run: make CC=clang
     - name: make check
-      run: make check CC=clang
+      run: make check CC=${{ matrix.cc }}
     - name: make fuzz
-      run: make fuzz CC=clang
+      if: matrix.cc == 'clang'
+      run: make fuzz CC=${{ matrix.cc }}
+    - name: IRC Message Action
+      uses: Gottox/irc-message-action@master
+      if: failure()
+      with:
+        channel: "##gottox"
+        nickname: gh-gottox
+        message: "Gottox: https://github.com/${{ github.repository }} failed on push ${{ github.event.compare }}"
