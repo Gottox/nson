@@ -439,7 +439,7 @@ nson_to_plist_fd(Nson *nson, FILE *fd) {
 	for(i = -1, it = nson; it; it = stack_walk(&stack, &nson, &i)) {
 		switch(nson_type(it)) {
 			case NSON_NONE:
-				abort();
+				return -1;
 				break;
 			case NSON_STR:
 				if(nson && nson_type(nson) == NSON_OBJ && i % 2 == 0) {
