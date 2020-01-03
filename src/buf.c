@@ -29,6 +29,7 @@
 #include "internal.h"
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 
 char *
 nson_buf_unwrap(NsonBuf *buf) {
@@ -78,9 +79,8 @@ nson_buf_retain(NsonBuf *buf) {
 
 int
 nson_buf_shrink(NsonBuf *buf, size_t new_siz) {
-	if (new_siz > buf->siz) {
-		abort();
-	}
+	assert(new_siz <= buf->siz);
+
 	buf->siz = new_siz;
 	buf->buf[new_siz] = 0;
 	return new_siz;
