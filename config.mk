@@ -7,7 +7,7 @@ VERSION = 0.1
 CFLAGS = -Wall -Werror -Wpedantic -O0 -g -fPIC -std=c99 -pthread
 LDFLAGS = -pthread
 
-TST_CFLAGS = -fsanitize=address -g
+TST_CFLAGS = -fsanitize=address
 FZZ_CFLAGS = -fsanitize=fuzzer,address
 
 # if you're feeling lucky:
