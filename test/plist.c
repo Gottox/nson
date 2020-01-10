@@ -38,7 +38,7 @@
 static void
 parse_real() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<real>2.3</real>"));
 	assert(rv >= 0);
 	assert(nson_real(&nson) == 2.3);
@@ -50,7 +50,7 @@ parse_real() {
 static void
 parse_int() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<integer>42</integer>"));
 	assert(rv >= 0);
 	assert(nson_int(&nson) == 42);
@@ -62,7 +62,7 @@ parse_int() {
 static void
 parse_true() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<true/>"));
 	assert(rv >= 0);
 	assert(nson_int(&nson) == 1);
@@ -74,7 +74,7 @@ parse_true() {
 static void
 parse_false() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<false/>"));
 	assert(rv >= 0);
 	assert(nson_int(&nson) == 0);
@@ -86,7 +86,7 @@ parse_false() {
 static void
 parse_string() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<string>abc</string>"));
 	assert(rv >= 0);
 	assert(strcmp("abc", nson_str(&nson)) == 0);
@@ -98,7 +98,7 @@ parse_string() {
 static void
 parse_string_escape_lt() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<string>&lt;</string>"));
 	assert(rv >= 0);
 	assert(strcmp("<", nson_str(&nson)) == 0);
@@ -110,7 +110,7 @@ parse_string_escape_lt() {
 static void
 parse_string_escape_gt() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<string>&gt;</string>"));
 	assert(rv >= 0);
 	assert(strcmp(">", nson_str(&nson)) == 0);
@@ -122,7 +122,7 @@ parse_string_escape_gt() {
 static void
 parse_string_escape_gt2() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<array><string>xcb-util-keysyms&gt;=0.3.9_1</string><string>xcb-util-keysyms&gt;=0.3.9_1</string></array>"));
 	assert(rv >= 0);
 	assert(nson_type(&nson) == NSON_ARR);
@@ -135,7 +135,7 @@ parse_string_escape_gt2() {
 static void
 parse_string_escape_amp() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<string>&amp;</string>"));
 	assert(rv >= 0);
 	assert(strcmp("&", nson_str(&nson)) == 0);
@@ -147,7 +147,7 @@ parse_string_escape_amp() {
 static void
 parse_string_escape_dec() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<string>&#126;</string>"));
 	assert(rv >= 0);
 	assert(strcmp("~", nson_str(&nson)) == 0);
@@ -159,7 +159,7 @@ parse_string_escape_dec() {
 static void
 parse_string_escape_substr_dec() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<string>Hello &#126; World</string>"));
 	assert(rv >= 0);
 	assert(strcmp("Hello ~ World", nson_str(&nson)) == 0);
@@ -171,7 +171,7 @@ parse_string_escape_substr_dec() {
 static void
 parse_array_empty() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<array></array>"));
 	assert(rv >= 0);
 	assert(nson_len(&nson) == 0);
@@ -183,7 +183,7 @@ parse_array_empty() {
 static void
 parse_array_1() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<array><true/></array>"));
 	assert(rv >= 0);
 	assert(nson_len(&nson) == 1);
@@ -196,7 +196,7 @@ parse_array_1() {
 static void
 parse_array_2() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST(
 				"<array>"
 				"<true/>"
@@ -214,7 +214,7 @@ parse_array_2() {
 static void
 parse_array_spaces() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST(" <array> <true/> </array>"));
 	assert(rv >= 0);
 	assert(nson_len(&nson) == 1);
@@ -227,7 +227,7 @@ parse_array_spaces() {
 static void
 parse_object_empty() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<dict></dict>"));
 	assert(rv >= 0);
 	assert(nson_len(&nson) == 0);
@@ -239,7 +239,7 @@ parse_object_empty() {
 static void
 parse_object_1() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<dict><key>k</key><true/></dict>"));
 	assert(rv >= 0);
 	assert(nson_len(&nson) == 1);
@@ -252,7 +252,7 @@ parse_object_1() {
 static void
 parse_object_2() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST(
 				"<dict>"
 				"<key>k</key><true/>"
@@ -270,7 +270,7 @@ parse_object_2() {
 static void
 parse_object_spaces() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST(" <dict> <key>k</key> <true/> </dict>"));
 	assert(rv >= 0);
 	assert(nson_len(&nson) == 1);
@@ -283,7 +283,7 @@ parse_object_spaces() {
 static void
 parse_data() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<data>SGVsbG8gV29ybGQ=</data>"));
 	assert(rv >= 0);
 	const char *data = nson_str(&nson);
@@ -298,7 +298,7 @@ parse_data() {
 static void
 stringify_object_with_2_members() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	char *str;
 
 	rv = NSON(&nson, {"a": 5, "b": 5});
@@ -317,7 +317,7 @@ stringify_object_with_2_members() {
 static void
 stringify_data() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	char *str;
 
 	rv = nson_init_data(&nson, "Hello World", 11, NSON_BLOB);
@@ -333,7 +333,7 @@ stringify_data() {
 static void
 stringify_escape() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	char *str;
 
 	rv = nson_init_str(&nson, " < > & ");
@@ -349,7 +349,7 @@ stringify_escape() {
 static void
 stringify_true() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 	char *str;
 
 	rv = NSON(&nson, true);
@@ -365,7 +365,7 @@ stringify_true() {
 static void
 fuzz_parse_memleak() {
 	const char *input = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\x0a<!DOCTYPE plist PUBLIC \"-//A    ist-0.0.dtd\">\x0a<plist version=\"1.0\">\x0a<te/ur>\x0a</plist>\x0a";
-	Nson nson;
+	Nson nson = { 0 };
 	nson_parse_plist(&nson, input, strlen(input));
 	nson_clean(&nson);
 }

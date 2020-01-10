@@ -35,7 +35,7 @@
 static void
 no_such_file() {
 	int rv;
-	Nson config;
+	Nson config = { 0 };
 	rv = nson_load_ini(&config, "./no-such-file");
 	assert(rv < 0);
 	assert(errno == ENOENT);
@@ -47,7 +47,7 @@ no_such_file() {
 static void
 syntax_error() {
 	int rv;
-	Nson config;
+	Nson config = { 0 };
 	rv = nson_parse_ini(&config, NSON_P("value_missing\n"));
 	assert(rv < 0);
 	nson_clean(&config);
@@ -58,7 +58,7 @@ syntax_error() {
 static void
 three_elements() {
 	int rv;
-	Nson config;
+	Nson config = { 0 };
 	rv = nson_parse_ini(&config, NSON_P(
 			"key1 value1\n"
 			"key2 value2\n"

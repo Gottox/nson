@@ -33,7 +33,7 @@
 
 static void
 create_array() {
-	Nson nson;
+	Nson nson = { 0 };
 	nson_init(&nson, NSON_ARR);
 	assert(nson_type(&nson) == NSON_ARR);
 	assert(nson_len(&nson) == 0);
@@ -41,7 +41,7 @@ create_array() {
 
 static void
 add_int_to_array() {
-	Nson nson;
+	Nson nson = { 0 };
 	nson_init(&nson, NSON_ARR);
 	assert(nson_type(&nson) == NSON_ARR);
 	assert(nson_len(&nson) == 0);
@@ -54,7 +54,7 @@ add_int_to_array() {
 
 static void
 check_messy_array() {
-	Nson nson, val;
+	Nson nson = { 0 }, val = { 0 };
 	nson_init(&nson, NSON_ARR);
 	assert(nson.a.messy == false);
 
@@ -79,7 +79,7 @@ check_messy_array() {
 
 static void
 check_messy_object() {
-	Nson nson, val;
+	Nson nson = { 0 }, val = { 0 };
 	nson_init(&nson, NSON_OBJ);
 	assert(nson.a.messy == false);
 
@@ -116,7 +116,7 @@ check_messy_object() {
 
 static void
 clone_array() {
-	Nson nson, clone;
+	Nson nson = { 0 }, clone = { 0 };
 	NSON(&nson, [ 1, 2 ]);
 
 	nson_clone(&clone, &nson);
@@ -131,7 +131,7 @@ clone_array() {
 static void
 sort_array() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 
 	rv = NSON(&nson, [5,4,3,2,1]);
 	assert(rv >= 0);
@@ -151,7 +151,7 @@ sort_array() {
 static void
 sort_object() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 
 	rv = NSON(&nson, {
 			"e":"five",
@@ -184,7 +184,7 @@ static void
 walk_array_empty() {
 	int rv;
 	off_t index = -1;
-	Nson nson;
+	Nson nson = { 0 };
 	NsonStack stack = { 0 };
 	Nson *item;
 	Nson *stack_top;
@@ -211,7 +211,7 @@ static void
 walk_array_tree() {
 	int rv;
 	off_t index = -1;
-	Nson nson;
+	Nson nson = { 0 };
 	NsonStack stack = { 0 };
 	Nson *item;
 	Nson *stack_top;

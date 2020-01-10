@@ -9,7 +9,7 @@
 
 int LLVMFuzzerTestOneInput(char *data, size_t size) {
 	char *result = NULL;
-	Nson nson;
+	Nson nson = { 0 };
 	nson_parse_plist(&nson, data, size);
 	nson_to_plist(&nson, &result);
 	nson_clean(&nson);

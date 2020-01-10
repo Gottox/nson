@@ -35,7 +35,7 @@
 static void
 parse_true() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 
 	rv = NSON(&nson, true);
 	assert(rv >= 0);
@@ -48,7 +48,7 @@ parse_true() {
 static void
 parse_double() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 
 	rv = NSON(&nson, 5.2);
 	assert(rv >= 0);
@@ -62,7 +62,7 @@ parse_double() {
 static void
 parse_number() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 
 	rv = NSON(&nson, 5);
 	assert(rv >= 0);
@@ -75,7 +75,7 @@ parse_number() {
 static void
 parse_empty_string() {
 	int rv;
-	Nson nson;
+	Nson nson = { 0 };
 
 	rv = NSON(&nson, "");
 	assert(rv >= 0);

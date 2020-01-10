@@ -33,7 +33,7 @@
 
 static void
 check_decode_base64() {
-	Nson nson;
+	Nson nson = { 0 };
 
 	nson_init_str(&nson, "SGVsbG8gV29ybGQ=");
 	nson_mapper_b64_dec(0, &nson, NULL);
@@ -57,7 +57,7 @@ check_decode_base64() {
 
 static void
 check_encode_base64() {
-	Nson nson;
+	Nson nson = { 0 };
 
 	nson_init_str(&nson, "Hello World");
 	nson_mapper_b64_enc(0, &nson, NULL);
@@ -88,7 +88,7 @@ mult_mapper(off_t index, Nson *nson, void *user_data) {
 static void
 check_map_big() {
 	int i;
-	Nson nson;
+	Nson nson = { 0 };
 	nson_init(&nson, NSON_ARR);
 	for(i = 0; i < 10240; i++) {
 		nson_push_int(&nson, i);
@@ -106,7 +106,7 @@ check_map_big() {
 static void
 check_map_thread_big() {
 	int i;
-	Nson nson;
+	Nson nson = { 0 };
 	nson_init(&nson, NSON_ARR);
 	for(i = 0; i < 10240; i++) {
 		nson_push_int(&nson, i);
@@ -123,7 +123,7 @@ check_map_thread_big() {
 
 static void
 check_map_thread() {
-	Nson nson;
+	Nson nson = { 0 };
 	NSON(&nson, [
 		1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 	]);
@@ -146,7 +146,7 @@ check_map_thread() {
 
 static void
 check_map_thread_two() {
-	Nson nson;
+	Nson nson = { 0 };
 
 	NSON(&nson, [
 		23, 42

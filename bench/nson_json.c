@@ -8,7 +8,7 @@
 #include "../test/test.h"
 
 #include "../src/nson.h"
-Nson nson;
+Nson nson = { 0 };
 
 void bench_nson_json() {
 	int rv;
