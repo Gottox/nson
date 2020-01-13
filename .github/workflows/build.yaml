@@ -24,8 +24,7 @@ jobs:
       run: make fuzz CC=${{ matrix.cc }}
     - name: IRC Message Action
       uses: Gottox/irc-message-action@master
-      if: failure()
       with:
-        channel: "##gottox"
+        channel: "Gottox"
         nickname: gh-gottox
         message: "Gottox: https://github.com/${{ github.repository }} failed on push ${{ github.event.compare }}"
