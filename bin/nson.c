@@ -55,7 +55,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	for(i = 0; i < 2 && optind < argc; i++, optind++) {
+	for (i = 0; i < 2 && optind < argc; i++, optind++) {
 		if (formats[i] == NULL && (formats[i] = strrchr(argv[optind], '.')))
 			formats[i]++;
 		if (strcmp(argv[optind], "-") == 0)
