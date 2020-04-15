@@ -29,6 +29,9 @@
 #include "internal.h"
 #include <string.h>
 
+#define ADD_INT64(n, m, r) __builtin_add_overflow(n, m, r)
+#define MUL_INT64(n, m, r) __builtin_mul_overflow(n, m, r)
+
 static const char base64_table[] =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -46,10 +49,18 @@ parse_dec(int64_t *dest, const char *src, size_t len) {
 	}
 
 	for (val = 0; i < len && src[i] >= '0' && src[i] <= '9'; i++) {
-		val = (val * 10) + src[i] - '0';
+		if (MUL_INT64(val, 10, &val)) {
+			return -1;
+		}
+		if (ADD_INT64(val, src[i] - '0', &val)) {
+			return -1;
+		}
 	}
-	val *= sign;
 
+	if (MUL_INT64(val, sign, &val)) {
+		return -1;
+	}
+	
 	*dest = val;
 
 	return i;
