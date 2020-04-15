@@ -8,7 +8,7 @@ CFLAGS = -Wall -Werror -Wpedantic -O0 -g -fPIC -std=c99 -pthread
 LDFLAGS = -pthread
 
 TST_CFLAGS = -fsanitize=address
-FZZ_CFLAGS = -fsanitize=fuzzer,address
+FZZ_CFLAGS = -fsanitize=fuzzer,address -fcoverage-mapping -fprofile-instr-generate
 
 # if you're feeling lucky:
 #CFLAGS += -DNDEBUG
