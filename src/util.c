@@ -69,24 +69,32 @@ parse_dec(int64_t *dest, const char *src, size_t len) {
 off_t
 parse_hex(uint64_t *dest, const char *src, size_t len) {
 	int64_t val = 0;
+	char c_val;
 	size_t i;
 
 	for (i = 0; i < len; i++) {
-		switch(src[i]) {
+		switch (src[i]) {
 		case '0': case '1': case '2': case '3': case '4':
 		case '5': case '6': case '7': case '8': case '9':
-			val = (16 * val) + src[i] - '0';
+			c_val = src[i] - '0';
 			break;
 		case 'a': case 'b': case 'c':
 		case 'd': case 'e': case 'f':
-			val = (16 * val) + src[i] - 'a' + 10;
+			c_val = src[i] - 'a' + 10;
 			break;
 		case 'A': case 'B': case 'C':
 		case 'D': case 'E': case 'F':
-			val = (16 * val) + src[i] - 'A' + 10;
+			c_val = src[i] - 'A' + 10;
 			break;
 		default:
 			goto out;
+		}
+
+		if (MUL_INT64(val, 16, &val)) {
+			return -1;
+		}
+		if (ADD_INT64(val, c_val, &val)) {
+			return -1;
 		}
 	}
 
