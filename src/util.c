@@ -36,7 +36,7 @@ static const char base64_table[] =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 off_t
-parse_dec(int64_t *dest, const char *src, size_t len) {
+__nson_parse_dev(int64_t *dest, const char *src, size_t len) {
 	off_t i = 0;
 	int64_t val;
 	if (len < 1) {
@@ -67,7 +67,7 @@ parse_dec(int64_t *dest, const char *src, size_t len) {
 }
 
 off_t
-parse_hex(uint64_t *dest, const char *src, size_t len) {
+__nson_parse_hex(uint64_t *dest, const char *src, size_t len) {
 	int64_t val = 0;
 	char c_val;
 	size_t i;
@@ -104,16 +104,16 @@ out:
 }
 
 off_t
-parse_b64(NsonBuf **dest_buf, const char *src, const size_t len) {
+__nson_parse_b64(NsonBuf **dest_buf, const char *src, const size_t len) {
 	char *p;
 	int8_t v;
 	off_t i, j;
 	char *dest;
 
-	(*dest_buf) = nson_buf_new((len + 3) / 4 * 3);
+	(*dest_buf) = __nson_buf_new((len + 3) / 4 * 3);
 	if (*dest_buf == NULL)
 		return -1;
-	dest = nson_buf_unwrap(*dest_buf);
+	dest = __nson_buf_unwrap(*dest_buf);
 
 	for (i = j = 0; i < len && src[i] != '='; i++) {
 		p = memchr(base64_table, src[i], 64);
@@ -144,24 +144,24 @@ parse_b64(NsonBuf **dest_buf, const char *src, const size_t len) {
 
 	if(i % 4 != 0) {
 err:
-		nson_buf_release(*dest_buf);
+		__nson_buf_release(*dest_buf);
 		return -1;
 	}
 
-	nson_buf_shrink(*dest_buf, j);
+	__nson_buf_shrink(*dest_buf, j);
 
 	return i;
 }
 
 off_t
-parse_number(Nson *nson, const char *src, size_t len) {
+__nson_parse_number(Nson *nson, const char *src, size_t len) {
 	off_t i = 0;
 	int64_t i_val;
 	double r_val;
 
-	i = parse_dec(&i_val, src, len);
+	i = __nson_parse_dev(&i_val, src, len);
 	if (i >= len || src[i] != '.') {
-		nson_init_int(nson, i_val);
+		nson_int_wrap(nson, i_val);
 		return i;
 	}
 
@@ -177,13 +177,13 @@ parse_number(Nson *nson, const char *src, size_t len) {
 		r_val -= i_val;
 	}
 
-	nson_init_real(nson, r_val);
+	nson_real_wrap(nson, r_val);
 
 	return i;
 }
 
 off_t
-to_utf8(char *dest, const uint64_t chr, const size_t len) {
+__nson_to_utf8(char *dest, const uint64_t chr, const size_t len) {
 	if (chr < 0x0080 && len >= 1) {
 		*dest = chr;
 		return 1;

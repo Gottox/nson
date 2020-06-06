@@ -80,7 +80,7 @@ int
 mult_mapper(off_t index, Nson *nson, void *user_data) {
 	int64_t val = nson_int(nson);
 	nson_clean(nson);
-	nson_init_int(nson, val * 2);
+	nson_int_wrap(nson, val * 2);
 
 	return 0;
 }
@@ -91,13 +91,13 @@ check_map_big() {
 	Nson nson = { 0 };
 	nson_init(&nson, NSON_ARR);
 	for(i = 0; i < 10240; i++) {
-		nson_push_int(&nson, i);
+		nson_arr_push_int(&nson, i);
 	}
 
 	nson_map(&nson, mult_mapper, NULL);
 
 	for(i = 0; i < 10240; i++) {
-		assert(i*2 == nson_int(nson_get(&nson, i)));
+		assert(i*2 == nson_int(nson_arr_get(&nson, i)));
 	}
 
 	nson_clean(&nson);
@@ -109,13 +109,13 @@ check_map_thread_big() {
 	Nson nson = { 0 };
 	nson_init(&nson, NSON_ARR);
 	for(i = 0; i < 10240; i++) {
-		nson_push_int(&nson, i);
+		nson_arr_push_int(&nson, i);
 	}
 
 	nson_map_thread(&nson, mult_mapper, NULL);
 
 	for(i = 0; i < 10240; i++) {
-		assert(i*2 == nson_int(nson_get(&nson, i)));
+		assert(i*2 == nson_int(nson_arr_get(&nson, i)));
 	}
 
 	nson_clean(&nson);
@@ -130,16 +130,16 @@ check_map_thread() {
 
 	nson_map_thread(&nson, mult_mapper, NULL);
 
-	assert(2 == nson_int(nson_get(&nson, 0)));
-	assert(4 == nson_int(nson_get(&nson, 1)));
-	assert(6 == nson_int(nson_get(&nson, 2)));
-	assert(8 == nson_int(nson_get(&nson, 3)));
-	assert(10 == nson_int(nson_get(&nson, 4)));
-	assert(12 == nson_int(nson_get(&nson, 5)));
-	assert(14 == nson_int(nson_get(&nson, 6)));
-	assert(16 == nson_int(nson_get(&nson, 7)));
-	assert(18 == nson_int(nson_get(&nson, 8)));
-	assert(20 == nson_int(nson_get(&nson, 9)));
+	assert(2 == nson_int(nson_arr_get(&nson, 0)));
+	assert(4 == nson_int(nson_arr_get(&nson, 1)));
+	assert(6 == nson_int(nson_arr_get(&nson, 2)));
+	assert(8 == nson_int(nson_arr_get(&nson, 3)));
+	assert(10 == nson_int(nson_arr_get(&nson, 4)));
+	assert(12 == nson_int(nson_arr_get(&nson, 5)));
+	assert(14 == nson_int(nson_arr_get(&nson, 6)));
+	assert(16 == nson_int(nson_arr_get(&nson, 7)));
+	assert(18 == nson_int(nson_arr_get(&nson, 8)));
+	assert(20 == nson_int(nson_arr_get(&nson, 9)));
 
 	nson_clean(&nson);
 }
@@ -154,9 +154,9 @@ check_map_thread_two() {
 
 	nson_map_thread(&nson, mult_mapper, NULL);
 
-	assert(2 == nson_len(&nson));
-	assert(46 == nson_int(nson_get(&nson, 0)));
-	assert(84 == nson_int(nson_get(&nson, 1)));
+	assert(2 == nson_arr_len(&nson));
+	assert(46 == nson_int(nson_arr_get(&nson, 0)));
+	assert(84 == nson_int(nson_arr_get(&nson, 1)));
 	nson_clean(&nson);
 }
 

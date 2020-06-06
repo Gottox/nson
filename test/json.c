@@ -102,8 +102,8 @@ parse_string_escape_newline2() {
 	Nson nson;
 	rv = nson_parse_json(&nson, NSON_P("[\"a\\nb\",\"c\nd\"]"));
 	assert(rv >= 0);
-	assert(strcmp("a\nb", nson_str(nson_get(&nson, 0))) == 0);
-	assert(strcmp("c\nd", nson_str(nson_get(&nson, 1))) == 0);
+	assert(strcmp("a\nb", nson_str(nson_arr_get(&nson, 0))) == 0);
+	assert(strcmp("c\nd", nson_str(nson_arr_get(&nson, 1))) == 0);
 	nson_clean(&nson);
 
 	(void)rv;
@@ -117,15 +117,13 @@ object_with_one_element() {
 	rv = NSON(&nson, {"a": "b"});
 	assert(rv >= 0);
 
-	assert(nson_len(&nson) == 1);
+	assert(nson_obj_size(&nson) == 1);
 
-	Nson *e1 = nson_get(&nson, 0);
-	assert(strcmp(nson_get_key(&nson, 0), "a") == 0);
-	assert(strcmp(nson_str(e1), "b") == 0);
+	assert(strcmp(nson_obj_get_key(&nson, 0), "a") == 0);
+	assert(strcmp(nson_str(nson_obj_get(&nson, "a")), "b") == 0);
 
 	nson_clean(&nson);
 	(void)rv;
-	(void)e1;
 }
 
 static void
@@ -136,11 +134,11 @@ object_with_multiple_elements() {
 	rv = NSON(&nson, {"a": 1, "b": 2});
 	assert(rv >= 0);
 
-	assert(nson_len(&nson) == 2);
+	assert(nson_obj_size(&nson) == 2);
 
-	Nson *e1 = nson_get(&nson, 0);
+	Nson *e1 = nson_obj_get(&nson, "a");
 	assert(nson_int(e1) == 1);
-	Nson *e2 = nson_get(&nson, 1);
+	Nson *e2 = nson_obj_get(&nson, "b");
 	assert(nson_int(e2) == 2);
 
 	nson_clean(&nson);
@@ -154,13 +152,13 @@ access_str_as_arr() {
 	int rv;
 	Nson nson;
 
-	rv = NSON(&nson, {"a": 1});
+	rv = NSON(&nson, {"a": ""});
 	assert(rv >= 0);
 
-	assert(nson_len(&nson) == 1);
+	assert(nson_obj_size(&nson) == 1);
 
-	Nson *e1 = nson_get(&nson, 0);
-	ASSERT_ABRT(nson_get(e1, 0));
+	Nson *e1 = nson_obj_get(&nson, "a");
+	ASSERT_ABRT(nson_arr_get(e1, 0));
 	nson_clean(&nson);
 
 	(void)rv;
@@ -173,7 +171,7 @@ leading_whitespace() {
 	rv = nson_parse_json(&nson, NSON_P("  {}"));
 	assert(rv >= 0);
 
-	assert(nson_len(&nson) == 0);
+	assert(nson_obj_size(&nson) == 0);
 
 	assert(nson_type(&nson) == NSON_OBJ);
 	nson_clean(&nson);
@@ -321,11 +319,12 @@ utf8_FFFF() {
 void stringify_utf8() {
 	int rv;
 	char *str;
+	size_t size;
 	Nson nson;
 	rv = NSON(&nson, "€");
 
 	assert(rv >= 0);
-	rv = nson_to_json(&nson, &str);
+	rv = nson_json_serialize(&str, &size, &nson, 0);
 	assert(rv >= 0);
 	assert(strcmp(str, "\"€\"") == 0);
 
@@ -337,12 +336,13 @@ void stringify_utf8() {
 void stringify_nullbyte() {
 	int rv;
 	char *str;
+	size_t size;
 	Nson nson;
 	rv = nson_init_data(&nson, "a\0b", 3, NSON_STR);
 	assert(rv >= 0);
 
 	assert(strcmp(nson_str(&nson), "a") == 0);
-	rv = nson_to_json(&nson, &str);
+	rv = nson_json_serialize(&str, &size, &nson, 0);
 	assert(rv >= 0);
 	assert(strcmp(str, "\"a\\u0000b\"") == 0);
 
@@ -355,16 +355,18 @@ static void
 stringify_empty_array() {
 	int rv;
 	Nson nson;
-	char *result;
+	char *str;
+	size_t size;
 
 	rv = NSON(&nson, []);
 
 	assert(rv >= 0);
-	nson_to_json(&nson, &result);
-	assert(strcmp("[]", result) == 0);
+	rv = nson_json_serialize(&str, &size, &nson, 0);
+	assert(rv >= 0);
+	assert(strcmp("[]", str) == 0);
 
 	nson_clean(&nson);
-	free(result);
+	free(str);
 	(void)rv;
 }
 
@@ -372,15 +374,17 @@ static void
 stringify_empty_object() {
 	int rv;
 	Nson nson;
-	char *result;
+	char *str;
+	size_t size;
 
 	rv = NSON(&nson, {});
 
 	assert(rv >= 0);
-	nson_to_json(&nson, &result);
-	assert(strcmp("{}", result) == 0);
+	rv = nson_json_serialize(&str, &size, &nson, 0);
+	assert(rv >= 0);
+	assert(strcmp("{}", str) == 0);
 
-	free(result);
+	free(str);
 	nson_clean(&nson);
 	(void)rv;
 }
@@ -389,33 +393,37 @@ static void
 stringify_object() {
 	int rv;
 	Nson nson;
-	char *result;
+	char *str;
+	size_t size;
 
 	rv = NSON(&nson, { "a": 1 });
 
 	assert(rv >= 0);
-	nson_to_json(&nson, &result);
-	puts(result);
-	assert(strcmp("{\"a\":1}", result) == 0);
+	rv = nson_json_serialize(&str, &size, &nson, 0);
+	assert(rv >= 0);
+	puts(str);
+	assert(strcmp("{\"a\":1}", str) == 0);
 
 	nson_clean(&nson);
-	free(result);
+	free(str);
 	(void)rv;
 }
 
 void stringify_data() {
 	int rv;
 	Nson nson;
-	char *result;
+	char *str;
+	size_t size;
 
 	rv = nson_init_data(&nson, "Hello World", 11, NSON_BLOB);
 
 	assert(rv >= 0);
-	nson_to_json(&nson, &result);
-	puts(result);
-	assert(strcmp("\"SGVsbG8gV29ybGQ=\"", result) == 0);
+	rv = nson_json_serialize(&str, &size, &nson, 0);
+	assert(rv >= 0);
+	puts(str);
+	assert(strcmp("\"SGVsbG8gV29ybGQ=\"", str) == 0);
 
-	free(result);
+	free(str);
 	nson_clean(&nson);
 	(void)rv;
 }
@@ -436,21 +444,22 @@ fuzz_parse_leak() {
 	nson_clean(&nson);
 }
 
-static void
-fuzz_parse_crash_string() {
-	const char input[4] = "\"\\\" ";
-	Nson nson;
-	nson_parse_json(&nson, input, sizeof(input));
-	nson_clean(&nson);
-}
+INPUT_CHECK(
+		fuzz_parse_leak2, json,
+		//"{ [[[}}}}"
+		""
+		)
 
-static void
-fuzz_parse_crash2() {
-	const char input[9] = "\"0L~\\\\\\\"\\";
-	Nson nson;
-	nson_parse_json(&nson, input, sizeof(input));
-	nson_clean(&nson);
-}
+INPUT_CHECK(
+		fuzz_parse_crash_string, json,
+		"\"\\\" "
+		)
+
+INPUT_CHECK(
+		fuzz_parse_crash2, json,
+		"\"0L~\\\\\\\"\\"
+		)
+
 
 DEFINE
 TEST(parse_true);
@@ -482,6 +491,7 @@ TEST(stringify_object);
 TEST(stringify_data);
 TEST(fuzz_parse_crash);
 TEST(fuzz_parse_leak);
+TEST(fuzz_parse_leak2);
 TEST(fuzz_parse_crash_string);
 TEST(fuzz_parse_crash2);
 DEFINE_END

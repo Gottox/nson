@@ -43,7 +43,6 @@ typedef struct NsonBuf {
 	char buf[1];
 } NsonBuf;
 
-
 typedef struct NsonStackElement {
 	Nson *element;
 	off_t index;
@@ -54,6 +53,13 @@ typedef struct NsonStack {
 	size_t len;
 } NsonStack;
 
+typedef struct NsonSerializerInfo {
+	int (*serializer)(FILE *out, const Nson *object, enum NsonOptions options);
+	char *seperator;
+
+	char *key_value_seperator;
+} NsonSerializerInfo;
+
 Nson *
 stack_walk(NsonStack *stack, Nson **nson, off_t *index);
 
@@ -63,32 +69,41 @@ int stack_pop(NsonStack *stack, Nson **element, off_t *index);
 
 void stack_clean(NsonStack *stack);
 
-off_t parse_dec(int64_t *i, const char *p, size_t len);
+off_t __nson_parse_dev(int64_t *i, const char *p, size_t len);
 
-off_t parse_hex(uint64_t *dest, const char *src, size_t len);
+off_t __nson_parse_hex(uint64_t *dest, const char *src, size_t len);
 
-off_t parse_b64(NsonBuf **dest_buf, const char *src, const size_t len);
+off_t __nson_parse_b64(NsonBuf **dest_buf, const char *src, const size_t len);
 
-off_t parse_number(Nson *nson, const char *p, size_t len);
+off_t __nson_parse_number(Nson *nson, const char *p, size_t len);
 
-off_t to_utf8(char *dest, const uint64_t chr, const size_t len);
+off_t __nson_to_utf8(char *dest, const uint64_t chr, const size_t len);
 
-char *nson_buf_unwrap(NsonBuf *buf);
+char *__nson_buf_unwrap(NsonBuf *buf);
 
-size_t nson_buf_siz(const NsonBuf *buf);
+size_t __nson_buf_siz(const NsonBuf *buf);
 
-NsonBuf *nson_buf_new(size_t len);
+NsonBuf *__nson_buf_new(size_t len);
 
-NsonBuf *nson_buf_wrap(const char *val, size_t len);
+NsonBuf *__nson_buf_wrap(const char *val, size_t len);
 
-NsonBuf *nson_buf_wrap_0(const char *val);
+NsonBuf *__nson_buf_wrap_0(const char *val);
 
-NsonBuf *nson_buf_retain(NsonBuf *buf);
+NsonBuf *__nson_buf_retain(NsonBuf *buf);
 
-int nson_buf_shrink(NsonBuf *buf, size_t new_siz);
+int __nson_buf_shrink(NsonBuf *buf, size_t new_siz);
 
-void nson_buf_release(NsonBuf *buf);
+void __nson_buf_release(NsonBuf *buf);
 
-int nson_init_buf(Nson *nson, NsonBuf *val, enum NsonType info);
+int __nson_init_buf(Nson *nson, NsonBuf *val, enum NsonType info);
 
+int __nson_arr_clone(Nson *array);
+
+int __nson_obj_clone(Nson *object);
+
+int __nson_obj_serialize(FILE *out, const Nson *object,
+		const NsonSerializerInfo *info, enum NsonOptions options);
+
+int __nson_arr_serialize(FILE *out, const Nson *array,
+		const NsonSerializerInfo *info, enum NsonOptions options);
 #endif /* !INTERNAL_H */

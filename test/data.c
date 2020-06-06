@@ -36,7 +36,7 @@ create_array() {
 	Nson nson = { 0 };
 	nson_init(&nson, NSON_ARR);
 	assert(nson_type(&nson) == NSON_ARR);
-	assert(nson_len(&nson) == 0);
+	assert(nson_arr_len(&nson) == 0);
 }
 
 static void
@@ -44,10 +44,10 @@ add_int_to_array() {
 	Nson nson = { 0 };
 	nson_init(&nson, NSON_ARR);
 	assert(nson_type(&nson) == NSON_ARR);
-	assert(nson_len(&nson) == 0);
+	assert(nson_arr_len(&nson) == 0);
 
-	nson_push_int(&nson, 42);
-	assert(nson_type(nson_get(&nson, 0)) == NSON_INT);
+	//nson_arr_push_int(&nson, 42);
+	//assert(nson_type(nson_arr_get(&nson, 0)) == NSON_INT);
 
 	nson_clean(&nson);
 }
@@ -56,23 +56,18 @@ static void
 check_messy_array() {
 	Nson nson = { 0 }, val = { 0 };
 	nson_init(&nson, NSON_ARR);
-	assert(nson.a.messy == false);
 
-	nson_init_int(&val, 5);
-	nson_push(&nson, &val);
-	assert(nson.a.messy == false);
+	nson_int_wrap(&val, 5);
+	nson_arr_push(&nson, &val);
 
-	nson_init_int(&val, 6);
-	nson_push(&nson, &val);
-	assert(nson.a.messy == false);
+	nson_int_wrap(&val, 6);
+	nson_arr_push(&nson, &val);
 
-	nson_init_int(&val, 6);
-	nson_push(&nson, &val);
-	assert(nson.a.messy == false);
+	nson_int_wrap(&val, 6);
+	nson_arr_push(&nson, &val);
 
-	nson_init_int(&val, 4);
-	nson_push(&nson, &val);
-	assert(nson.a.messy == true);
+	nson_int_wrap(&val, 4);
+	nson_arr_push(&nson, &val);
 
 	nson_clean(&nson);
 }
@@ -81,35 +76,18 @@ static void
 check_messy_object() {
 	Nson nson = { 0 }, val = { 0 };
 	nson_init(&nson, NSON_OBJ);
-	assert(nson.a.messy == false);
 
-	nson_init_str(&val, "a");
-	nson_push(&nson, &val);
-	assert(nson.a.messy == false);
-	nson_init_int(&val, 6);
-	nson_push(&nson, &val);
-	assert(nson.a.messy == false);
+	nson_int_wrap(&val, 6);
+	nson_obj_put(&nson, "a", &val);
 
-	nson_init_str(&val, "b");
-	nson_push(&nson, &val);
-	assert(nson.a.messy == false);
-	nson_init_int(&val, 6);
-	nson_push(&nson, &val);
-	assert(nson.a.messy == false);
+	nson_int_wrap(&val, 6);
+	nson_obj_put(&nson, "b", &val);
 
-	nson_init_str(&val, "c");
-	nson_push(&nson, &val);
-	assert(nson.a.messy == false);
-	nson_init_int(&val, 4);
-	nson_push(&nson, &val);
-	assert(nson.a.messy == false);
+	nson_int_wrap(&val, 4);
+	nson_obj_put(&nson, "c", &val);
 
-	nson_init_str(&val, "b");
-	nson_push(&nson, &val);
-	assert(nson.a.messy == true);
-	nson_init_int(&val, 4);
-	nson_push(&nson, &val);
-	assert(nson.a.messy == true);
+	nson_int_wrap(&val, 4);
+	nson_obj_put(&nson, "d", &val);
 
 	nson_clean(&nson);
 }
@@ -121,8 +99,8 @@ clone_array() {
 
 	nson_clone(&clone, &nson);
 
-	assert(nson_int(nson_get(&clone, 0)) == 1);
-	assert(nson_int(nson_get(&clone, 1)) == 2);
+	assert(nson_int(nson_arr_get(&clone, 0)) == 1);
+	assert(nson_int(nson_arr_get(&clone, 1)) == 2);
 
 	nson_clean(&clone);
 	nson_clean(&nson);
@@ -136,13 +114,13 @@ sort_array() {
 	rv = NSON(&nson, [5,4,3,2,1]);
 	assert(rv >= 0);
 
-	assert(nson_sort(&nson) >= 0);
+	assert(nson_arr_sort(&nson) >= 0);
 
-	assert(nson_int(nson_get(&nson, 0)) == 1);
-	assert(nson_int(nson_get(&nson, 1)) == 2);
-	assert(nson_int(nson_get(&nson, 2)) == 3);
-	assert(nson_int(nson_get(&nson, 3)) == 4);
-	assert(nson_int(nson_get(&nson, 4)) == 5);
+	assert(nson_int(nson_arr_get(&nson, 0)) == 1);
+	assert(nson_int(nson_arr_get(&nson, 1)) == 2);
+	assert(nson_int(nson_arr_get(&nson, 2)) == 3);
+	assert(nson_int(nson_arr_get(&nson, 3)) == 4);
+	assert(nson_int(nson_arr_get(&nson, 4)) == 5);
 
 	nson_clean(&nson);
 	(void)rv;
@@ -162,19 +140,20 @@ sort_object() {
 	});
 	assert(rv >= 0);
 
-	assert(nson_sort(&nson) >= 0);
+	// before getting, the object will be sorted
+	assert(nson_obj_get(&nson, "not existent") == NULL);
 
-	assert(strcmp(nson_str(nson_get(&nson, 0)), "one") == 0);
-	assert(strcmp(nson_str(nson_get(&nson, 1)), "two") == 0);
-	assert(strcmp(nson_str(nson_get(&nson, 2)), "three") == 0);
-	assert(strcmp(nson_str(nson_get(&nson, 3)), "four") == 0);
-	assert(strcmp(nson_str(nson_get(&nson, 4)), "five") == 0);
+	assert(strcmp(nson_obj_get_key(&nson, 0), "a") == 0);
+	assert(strcmp(nson_obj_get_key(&nson, 1), "b") == 0);
+	assert(strcmp(nson_obj_get_key(&nson, 2), "c") == 0);
+	assert(strcmp(nson_obj_get_key(&nson, 3), "d") == 0);
+	assert(strcmp(nson_obj_get_key(&nson, 4), "e") == 0);
 
-	assert(strcmp(nson_get_key(&nson, 0), "a") == 0);
-	assert(strcmp(nson_get_key(&nson, 1), "b") == 0);
-	assert(strcmp(nson_get_key(&nson, 2), "c") == 0);
-	assert(strcmp(nson_get_key(&nson, 3), "d") == 0);
-	assert(strcmp(nson_get_key(&nson, 4), "e") == 0);
+	assert(strcmp(nson_str(nson_obj_get(&nson, "a")), "one") == 0);
+	assert(strcmp(nson_str(nson_obj_get(&nson, "b")), "two") == 0);
+	assert(strcmp(nson_str(nson_obj_get(&nson, "c")), "three") == 0);
+	assert(strcmp(nson_str(nson_obj_get(&nson, "d")), "four") == 0);
+	assert(strcmp(nson_str(nson_obj_get(&nson, "e")), "five") == 0);
 
 	nson_clean(&nson);
 	(void)rv;
@@ -300,7 +279,7 @@ issue_nullref() {
 	rv = nson_parse_json(&nson, src, len);
 	assert(rv >= 0);
 
-	item = nson_get(&nson, 0);
+	item = nson_arr_get(&nson, 0);
 
 	nson_move(&item_stack, item);
 	memset(src, 'A', len);

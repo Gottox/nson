@@ -37,6 +37,7 @@ parse_line(Nson *nson, const char *line, size_t len) {
 	const char *key, *val;
 	size_t key_len = 0, val_len = 0;
 	Nson elem;
+	char s_key[64] = { 0 };
 
 	for(; isblank(line[i]) && line[i]; i++);
 
@@ -55,11 +56,10 @@ parse_line(Nson *nson, const char *line, size_t len) {
 
 	//for(i = len - 1; isspace(line[i]) && i >= 0; i--, val_len--);
 
-	nson_init_data(&elem, key, key_len, NSON_STR);
-	nson_push(nson, &elem);
+	memcpy(s_key, key, MIN(63, key_len));
 
 	nson_init_data(&elem, val, val_len, NSON_STR);
-	nson_push(nson, &elem);
+	nson_obj_put(nson, s_key, &elem);
 
 	return i;
 }

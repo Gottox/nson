@@ -10,7 +10,10 @@ HDR = \
 
 SRC = \
 	src/buf.c \
+	src/scalar.c \
 	src/data.c \
+	src/object.c \
+	src/array.c \
 	src/util.c \
 	src/map.c \
 	src/json.c \
@@ -112,8 +115,6 @@ bench/bench-file.plist: bench/bench-file.json
 	@rm -rf package-lock.json node_modules
 
 coverage: check
-	@printf "%s\n" $(CFLAGS) | grep -qx -- '-fprofile-arcs\|-ftest-coverage' || \
-		( echo "You need to enable coverage settings in the Makefile"; exit 1 )
 	@mkdir cov
 	@gcovr -r . --html --html-details -o cov/index.html
 

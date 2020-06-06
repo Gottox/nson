@@ -26,69 +26,55 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "test.h"
-#include "common.h"
+#include "internal.h"
 
-#include "../src/nson.h"
+#include <string.h>
+#include <assert.h>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <assert.h>
+#include <limits.h>
 #include <errno.h>
 
-static void
-no_such_file() {
-	int rv;
-	Nson config = { 0 };
-	rv = nson_load_ini(&config, "./no-such-file");
-	assert(rv < 0);
-	assert(errno == ENOENT);
-	nson_clean(&config);
-
-	(void)rv;
+int64_t
+nson_int(const Nson *nson) {
+	assert(nson_type(nson) == NSON_INT || nson_type(nson) == NSON_BOOL || nson_type(nson) == NSON_REAL);
+	if(nson_type(nson) == NSON_REAL)
+		return (int64_t)nson->r.r;
+	return nson->i.i;
 }
 
-static void
-syntax_error() {
-	int rv;
-	Nson config = { 0 };
-	rv = nson_parse_ini(&config, NSON_P("value_missing\n"));
-	assert(rv < 0);
-	nson_clean(&config);
-
-	(void)rv;
+double
+nson_real(const Nson *nson) {
+	assert(nson_type(nson) == NSON_INT || nson_type(nson) == NSON_BOOL || nson_type(nson) == NSON_REAL);
+	if(nson_type(nson) != NSON_REAL)
+		return (double)nson->i.i;
+	return nson->r.r;
 }
 
-static void
-three_elements() {
-	int rv;
-	Nson config = { 0 };
-	rv = nson_parse_ini(&config, NSON_P(
-			"key1 value1\n"
-			"key2 value2\n"
-			"key3 value3\n"
-			));
-	assert(rv >= 0);
+int
+nson_bool_wrap(Nson *nson, bool val) {
+	int rv = nson_init(nson, NSON_BOOL);
+	nson->i.i = val;
 
-	assert(nson_obj_size(&config) == 3);
-
-	assert(strcmp("key1", nson_obj_get_key(&config, 0)) == 0);
-	Nson *e1 = nson_obj_get(&config, "key1");
-	assert(strcmp("value1", nson_str(e1)) == 0);
-
-	assert(strcmp("key2", nson_obj_get_key(&config, 1)) == 0);
-	Nson *e2 = nson_obj_get(&config, "key2");
-	assert(strcmp("value2", nson_str(e2)) == 0);
-
-	assert(strcmp("key3", nson_obj_get_key(&config, 2)) == 0);
-	Nson *e3 = nson_obj_get(&config, "key3");
-	assert(strcmp("value3", nson_str(e3)) == 0);
-	nson_clean(&config);
-
-	(void)rv;
-	(void)e1;
-	(void)e2;
-	(void)e3;
+	return rv;
 }
 
-DEFINE
-TEST(no_such_file);
-TEST(syntax_error);
-TEST(three_elements);
-DEFINE_END
+int
+nson_int_wrap(Nson *nson, const int64_t val) {
+	int rv = nson_init(nson, NSON_INT);
+	nson->i.i = val;
+
+	return rv;
+}
+
+int
+nson_real_wrap(Nson *nson, const double val) {
+	int rv = nson_init(nson, NSON_REAL);
+	nson->r.r = val;
+
+	return rv;
+}

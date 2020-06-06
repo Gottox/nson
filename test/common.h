@@ -19,9 +19,11 @@ name() { \
 	char *result = NULL; \
 	Nson nson = { 0 }; \
 	nson_parse_ ## parser (&nson, input, size); \
-	nson_to_ ## parser(&nson, &result); \
-	nson_clean(&nson); \
+	nson_json_serialize(&result, &size, &nson, 0); \
 	free(result); \
+	nson_plist_serialize(&result, &size, &nson, 0); \
+	free(result); \
+	nson_clean(&nson); \
 	free(input); \
 }
 

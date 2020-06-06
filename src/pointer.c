@@ -26,69 +26,51 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "test.h"
-#include "common.h"
-
-#include "../src/nson.h"
+#include "internal.h"
+#include "nson.h"
+#include <string.h>
 #include <errno.h>
+#include <assert.h>
 
-static void
-no_such_file() {
-	int rv;
-	Nson config = { 0 };
-	rv = nson_load_ini(&config, "./no-such-file");
-	assert(rv < 0);
-	assert(errno == ENOENT);
-	nson_clean(&config);
+typedef struct NsonPointerRefCount {
+	unsigned int count;
+	void (*dtor)(void *);
+	void *ptr;
+} NsonPointerRefCount;
 
-	(void)rv;
+int
+nson_ptr_wrap(Nson *nson, void *ptr, void (*dtor)(void *)) {
+	int rv = nson_init(nson, NSON_POINTER);
+	if (rv < 0) {
+		return rv;
+	}
+
+	nson->p.ref = calloc(1, sizeof *nson->p.ref);
+	if (NULL == nson->p.ref) {
+		return -1;
+	}
+	nson->p.ref->dtor = dtor;
+	nson->p.ref->ptr = ptr;
+	nson->p.ref->count = 1;
+
+	return rv;
 }
 
-static void
-syntax_error() {
-	int rv;
-	Nson config = { 0 };
-	rv = nson_parse_ini(&config, NSON_P("value_missing\n"));
-	assert(rv < 0);
-	nson_clean(&config);
-
-	(void)rv;
+void *
+nson_ptr_unwrap(Nson *nson) {
+	return nson->p.ref->ptr;
 }
 
-static void
-three_elements() {
-	int rv;
-	Nson config = { 0 };
-	rv = nson_parse_ini(&config, NSON_P(
-			"key1 value1\n"
-			"key2 value2\n"
-			"key3 value3\n"
-			));
-	assert(rv >= 0);
-
-	assert(nson_obj_size(&config) == 3);
-
-	assert(strcmp("key1", nson_obj_get_key(&config, 0)) == 0);
-	Nson *e1 = nson_obj_get(&config, "key1");
-	assert(strcmp("value1", nson_str(e1)) == 0);
-
-	assert(strcmp("key2", nson_obj_get_key(&config, 1)) == 0);
-	Nson *e2 = nson_obj_get(&config, "key2");
-	assert(strcmp("value2", nson_str(e2)) == 0);
-
-	assert(strcmp("key3", nson_obj_get_key(&config, 2)) == 0);
-	Nson *e3 = nson_obj_get(&config, "key3");
-	assert(strcmp("value3", nson_str(e3)) == 0);
-	nson_clean(&config);
-
-	(void)rv;
-	(void)e1;
-	(void)e2;
-	(void)e3;
+Nson *
+__nson_ptr_retain(Nson *nson) {
+  nson->p.ref->count++;
+  return nson;
 }
 
-DEFINE
-TEST(no_such_file);
-TEST(syntax_error);
-TEST(three_elements);
-DEFINE_END
+void
+__nson_ptr_release(Nson *nson) {
+	nson->p.ref->count--;
+	if (nson->p.ref->count == 0) {
+		nson->p.ref->dtor(nson->p.ref->ptr);
+	}
+}

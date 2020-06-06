@@ -32,12 +32,12 @@
 #include <assert.h>
 
 char *
-nson_buf_unwrap(NsonBuf *buf) {
+__nson_buf_unwrap(NsonBuf *buf) {
 	return buf->buf;
 }
 
 NsonBuf *
-nson_buf_new(size_t siz) {
+__nson_buf_new(size_t siz) {
 	if (siz > (SIZE_MAX - sizeof(NsonBuf)) / sizeof(char)) {
 		errno = ENOMEM;
 		return NULL;
@@ -48,12 +48,12 @@ nson_buf_new(size_t siz) {
 	}
 	memset(buf, 0, sizeof(char) * siz + sizeof(NsonBuf));
 	buf->siz = siz;
-	return nson_buf_retain(buf);
+	return __nson_buf_retain(buf);
 }
 
 NsonBuf *
-nson_buf_wrap(const char *val, size_t siz) {
-	NsonBuf *buf = nson_buf_new(siz);
+__nson_buf_wrap(const char *val, size_t siz) {
+	NsonBuf *buf = __nson_buf_new(siz);
 	if (buf == NULL) {
 		return NULL;
 	}
@@ -62,23 +62,17 @@ nson_buf_wrap(const char *val, size_t siz) {
 }
 
 NsonBuf *
-nson_buf_wrap_0(const char *val) {
-	return nson_buf_wrap(val, strlen(val));
+__nson_buf_wrap_0(const char *val) {
+	return __nson_buf_wrap(val, strlen(val));
 }
 
 size_t
-nson_buf_siz(const NsonBuf *buf) {
+__nson_buf_siz(const NsonBuf *buf) {
 	return buf->siz;
 }
 
-NsonBuf *
-nson_buf_retain(NsonBuf *buf) {
-	buf->ref_count++;
-	return buf;
-}
-
 int
-nson_buf_shrink(NsonBuf *buf, size_t new_siz) {
+__nson_buf_shrink(NsonBuf *buf, size_t new_siz) {
 	assert(new_siz <= buf->siz);
 
 	buf->siz = new_siz;
@@ -86,8 +80,14 @@ nson_buf_shrink(NsonBuf *buf, size_t new_siz) {
 	return new_siz;
 }
 
+NsonBuf *
+__nson_buf_retain(NsonBuf *buf) {
+	buf->ref_count++;
+	return buf;
+}
+
 void
-nson_buf_release(NsonBuf *buf) {
+__nson_buf_release(NsonBuf *buf) {
 	buf->ref_count--;
 	if (buf->ref_count == 0) {
 		free(buf);

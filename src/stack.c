@@ -45,8 +45,8 @@ stack_walk(NsonStack *stack, Nson **nson, off_t *index) {
 
 	(*index)++;
 
-	if (*index < nson_mem_len(*nson)) {
-		item = nson_mem_get(*nson, *index);
+	if (*index < nson_arr_len(*nson)) {
+		item = nson_arr_get(*nson, *index);
 		type = nson_type(item);
 		// PUSH
 		if (type == NSON_OBJ || type == NSON_ARR) {

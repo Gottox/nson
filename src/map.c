@@ -37,20 +37,6 @@
 static const char base64_table[] =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-static int
-nson_cmp_stable(const void *a, const void *b) {
-	const Nson *na = a, *nb = b;
-	int rv = nson_cmp(na, nb);
-	return rv ? rv : (na - nb);
-}
-
-static int
-nson_search_key(const void *key, const void *elem) {
-	if (nson_type(elem) != NSON_STR)
-		return -1;
-	return strcmp(key, nson_str(elem));
-}
-
 int
 nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
 	char *p;
@@ -62,8 +48,8 @@ nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
 	const size_t src_len = nson_data_len(nson);
 	const char *src = nson_data(nson);
 
-	dest_buf = nson_buf_new((src_len + 3) / 4 * 3);
-	dest = nson_buf_unwrap(dest_buf);
+	dest_buf = __nson_buf_new((src_len + 3) / 4 * 3);
+	dest = __nson_buf_unwrap(dest_buf);
 	if (!dest)
 		return -1;
 
@@ -98,9 +84,9 @@ nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
 		return -1;
 	}
 
-	nson_buf_release(nson->d.buf);
+	__nson_buf_release(nson->d.buf);
 	nson->d.buf = dest_buf;
-	nson_buf_shrink(nson->d.buf, j);
+	__nson_buf_shrink(nson->d.buf, j);
 
 	return i;
 }
@@ -117,8 +103,8 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 	const size_t src_len = nson_data_len(nson);
 	const char *src = nson_data(nson);
 
-	dest_buf = nson_buf_new((src_len + 2) / 3 * 4);
-	dest = nson_buf_unwrap(dest_buf);
+	dest_buf = __nson_buf_new((src_len + 2) / 3 * 4);
+	dest = __nson_buf_unwrap(dest_buf);
 	if (!dest)
 		return -1;
 
@@ -138,53 +124,15 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 			break;
 		}
 	}
-	if(nson_buf_siz(dest_buf) != j) {
+	if(__nson_buf_siz(dest_buf) != j) {
 		dest[j] = base64_table[reminder & mask];
-		memset(&dest[j + 1], '=', nson_buf_siz(dest_buf) - j - 1);
+		memset(&dest[j + 1], '=', __nson_buf_siz(dest_buf) - j - 1);
 	}
 
-	nson_buf_release(nson->d.buf);
+	__nson_buf_release(nson->d.buf);
 	nson->d.buf = dest_buf;
 
-	return nson_buf_siz(dest_buf);
-}
-
-Nson *
-nson_get_by_key(const Nson *nson, const char *key) {
-	Nson *result;
-	size_t len, size;
-
-	assert(nson_type(nson) == NSON_OBJ);
-	len = nson->a.len / 2;
-	size = sizeof(*nson) * 2;
-	if (nson->a.messy)
-		result = lfind(key, nson->a.arr, &len, size, nson_search_key);
-	else
-		result = bsearch(key, nson->a.arr, len, size, nson_search_key);
-
-	if (result == NULL)
-		return NULL;
-	else
-		return result + 1;
-}
-
-int
-nson_sort(Nson *nson) {
-	assert(nson_type(nson) & (NSON_OBJ | NSON_ARR));
-	size_t len = nson_mem_len(nson);
-	size_t size = sizeof(*nson);
-
-	if (!nson->a.messy)
-		return 0;
-
-	if (nson_type(nson) == NSON_OBJ) {
-		len /= 2;
-		size *= 2;
-	}
-	qsort(nson->a.arr, len, size, nson_cmp_stable);
-	nson->a.messy = false;
-
-	return 0;
+	return __nson_buf_siz(dest_buf);
 }
 
 int
@@ -194,9 +142,9 @@ nson_reduce(Nson *dest, const Nson *nson, NsonReducer reducer,
 	off_t i;
 	size_t len;
 
-	len = nson_mem_len(nson);
+	len = nson_arr_len(nson);
 	for (i = 0; rv >= 0 && i < len; i++) {
-		rv = reducer(i, dest, nson_mem_get(nson, i), user_data);
+		rv = reducer(i, dest, nson_arr_get(nson, i), user_data);
 	}
 	return rv;
 }
@@ -208,9 +156,9 @@ nson_map(Nson *nson, NsonMapper mapper, void *user_data) {
 	size_t len;
 	assert(nson_type(nson) == NSON_ARR || nson_type(nson) == NSON_OBJ);
 
-	len = nson_mem_len(nson);
+	len = nson_arr_len(nson);
 	for (i = 0; rv >= 0 && i < len; i++) {
-		rv = mapper(i, nson_mem_get(nson, i), user_data);
+		rv = mapper(i, nson_arr_get(nson, i), user_data);
 	}
 	return rv;
 }
@@ -239,7 +187,7 @@ map_thread_wrapper(void *arg) {
 
 	do {
 		for (; i < end && i < thread->len; i++) {
-			thread->mapper(i, nson_mem_get(thread->nson, i), thread->user_data);
+			thread->mapper(i, nson_arr_get(thread->nson, i), thread->user_data);
 		}
 		pthread_spin_lock(thread->lock);
 		i = *thread->reserved;
@@ -262,7 +210,7 @@ nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
 	off_t reserved;
 
 	thread_num = (int)sysconf(_SC_NPROCESSORS_ONLN);
-	len = nson_mem_len(nson);
+	len = nson_arr_len(nson);
 
 	if(thread_num <= 1 || len <= 1) {
 		return nson_map(nson, mapper, user_data);

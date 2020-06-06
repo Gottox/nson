@@ -126,7 +126,7 @@ parse_string_escape_gt2() {
 	rv = nson_parse_plist(&nson, PLIST("<array><string>xcb-util-keysyms&gt;=0.3.9_1</string><string>xcb-util-keysyms&gt;=0.3.9_1</string></array>"));
 	assert(rv >= 0);
 	assert(nson_type(&nson) == NSON_ARR);
-	assert(strcmp("xcb-util-keysyms>=0.3.9_1", nson_str(nson_get(&nson, 0))) == 0);
+	assert(strcmp("xcb-util-keysyms>=0.3.9_1", nson_str(nson_arr_get(&nson, 0))) == 0);
 	nson_clean(&nson);
 
 	(void)rv;
@@ -174,7 +174,7 @@ parse_array_empty() {
 	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<array></array>"));
 	assert(rv >= 0);
-	assert(nson_len(&nson) == 0);
+	assert(nson_arr_len(&nson) == 0);
 	nson_clean(&nson);
 
 	(void)rv;
@@ -186,8 +186,8 @@ parse_array_1() {
 	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<array><true/></array>"));
 	assert(rv >= 0);
-	assert(nson_len(&nson) == 1);
-	assert(nson_int(nson_get(&nson, 0)) == 1);
+	assert(nson_arr_len(&nson) == 1);
+	assert(nson_int(nson_arr_get(&nson, 0)) == 1);
 	nson_clean(&nson);
 
 	(void)rv;
@@ -203,9 +203,9 @@ parse_array_2() {
 				"<false/>"
 				"</array>"));
 	assert(rv >= 0);
-	assert(nson_len(&nson) == 2);
-	assert(nson_bool(nson_get(&nson, 0)) == 1);
-	assert(nson_bool(nson_get(&nson, 1)) == 0);
+	assert(nson_arr_len(&nson) == 2);
+	assert(nson_bool(nson_arr_get(&nson, 0)) == 1);
+	assert(nson_bool(nson_arr_get(&nson, 1)) == 0);
 	nson_clean(&nson);
 
 	(void)rv;
@@ -217,8 +217,8 @@ parse_array_spaces() {
 	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST(" <array> <true/> </array>"));
 	assert(rv >= 0);
-	assert(nson_len(&nson) == 1);
-	assert(nson_int(nson_get(&nson, 0)) == 1);
+	assert(nson_arr_len(&nson) == 1);
+	assert(nson_int(nson_arr_get(&nson, 0)) == 1);
 	nson_clean(&nson);
 
 	(void)rv;
@@ -230,7 +230,7 @@ parse_object_empty() {
 	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<dict></dict>"));
 	assert(rv >= 0);
-	assert(nson_len(&nson) == 0);
+	assert(nson_obj_size(&nson) == 0);
 	nson_clean(&nson);
 
 	(void)rv;
@@ -242,8 +242,8 @@ parse_object_1() {
 	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST("<dict><key>k</key><true/></dict>"));
 	assert(rv >= 0);
-	assert(nson_len(&nson) == 1);
-	assert(strcmp("k", nson_get_key(&nson, 0)) == 0);
+	assert(nson_obj_size(&nson) == 1);
+	assert(strcmp("k", nson_obj_get_key(&nson, 0)) == 0);
 	nson_clean(&nson);
 
 	(void)rv;
@@ -259,9 +259,9 @@ parse_object_2() {
 				"<key>i</key><true/>"
 				"</dict>"));
 	assert(rv >= 0);
-	assert(nson_len(&nson) == 2);
-	assert(strcmp("k", nson_get_key(&nson, 0)) == 0);
-	assert(strcmp("i", nson_get_key(&nson, 1)) == 0);
+	assert(nson_obj_size(&nson) == 2);
+	assert(strcmp("k", nson_obj_get_key(&nson, 0)) == 0);
+	assert(strcmp("i", nson_obj_get_key(&nson, 1)) == 0);
 	nson_clean(&nson);
 
 	(void)rv;
@@ -273,8 +273,8 @@ parse_object_spaces() {
 	Nson nson = { 0 };
 	rv = nson_parse_plist(&nson, PLIST(" <dict> <key>k</key> <true/> </dict>"));
 	assert(rv >= 0);
-	assert(nson_len(&nson) == 1);
-	assert(strcmp("k", nson_get_key(&nson, 0)) == 0);
+	assert(nson_obj_size(&nson) == 1);
+	assert(strcmp("k", nson_obj_get_key(&nson, 0)) == 0);
 	nson_clean(&nson);
 
 	(void)rv;
@@ -300,14 +300,16 @@ stringify_object_with_2_members() {
 	int rv;
 	Nson nson = { 0 };
 	char *str;
+	size_t size;
 
 	rv = NSON(&nson, {"a": 5, "b": 5});
 	assert(rv >= 0);
-	nson_to_plist(&nson, &str);
-	assert(strstr(str, "<dict>"
+	nson_plist_serialize(&str, &size, &nson, NSON_SKIP_HEADER);
+	puts(str);
+	assert(strcmp(str, "<dict>"
 				"<key>a</key><integer>5</integer>"
 				"<key>b</key><integer>5</integer>"
-				"</dict>"));
+				"</dict>") == 0);
 
 	nson_clean(&nson);
 	free(str);
@@ -319,10 +321,11 @@ stringify_data() {
 	int rv;
 	Nson nson = { 0 };
 	char *str;
+	size_t size;
 
 	rv = nson_init_data(&nson, "Hello World", 11, NSON_BLOB);
 	assert(rv >= 0);
-	nson_to_plist(&nson, &str);
+	nson_plist_serialize(&str, &size, &nson, NSON_SKIP_HEADER);
 	assert(strstr(str, "<data>SGVsbG8gV29ybGQ=</data>"));
 
 	nson_clean(&nson);
@@ -335,10 +338,12 @@ stringify_escape() {
 	int rv;
 	Nson nson = { 0 };
 	char *str;
+	size_t size;
 
 	rv = nson_init_str(&nson, " < > & ");
 	assert(rv >= 0);
-	nson_to_plist(&nson, &str);
+	nson_plist_serialize(&str, &size, &nson, NSON_SKIP_HEADER);
+	puts(str);
 	assert(strstr(str, "<string> &lt; &gt; &amp; </string>"));
 
 	nson_clean(&nson);
@@ -351,10 +356,11 @@ stringify_true() {
 	int rv;
 	Nson nson = { 0 };
 	char *str;
+	size_t size;
 
 	rv = NSON(&nson, true);
 	assert(rv >= 0);
-	nson_to_plist(&nson, &str);
+	nson_plist_serialize(&str, &size, &nson, NSON_SKIP_HEADER);
 	assert(strstr(str, "<true/>"));
 
 	nson_clean(&nson);
