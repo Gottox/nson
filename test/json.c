@@ -446,8 +446,7 @@ fuzz_parse_leak() {
 
 INPUT_CHECK(
 		fuzz_parse_leak2, json,
-		//"{ [[[}}}}"
-		""
+		"{ [[[}}}}"
 		)
 
 INPUT_CHECK(

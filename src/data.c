@@ -84,13 +84,15 @@ nson_clean(Nson *nson) {
 	case NSON_STR:
 		__nson_buf_release(nson->d.buf);
 		break;
+	case NSON_POINTER:
+		__nson_ptr_release(nson->p.ref);
+		break;
 	case NSON_ARR:
 		nson_arr_clean(nson);
 		break;
 	case NSON_OBJ:
 		nson_obj_clean(nson);
 		break;
-	case NSON_POINTER:
 	case NSON_BOOL:
 	case NSON_INT:
 	case NSON_REAL:
@@ -141,7 +143,14 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 		case NSON_BLOB:
 			__nson_buf_retain(nson->d.buf);
 			break;
-		default:
+		case NSON_POINTER:
+			__nson_ptr_retain(nson->p.ref);
+			break;
+		case NSON_NIL:
+		case NSON_BOOL:
+		case NSON_INT:
+		case NSON_REAL:
+			// noop
 			break;
 	}
 	return 0;

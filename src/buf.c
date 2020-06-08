@@ -82,14 +82,14 @@ __nson_buf_shrink(NsonBuf *buf, size_t new_siz) {
 
 NsonBuf *
 __nson_buf_retain(NsonBuf *buf) {
-	buf->ref_count++;
+	buf->count++;
 	return buf;
 }
 
 void
 __nson_buf_release(NsonBuf *buf) {
-	buf->ref_count--;
-	if (buf->ref_count == 0) {
+	buf->count--;
+	if (buf->count == 0) {
 		free(buf);
 	}
 }

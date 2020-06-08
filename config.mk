@@ -7,7 +7,9 @@ VERSION = 0.1
 CFLAGS = -Wall -Werror -Wpedantic -O0 -g -fPIC -std=c99 -pthread
 LDFLAGS = -pthread
 
-TST_CFLAGS = -fsanitize=address -fprofile-arcs -ftest-coverage
+TST_CFLAGS = -fsanitize=address
+#TST_CFLAGS += -fprofile-arcs
+#TST_CFLAGS += -ftest-coverage
 FZZ_CFLAGS = -fsanitize=fuzzer,address -fcoverage-mapping -fprofile-instr-generate
 
 # if you're feeling lucky:

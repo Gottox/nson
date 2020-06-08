@@ -13,6 +13,7 @@ SRC = \
 	src/scalar.c \
 	src/data.c \
 	src/object.c \
+	src/pointer.c \
 	src/array.c \
 	src/util.c \
 	src/map.c \
@@ -26,6 +27,7 @@ OBJ = $(SRC:.c=.o)
 BIN = bin/nson
 
 TST = \
+	test/pointer.c \
 	test/data.c \
 	test/json.c \
 	test/ini.c \

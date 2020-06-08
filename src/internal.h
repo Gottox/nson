@@ -36,12 +36,18 @@
 #define MIN(a, b) (a < b ? a : b)
 
 typedef struct NsonBuf {
-	unsigned int ref_count;
+	unsigned int count;
 	size_t siz;
 	/* ISO C forbids zero-size array. So use 1 here and use the additional byte
 	 * for zero termination. */
 	char buf[1];
 } NsonBuf;
+
+typedef struct NsonPointerRef {
+	unsigned int count;
+	void (*dtor)(void *);
+	void *ptr;
+} NsonPointerRef;
 
 typedef struct NsonStackElement {
 	Nson *element;
@@ -106,4 +112,8 @@ int __nson_obj_serialize(FILE *out, const Nson *object,
 
 int __nson_arr_serialize(FILE *out, const Nson *array,
 		const NsonSerializerInfo *info, enum NsonOptions options);
+
+NsonPointerRef *__nson_ptr_retain(NsonPointerRef *ref);
+
+void __nson_ptr_release(NsonPointerRef *ptr);
 #endif /* !INTERNAL_H */

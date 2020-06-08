@@ -49,7 +49,7 @@
 
 union Nson;
 struct NsonBuf;
-struct NsonPointerRefCount;
+struct NsonPointerRef;
 
 /**
  * @brief function pointer that is used to parse a buffer
@@ -146,7 +146,7 @@ typedef struct NsonInt {
  */
 typedef struct NsonPointer {
 	struct NsonCommon c;
-	struct NsonPointerRefCount *ref;
+	struct NsonPointerRef *ref;
 } NsonPointer;
 
 
@@ -420,5 +420,7 @@ int nson_json_write(FILE *out, const Nson *nson, enum NsonOptions options);
 int nson_plist_serialize(char **str, size_t *size, Nson *nson,
 		enum NsonOptions options);
 int nson_plist_write(FILE *out, const Nson *nson, enum NsonOptions options);
+int nson_ptr_wrap(Nson *nson, void *ptr, void (*dtor)(void *));
+void *nson_ptr_unwrap(Nson *nson);
 
 #endif /* !NSON_H */

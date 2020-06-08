@@ -26,46 +26,51 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "internal.h"
-#include "nson.h"
-#include <string.h>
-#include <errno.h>
-#include <assert.h>
+#include "test.h"
+#include "common.h"
 
-int
-nson_ptr_wrap(Nson *nson, void *ptr, void (*dtor)(void *)) {
-	int rv = nson_init(nson, NSON_POINTER);
-	if (rv < 0) {
-		return rv;
-	}
+#include "../src/internal.h"
 
-	nson->p.ref = calloc(1, sizeof *nson->p.ref);
-	if (NULL == nson->p.ref) {
-		return -1;
-	}
-	nson->p.ref->dtor = dtor;
-	nson->p.ref->ptr = ptr;
-	nson->p.ref->count = 1;
+static int dtor_was_called = 0;
 
-	return rv;
+static void dtor(void *unused) {
+	dtor_was_called = 1;
 }
 
-void *
-nson_ptr_unwrap(Nson *nson) {
-	return nson->p.ref->ptr;
+static void
+check_pointer_create() {
+	int pointer_target = 0;
+	Nson nson;
+	nson_ptr_wrap(&nson, &pointer_target, dtor);
+	assert(nson_ptr_unwrap(&nson) == &pointer_target);
+	nson_clean(&nson);
 }
 
-NsonPointerRef *
-__nson_ptr_retain(NsonPointerRef *ref) {
-  ref->count++;
-  return ref;
+static void
+check_pointer_clone() {
+	int pointer_target = 0;
+	Nson nson, clone;
+	nson_ptr_wrap(&nson, &pointer_target, dtor);
+	nson_clone(&clone, &nson);
+
+	assert(nson.p.ref->count == 2);
+	assert(nson_ptr_unwrap(&nson) == &pointer_target);
+	nson_clean(&nson);
+	nson_clean(&clone);
 }
 
-void
-__nson_ptr_release(NsonPointerRef *ref) {
-	ref->count--;
-	if (ref->count == 0) {
-		ref->dtor(ref->ptr);
-		free(ref);
-	}
+static void
+check_pointer_free_dtor() {
+	Nson nson;
+	char *pointer_target = strdup("foobar");
+
+	nson_ptr_wrap(&nson, pointer_target, free);
+	assert(nson_ptr_unwrap(&nson) == pointer_target);
+	nson_clean(&nson);
 }
+
+DEFINE
+TEST(check_pointer_create);
+TEST(check_pointer_clone);
+TEST(check_pointer_free_dtor);
+DEFINE_END
