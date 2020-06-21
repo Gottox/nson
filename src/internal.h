@@ -101,6 +101,8 @@ int __nson_buf_shrink(NsonBuf *buf, size_t new_siz);
 
 void __nson_buf_release(NsonBuf *buf);
 
+int __nson_buf_cmp(const NsonBuf *a, const NsonBuf *b);
+
 int __nson_init_buf(Nson *nson, NsonBuf *val, enum NsonType info);
 
 int __nson_arr_clone(Nson *array);
@@ -112,6 +114,10 @@ int __nson_obj_serialize(FILE *out, const Nson *object,
 
 int __nson_arr_serialize(FILE *out, const Nson *array,
 		const NsonSerializerInfo *info, enum NsonOptions options);
+
+int __nson_arr_clean(Nson *nson);
+
+int __nson_obj_clean(Nson *nson);
 
 NsonPointerRef *__nson_ptr_retain(NsonPointerRef *ref);
 

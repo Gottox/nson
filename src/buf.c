@@ -93,3 +93,16 @@ __nson_buf_release(NsonBuf *buf) {
 		free(buf);
 	}
 }
+
+int
+__nson_buf_cmp(const NsonBuf *a, const NsonBuf *b) {
+	int rv;
+	const int len_a = __nson_buf_siz(a);
+	const int len_b = __nson_buf_siz(b);
+	const int min_len = MIN(len_a, len_b);
+
+	rv = memcmp(a->buf, b->buf, min_len);
+	if(rv == 0 && len_a != len_b)
+		rv = SCAL_CMP(len_a, len_b);
+	return rv;
+}

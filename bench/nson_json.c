@@ -22,8 +22,9 @@ void bench_nson_json() {
 void bench_nson_to_json() {
 	int rv;
 	char *str;
+	size_t size;
 
-	rv = nson_to_json(&nson, &str);
+	rv = nson_json_serialize(&str, &size, &nson, 0);
 
 	assert(rv >= 0);
 	(void)rv;

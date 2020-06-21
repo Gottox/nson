@@ -23,8 +23,9 @@ static void
 bench_nson_to_plist() {
 	int rv;
 	char *str;
+	size_t size;
 
-	rv = nson_to_plist(&nson, &str);
+	rv = nson_plist_serialize(&str, &size, &nson, 0);
 
 	assert(rv >= 0);
 	(void)rv;

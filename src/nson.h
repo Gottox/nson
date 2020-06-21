@@ -404,13 +404,11 @@ int nson_arr_pop(Nson *last, Nson *array);
 int nson_arr_concat(Nson *array_1, Nson *array_2);
 Nson * nson_arr_last(Nson *array);
 int nson_arr_push_int(Nson *array, int value);
-int nson_arr_clean(Nson *nson);
 
 Nson * nson_obj_get(Nson *object, const char *key);
 int nson_obj_put(Nson *object, const char *key, Nson *value);
 size_t nson_obj_size(const Nson *object);
 const char *nson_obj_get_key(Nson *object, int index);
-int nson_obj_clean(Nson *nson);
 int nson_obj_from_arr(Nson *object);
 
 int nson_json_serialize(char **str, size_t *size, Nson *nson,

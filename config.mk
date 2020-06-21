@@ -4,7 +4,7 @@ VERSION = 0.1
 #CFLAGS = -fstack-protector-strong -D_FORTIFY_SOURCE=2 -Wall -fPIC -Werror -Wpedantic -O2 -pthread
 
 # debug flags
-CFLAGS = -Wall -Werror -Wpedantic -O0 -g -fPIC -std=c99 -pthread
+CFLAGS = -Wall -Werror -Wpedantic -O2 -g -fPIC -std=c99 -pthread
 LDFLAGS = -pthread
 
 TST_CFLAGS = -fsanitize=address

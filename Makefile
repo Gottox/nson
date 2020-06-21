@@ -9,6 +9,7 @@ HDR = \
 	src/internal.h \
 
 SRC = \
+	src/nson.c \
 	src/buf.c \
 	src/scalar.c \
 	src/data.c \
@@ -16,7 +17,7 @@ SRC = \
 	src/pointer.c \
 	src/array.c \
 	src/util.c \
-	src/map.c \
+	src/map_reduce.c \
 	src/json.c \
 	src/ini.c \
 	src/stack.c \
@@ -32,7 +33,7 @@ TST = \
 	test/json.c \
 	test/ini.c \
 	test/plist.c \
-	test/map.c \
+	test/map_reduce.c \
 
 TST_BIN = $(TST:.c=-test)
 

@@ -129,6 +129,22 @@ nson_arr_push_int(Nson *array, int value) {
 }
 
 int
+nson_arr_push_real(Nson *array, double value) {
+	Nson v = { 0 };
+	nson_real_wrap(&v, value);
+
+	return nson_arr_push(array, &v);
+}
+
+int
+nson_arr_push_str(Nson *array, char *value) {
+	Nson v = { 0 };
+	nson_init_str(&v, value);
+
+	return nson_arr_push(array, &v);
+}
+
+int
 nson_arr_pop(Nson *last, Nson *array) {
 	assert(nson_type(array) == NSON_ARR);
 
@@ -188,7 +204,7 @@ nson_arr_sort(Nson *nson) {
 }
 
 int
-nson_arr_clean(Nson *nson) {
+__nson_arr_clean(Nson *nson) {
 	int i, rv = 0;
 
 	for (i = 0; i < nson_arr_len(nson); i++) {

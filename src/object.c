@@ -147,7 +147,8 @@ nson_obj_size(const Nson *object) {
 	return object->o.len;
 }
 
-int nson_obj_clean(Nson *object) {
+int
+__nson_obj_clean(Nson *object) {
 	assert(nson_type(object) == NSON_OBJ);
 	int i, rv = 0;
 	NsonObjectEntry *entry;
@@ -165,13 +166,19 @@ int nson_obj_clean(Nson *object) {
 
 int
 nson_obj_from_arr(Nson *array) {
-  assert(nson_type(array) == NSON_ARR);
+	assert(nson_type(array) == NSON_ARR);
+	assert(nson_arr_len(array) % 2 == 0);
+	Nson obj;
 
-  array->c.type = NSON_OBJ;
-  array->o.len = array->a.len / 2;
-  array->o.messy = true;
+	nson_init(&obj, NSON_OBJ);
 
-  return 0;
+	obj.c.type = NSON_OBJ;
+	obj.o.messy = true;
+	obj.o.arr = (NsonObjectEntry *)array->a.arr;
+	obj.o.len = array->a.len / 2;
+
+	nson_move(array, &obj);
+	return 0;
 }
 
 int
