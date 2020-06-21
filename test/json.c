@@ -459,6 +459,11 @@ INPUT_CHECK(
 		"\"0L~\\\\\\\"\\"
 		)
 
+INPUT_CHECK(
+		fuzz_parse_deadlock, json,
+		"{{99999999999999999999999999T]]]"
+		)
+
 
 DEFINE
 TEST(parse_true);
@@ -493,4 +498,5 @@ TEST(fuzz_parse_leak);
 TEST(fuzz_parse_leak2);
 TEST(fuzz_parse_crash_string);
 TEST(fuzz_parse_crash2);
+TEST(fuzz_parse_deadlock);
 DEFINE_END

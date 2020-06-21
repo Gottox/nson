@@ -243,7 +243,11 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 				break;
 			}
 			i += rv;
-			i += __nson_parse_number(&tmp, &doc[i], len - i);
+			rv = __nson_parse_number(&tmp, &doc[i], len - i);
+			if(rv <= 0) {
+				break;
+			}
+			i += rv;
 			if(nson_type(&tmp) == NSON_INT) {
 				nson_real_wrap(&tmp, nson_real(&tmp));
 			}
@@ -258,7 +262,11 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 				break;
 			}
 			i += rv;
-			i += __nson_parse_dev(&i_val, &doc[i], len - i);
+			rv = __nson_parse_dev(&i_val, &doc[i], len - i);
+			if(rv <= 0) {
+				break;
+			}
+			i += rv;
 			nson_int_wrap(&tmp, i_val);
 			nson_arr_push(stack_top, &tmp);
 			if((rv = skip_tag("</integer", &doc[i], len - i)) <= 0) {
