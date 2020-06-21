@@ -226,7 +226,10 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 				rv = -1;
 				goto out;
 			}
-			nson_obj_from_arr(stack_top);
+			if (nson_obj_from_arr(stack_top) < 0) {
+				rv = -1;
+				goto out;
+			}
 			// no break
 		case ']':
 			nson_arr_pop(&old_top, &stack);

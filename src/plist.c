@@ -316,7 +316,9 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 				break;
 			case 'd':
 				// TODO
-				nson_obj_from_arr(stack_top);
+				if (nson_obj_from_arr(stack_top) < 0) {
+					goto err;
+				}
 				if((rv = skip_tag("dict", &doc[i], len - i)) <= 0) {
 					break;
 				}
