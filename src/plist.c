@@ -244,7 +244,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			}
 			i += rv;
 			rv = __nson_parse_number(&tmp, &doc[i], len - i);
-			if(rv <= 0) {
+			if(rv < 0) {
 				break;
 			}
 			i += rv;
@@ -263,8 +263,8 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			}
 			i += rv;
 			rv = __nson_parse_dev(&i_val, &doc[i], len - i);
-			if(rv <= 0) {
-				break;
+			if(rv < 0) {
+				goto err;
 			}
 			i += rv;
 			nson_int_wrap(&tmp, i_val);
