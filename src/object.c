@@ -167,8 +167,11 @@ __nson_obj_clean(Nson *object) {
 int
 nson_obj_from_arr(Nson *array) {
 	assert(nson_type(array) == NSON_ARR);
-	assert(nson_arr_len(array) % 2 == 0);
 	Nson obj;
+
+	if (nson_arr_len(array) % 2 != 0) {
+		return -1;
+	}
 
 	nson_init(&obj, NSON_OBJ);
 
