@@ -279,7 +279,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		case '8':
 		case '9':
 			rv = __nson_parse_number(&tmp, &doc[i], len - i);
-			if (rv <= 0) {
+			if (rv < 0) {
 				goto out;
 			}
 			i += rv;
