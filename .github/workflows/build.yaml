@@ -23,7 +23,7 @@ jobs:
       if: matrix.cc == 'clang'
       run: make fuzz CC=${{ matrix.cc }}
     - name: IRC Message Action
-      uses: Gottox/irc-message-action@master
+      uses: Gottox/irc-message-action@v1
       if: failure()
       with:
         channel: "Gottox"
