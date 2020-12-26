@@ -7,6 +7,14 @@
 
 #include "../test/test.h"
 
+// Make linter happy:
+#ifndef BENCH_PLIST
+#define BENCH_PLIST "/dev/null"
+#endif
+#ifndef BENCH_JSON
+#define BENCH_JSON "/dev/null"
+#endif
+
 #include "../src/nson.h"
 Nson nson;
 

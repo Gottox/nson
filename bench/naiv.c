@@ -13,6 +13,14 @@
 #include <assert.h>
 #include <ctype.h>
 
+// Make linter happy:
+#ifndef BENCH_PLIST
+#define BENCH_PLIST "/dev/null"
+#endif
+#ifndef BENCH_JSON
+#define BENCH_JSON "/dev/null"
+#endif
+
 #define SKIP_SPACES for(; *p && strchr("\n\f\r\t\v ", *p); p++);
 
 inline static int
@@ -64,7 +72,6 @@ parse_plist(const char *doc) {
 			goto err;
 		case '<':
 			p++;
-			rv = 0;
 			string_tag = "string";
 			switch(*p) {
 				case 'd':
@@ -114,11 +121,13 @@ parse_plist(const char *doc) {
 				case 'r':
 					if((rv = skip_tag("real", p, len - (doc - p))) <= 0)
 						break;
+					p += rv;
 					for(; (*p >= '0' && *p <= '9') || *p == '.' || *p == '+' || *p == '-' || *p == 'e'; p++);
 					break;
 				case 'i':
 					if((rv = skip_tag("integer", p, len - (doc - p))) <= 0)
 						break;
+					p += rv;
 					for(; (*p >= '0' && *p <= '9') || *p == '.' || *p == '+' || *p == '-'; p++);
 					break;
 			}
@@ -143,6 +152,8 @@ parse_json(const char *doc, const size_t len) {
 	const char *p = doc;
 	size_t stack_size = 1;
 	do {
+		if (!p)
+			return 0;
 		switch(*p) {
 		case '\0':
 			goto err;
@@ -203,7 +214,7 @@ parse_json(const char *doc, const size_t len) {
 		}
 	} while(stack_size > 1);
 
-	for(; isspace(*p); p++);
+	for(; p && isspace(*p); p++);
 	return p - doc;
 err:
 	return -1;

@@ -326,6 +326,14 @@ int nson_load(NsonParser parser, Nson *nson, const char *file);
 
 /**
  * @brief
+ */
+typedef struct NsonThreadMapSettings {
+	int threads;
+	int chunk_size;
+} NsonThreadMapSettings;
+
+/**
+ * @brief
  * @return
  */
 int nson_map(Nson *nson, NsonMapper mapper, void *user_data);
@@ -335,6 +343,12 @@ int nson_map(Nson *nson, NsonMapper mapper, void *user_data);
  * @return
  */
 int nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data);
+
+/**
+ * @brief
+ * @return
+ */
+int nson_map_thread_ext(NsonThreadMapSettings *settings, Nson *nson, NsonMapper mapper, void *user_data);
 
 /**
  * @brief

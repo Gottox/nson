@@ -42,7 +42,7 @@ main(int argc, char *argv[]) {
 	int c, i, fd;
 	char *formats[2] = { NULL, NULL };
 
-	for(c = 0; (c = getopt_long(argc, argv, "o:i:", long_options, NULL)) != -1; ) {
+	for(; (c = getopt_long(argc, argv, "o:i:", long_options, NULL)) != -1; ) {
 		switch(c) {
 		case 'o':
 			formats[1] = optarg;

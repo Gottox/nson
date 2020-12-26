@@ -27,12 +27,14 @@
  */
 
 #include "internal.h"
+#include "nson.h"
 
 #include <assert.h>
 #include <string.h>
 #include <search.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/sysinfo.h>
 
 static const char base64_table[] =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -171,7 +173,7 @@ struct ThreadInfo {
 	void *user_data;
 	NsonMapper mapper;
 	pthread_t thread;
-	pthread_spinlock_t *lock;
+	pthread_mutex_t *lock;
 	off_t *reserved;
 	int rv;
 };
@@ -189,11 +191,11 @@ map_thread_wrapper(void *arg) {
 		for (; i < end && i < thread->len; i++) {
 			thread->mapper(i, nson_arr_get(thread->nson, i), thread->user_data);
 		}
-		pthread_spin_lock(thread->lock);
+		pthread_mutex_lock(thread->lock);
 		i = *thread->reserved;
 		end = i + thread->chunk_size;
 		*thread->reserved = end;
-		pthread_spin_unlock(thread->lock);
+		pthread_mutex_unlock(thread->lock);
 	} while(i < thread->len);
 
 	thread->rv = rv;
@@ -202,52 +204,69 @@ map_thread_wrapper(void *arg) {
 }
 
 int
-nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
+nson_map_thread_ext(NsonThreadMapSettings *settings, Nson *nson, NsonMapper mapper, void *user_data) {
 	struct ThreadInfo *threads;
-	int thread_num, chunk_size, i;
+	int i;
 	size_t len;
-	pthread_spinlock_t lock;
+	pthread_mutex_t lock;
 	off_t reserved;
+	int rv = 0;
 
-	thread_num = (int)sysconf(_SC_NPROCESSORS_ONLN);
 	len = nson_arr_len(nson);
 
-	if(thread_num <= 1 || len <= 1) {
-		return nson_map(nson, mapper, user_data);
-	} else if(thread_num > len) {
-		thread_num = len;
-		chunk_size = 1;
-	} else {
-		chunk_size = len / thread_num;
-		if(chunk_size > 32)
-			chunk_size = 32;
-	}
+	threads = alloca(settings->threads * sizeof(*threads));
+	pthread_mutex_init(&lock, NULL);
 
-	threads = alloca(thread_num * sizeof(*threads));
-	pthread_spin_init(&lock, PTHREAD_PROCESS_SHARED);
-
-	reserved = thread_num * chunk_size;
-	for (i = 0; i < thread_num; i++) {
+	reserved = settings->threads * settings->chunk_size;
+	for (i = 0; i < settings->threads; i++) {
 		threads[i].rv = 0;
 		threads[i].mapper = mapper;
 		threads[i].user_data = user_data;
 		threads[i].nson = nson;
 		threads[i].id = i;
 		threads[i].len = len;
-		threads[i].chunk_size = chunk_size;
+		threads[i].chunk_size = settings->chunk_size;
 		threads[i].lock = &lock;
 		threads[i].reserved = &reserved;
 
-		if (i == thread_num - 1)
+		if (i == settings->threads - 1) {
 			map_thread_wrapper(&threads[i]);
-		else
+			rv = threads[i].rv;
+		} else {
 			pthread_create(&threads[i].thread, NULL, map_thread_wrapper, &threads[i]);
+		}
 	}
 
-	for (i = 0; i < thread_num - 1; i++) {
+	for (i = 0; i < settings->threads - 1; i++) {
 		pthread_join(threads[i].thread, NULL);
+		rv |= threads[i].rv;
 	}
 
-	pthread_spin_destroy(&lock);
-	return 0;
+	pthread_mutex_destroy(&lock);
+	return rv;
+}
+
+int
+nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
+	int len;
+	NsonThreadMapSettings settings = {
+		.threads = 0,
+		.chunk_size = 0,
+	};
+	settings.threads = get_nprocs();
+
+	len = nson_arr_len(nson);
+
+	if(settings.threads <= 1 || len <= 1) {
+		return nson_map(nson, mapper, user_data);
+	} else if(settings.threads > len) {
+		settings.threads = len;
+		settings.chunk_size = 1;
+	} else {
+		settings.chunk_size = len / settings.threads;
+		if(settings.chunk_size > 32)
+			settings.chunk_size = 32;
+	}
+
+	return nson_map_thread_ext(&settings, nson, mapper, user_data);
 }

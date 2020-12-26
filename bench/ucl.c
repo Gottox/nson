@@ -12,6 +12,11 @@
 
 #include "../src/nson.h"
 
+// Make linter happy:
+#ifndef BENCH_JSON
+#define BENCH_JSON "/dev/null"
+#endif
+
 #include <ucl.h>
 
 void ucl() {

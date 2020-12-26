@@ -187,7 +187,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	int rv = 0;
 	off_t row = 0;
 	int i;
-	int line_start = 0;
+	//int line_start = 0;
 	Nson *stack_top;
 	Nson old_top = { 0 };
 	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
@@ -199,7 +199,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	nson_arr_push(&stack, &tmp);
 
 	/* UNUSED */
-	(void)line_start;
+	//(void)line_start;
 
 	stack_top = nson_arr_get(&stack, 0);
 	// Skip leading Whitespaces
@@ -258,7 +258,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			i += rv + 1; // Skip text + quote
 			break;
 		case '\n':
-			line_start = i + 1;
+			//line_start = i + 1;
 			row++;
 		case '\f':
 		case '\r':

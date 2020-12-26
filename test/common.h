@@ -12,9 +12,13 @@
 #define INPUT_CHECK(name, parser, ...) static void \
 name() { \
 	const char static_input[] =  __VA_ARGS__; \
-	size_t size = sizeof(static_input) - 1; \
-	char *input = malloc(size); \
-	memcpy(input, static_input, size); \
+	const size_t in_size = sizeof(static_input) - 1; \
+	size_t size = 0; \
+	char *input = NULL; \
+	if (in_size) { \
+		input = malloc(in_size); \
+		memcpy(input, static_input, in_size); \
+	} \
 	\
 	char *result = NULL; \
 	Nson nson = { 0 }; \
@@ -24,7 +28,9 @@ name() { \
 	nson_plist_serialize(&result, &size, &nson, 0); \
 	free(result); \
 	nson_clean(&nson); \
-	free(input); \
+	if (in_size) { \
+		free(input); \
+	} \
 }
 
 #endif /* !COMMON_H */

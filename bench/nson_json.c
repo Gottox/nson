@@ -10,6 +10,11 @@
 #include "../src/nson.h"
 Nson nson = { 0 };
 
+// Make linter happy:
+#ifndef BENCH_JSON
+#define BENCH_JSON "/dev/null"
+#endif
+
 void bench_nson_json() {
 	int rv;
 

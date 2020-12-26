@@ -14,6 +14,11 @@
 
 #include <jansson.h>
 
+// Make linter happy:
+#ifndef BENCH_JSON
+#define BENCH_JSON "/dev/null"
+#endif
+
 void jansson() {
 	bool rv;
 	struct json_t *json;

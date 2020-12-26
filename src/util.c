@@ -156,8 +156,8 @@ err:
 off_t
 __nson_parse_number(Nson *nson, const char *src, size_t len) {
 	off_t i = 0;
-	int64_t i_val;
-	double r_val;
+	int64_t i_val = 0;
+	double r_val = 0;
 
 	i = __nson_parse_dev(&i_val, src, len);
 	if (i >= len || src[i] != '.') {

@@ -14,6 +14,11 @@
 
 #include <json.h>
 
+// Make linter happy:
+#ifndef BENCH_JSON
+#define BENCH_JSON "/dev/null"
+#endif
+
 void json_c() {
 	bool rv;
 	struct json_object *json;
