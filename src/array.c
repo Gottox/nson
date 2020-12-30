@@ -225,7 +225,7 @@ __nson_arr_serialize(FILE *out, const Nson *array,
 	for (i = 0; i < size; i++) {
 		element = nson_arr_get(array, i);
 		info->serializer(out, element, options | NSON_SKIP_HEADER);
-		if (i + 1 == size) {
+		if (i + 1 != size) {
 			fputs(info->seperator, out);
 		}
 	}
