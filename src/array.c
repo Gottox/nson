@@ -183,7 +183,7 @@ nson_arr_concat(Nson *array_1, Nson *array_2) {
 		return -1;
 	}
 
-	memcpy(&array_1->a.arr[len_1], &array_2->a.arr, len_2);
+	memcpy(&array_1->a.arr[len_1], array_2->a.arr, len_2 * sizeof(*array_2->a.arr));
 
 	// Set length to 0 to avoid cleanup of array elements
 	array_2->a.len = 0;

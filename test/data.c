@@ -289,6 +289,34 @@ issue_nullref() {
 	free(src);
 }
 
+static void
+issue_concat_array() {
+	Nson nson_1 = {0};
+	Nson nson_2 = {0};
+	int rv = 0;
+	char *str;
+	size_t len;
+
+	rv = NSON(&nson_1, [
+			1, 2, 3, 4, 5
+	]);
+	rv = NSON(&nson_2, [
+			6, 7, 8, 9, 10
+	]);
+
+	rv = nson_arr_concat(&nson_1, &nson_2);
+
+	nson_json_serialize(&str, &len, &nson_1, 0);
+	puts(str);
+
+	assert(strcmp("[1,2,3,4,5,6,7,8,9,10]", str) == 0);
+
+	nson_clean(&nson_1);
+	nson_clean(&nson_1);
+	free(str);
+	(void)rv;
+}
+
 DEFINE
 TEST(create_array);
 TEST(add_int_to_array);
@@ -300,4 +328,5 @@ TEST(sort_object);
 TEST(walk_array_empty);
 TEST(walk_array_tree);
 TEST(issue_nullref);
+TEST(issue_concat_array);
 DEFINE_END
