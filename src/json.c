@@ -1,39 +1,40 @@
 /*
  * BSD 2-Clause License
- * 
+ *
  * Copyright (c) 2018, Enno Boland
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "internal.h"
 #include "nson.h"
 
-#include <string.h>
-#include <ctype.h>
-#include <search.h>
-#include <inttypes.h>
 #include <assert.h>
+#include <ctype.h>
+#include <inttypes.h>
+#include <search.h>
+#include <string.h>
 
 static int
 json_str_len(const char *src, const size_t len) {
@@ -61,7 +62,7 @@ parse_json_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 	dest = __nson_buf_unwrap(*dest_buf);
 
 	for (chunk_start = src;
-			(chunk_end = memchr(chunk_start, '\\', len - (chunk_start - src)));) {
+		 (chunk_end = memchr(chunk_start, '\\', len - (chunk_start - src)));) {
 		chunk_len = chunk_end - chunk_start;
 
 		memcpy(dest, chunk_start, chunk_len);
@@ -84,7 +85,7 @@ parse_json_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 			continue;
 		}
 
-		switch(chunk_start[0]) {
+		switch (chunk_start[0]) {
 		case 't':
 			*dest = '\t';
 			break;
@@ -116,7 +117,7 @@ static int
 json_escape_string(const Nson *nson, FILE *fd) {
 	int rv = 0;
 	off_t i = 0, last_write = 0;
-	char c[] = { '\\', 0 };
+	char c[] = {'\\', 0};
 	const char *data;
 	size_t len;
 
@@ -145,29 +146,30 @@ json_escape_string(const Nson *nson, FILE *fd) {
 
 		if (c[1] != 0) {
 			rv = -1;
-			if (fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0) {
+			if (fwrite(&data[last_write], sizeof(*data), i - last_write, fd) ==
+				0) {
 				goto cleanup;
 			}
 			if (fwrite(c, sizeof(*data), 2, fd) == 0) {
 				goto cleanup;
 			}
-			last_write = i+1;
+			last_write = i + 1;
 			c[1] = 0;
-		}
-		else if (iscntrl(data[i])) {
+		} else if (iscntrl(data[i])) {
 			rv = -1;
-			if (fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0) {
+			if (fwrite(&data[last_write], sizeof(*data), i - last_write, fd) ==
+				0) {
 				goto cleanup;
 			}
 			if (fprintf(fd, "\\u%04x", data[i]) == 0) {
 				goto cleanup;
 			}
-			last_write = i+1;
+			last_write = i + 1;
 		}
 	}
 
 	if (i != last_write &&
-			fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0) {
+		fwrite(&data[last_write], sizeof(*data), i - last_write, fd) == 0) {
 		return -1;
 	}
 	fputc('"', fd);
@@ -187,10 +189,10 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 	int rv = 0;
 	off_t row = 0;
 	int i;
-	//int line_start = 0;
+	// int line_start = 0;
 	Nson *stack_top;
-	Nson old_top = { 0 };
-	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
+	Nson old_top = {0};
+	Nson stack = {{{0}}}, tmp = {{{0}}};
 	NsonBuf *buf;
 
 	memset(nson, 0, sizeof(*nson));
@@ -203,13 +205,14 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 
 	stack_top = nson_arr_get(&stack, 0);
 	// Skip leading Whitespaces
-	for (i = 0; i < len && isspace(doc[i]); i++);
+	for (i = 0; i < len && isspace(doc[i]); i++)
+		;
 	if (i >= len) {
 		rv = -1;
 		goto out;
 	}
 	do {
-		switch(doc[i]) {
+		switch (doc[i]) {
 		case '[':
 		case '{':
 			nson_init(&tmp, NSON_ARR);
@@ -234,7 +237,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		case ']':
 			nson_arr_pop(&old_top, &stack);
 			stack_top = nson_arr_last(&stack);
-			if(stack_top == NULL) {
+			if (stack_top == NULL) {
 				rv = -1;
 				goto out;
 			}
@@ -258,7 +261,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 			i += rv + 1; // Skip text + quote
 			break;
 		case '\n':
-			//line_start = i + 1;
+			// line_start = i + 1;
 			row++;
 		case '\f':
 		case '\r':
@@ -319,7 +322,6 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 		}
 	} while (nson_arr_len(&stack) > 1 && i < len);
 
-
 	if (nson_arr_len(&stack) != 1 || nson_arr_len(stack_top) != 1) {
 		// Premature EOF
 		rv = -1;
@@ -334,7 +336,7 @@ out:
 }
 
 static int
-json_b64_enc(const Nson *nson, FILE* fd) {
+json_b64_enc(const Nson *nson, FILE *fd) {
 	int rv = 0;
 	Nson tmp;
 
@@ -345,7 +347,8 @@ json_b64_enc(const Nson *nson, FILE* fd) {
 		rv = -1;
 	} else if (fputc('"', fd) < 0) {
 		rv = -1;
-	} else if (fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) == 0) {
+	} else if (fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) ==
+			   0) {
 		rv = -1;
 	} else if (fputc('"', fd) < 0) {
 		rv = -1;
@@ -355,7 +358,8 @@ json_b64_enc(const Nson *nson, FILE* fd) {
 }
 
 int
-nson_json_serialize(char **str, size_t *size, Nson *nson, enum NsonOptions options) {
+nson_json_serialize(char **str, size_t *size, Nson *nson,
+					enum NsonOptions options) {
 	int rv;
 	FILE *out = open_memstream(str, size);
 	if (out == NULL) {
@@ -375,36 +379,36 @@ nson_json_write(FILE *out, const Nson *nson, enum NsonOptions options) {
 		.key_value_seperator = ":",
 	};
 
-	switch(nson_type(nson)) {
-		case NSON_POINTER:
-		case NSON_NIL:
-			fputs("null", out);
-			break;
-		case NSON_STR:
-			json_escape_string(nson, out);
-			break;
-		case NSON_BLOB:
-			json_b64_enc(nson, out);
-			break;
-		case NSON_REAL:
-			fprintf(out, "%f", nson_real(nson));
-			break;
-		case NSON_INT:
-			fprintf(out, "%" PRId64, nson_int(nson));
-			break;
-		case NSON_BOOL:
-			fputs(nson_int(nson) ? "true" : "false", out);
-			break;
-		case NSON_ARR:
-			fputc('[', out);
-			rv = __nson_arr_serialize(out, nson, &info, options);
-			fputc(']', out);
-			break;
-		case NSON_OBJ:
-			fputc('{', out);
-			rv = __nson_obj_serialize(out, nson, &info, options);
-			fputc('}', out);
-			break;
+	switch (nson_type(nson)) {
+	case NSON_POINTER:
+	case NSON_NIL:
+		fputs("null", out);
+		break;
+	case NSON_STR:
+		json_escape_string(nson, out);
+		break;
+	case NSON_BLOB:
+		json_b64_enc(nson, out);
+		break;
+	case NSON_REAL:
+		fprintf(out, "%f", nson_real(nson));
+		break;
+	case NSON_INT:
+		fprintf(out, "%" PRId64, nson_int(nson));
+		break;
+	case NSON_BOOL:
+		fputs(nson_int(nson) ? "true" : "false", out);
+		break;
+	case NSON_ARR:
+		fputc('[', out);
+		rv = __nson_arr_serialize(out, nson, &info, options);
+		fputc(']', out);
+		break;
+	case NSON_OBJ:
+		fputc('{', out);
+		rv = __nson_obj_serialize(out, nson, &info, options);
+		fputc('}', out);
+		break;
 	}
 	return rv;
 }

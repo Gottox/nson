@@ -1,43 +1,44 @@
 /*
  * BSD 2-Clause License
- * 
+ *
  * Copyright (c) 2018, Enno Boland
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "internal.h"
 #include "nson.h"
 
 #include <assert.h>
-#include <string.h>
-#include <search.h>
-#include <unistd.h>
 #include <pthread.h>
+#include <search.h>
+#include <string.h>
 #include <sys/sysinfo.h>
+#include <unistd.h>
 
 static const char base64_table[] =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 int
 nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
@@ -57,11 +58,11 @@ nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
 
 	for (i = j = 0; i < src_len && src[i] != '='; i++) {
 		p = memchr(base64_table, src[i], 64);
-		if(p == NULL)
+		if (p == NULL)
 			break;
 		v = p - base64_table;
 
-		switch(i % 4) {
+		switch (i % 4) {
 		case 0:
 			dest[j] = v << 2;
 			break;
@@ -79,9 +80,10 @@ nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
 		}
 	}
 
-	for(; i % 4 != 0 && i < src_len && src[i] == '='; i++);
+	for (; i % 4 != 0 && i < src_len && src[i] == '='; i++)
+		;
 
-	if(i % 4 != 0) {
+	if (i % 4 != 0) {
 		free(dest);
 		return -1;
 	}
@@ -110,8 +112,8 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 	if (!dest)
 		return -1;
 
-	for(j = i = 0; i < src_len; i++, j++) {
-		switch(i % 3) {
+	for (j = i = 0; i < src_len; i++, j++) {
+		switch (i % 3) {
 		case 0:
 			dest[j] = base64_table[(src[i] >> 2) & mask];
 			reminder = (src[i] << 4) & mask;
@@ -126,7 +128,7 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 			break;
 		}
 	}
-	if(__nson_buf_siz(dest_buf) != j) {
+	if (__nson_buf_siz(dest_buf) != j) {
 		dest[j] = base64_table[reminder & mask];
 		memset(&dest[j + 1], '=', __nson_buf_siz(dest_buf) - j - 1);
 	}
@@ -139,7 +141,7 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 
 int
 nson_reduce(Nson *dest, const Nson *nson, NsonReducer reducer,
-		const void *user_data) {
+			const void *user_data) {
 	int rv = 0;
 	off_t i;
 	size_t len;
@@ -196,7 +198,7 @@ map_thread_wrapper(void *arg) {
 		end = i + thread->chunk_size;
 		*thread->reserved = end;
 		pthread_mutex_unlock(thread->lock);
-	} while(i < thread->len);
+	} while (i < thread->len);
 
 	thread->rv = rv;
 
@@ -204,7 +206,8 @@ map_thread_wrapper(void *arg) {
 }
 
 int
-nson_map_thread_ext(NsonThreadMapSettings *settings, Nson *nson, NsonMapper mapper, void *user_data) {
+nson_map_thread_ext(NsonThreadMapSettings *settings, Nson *nson,
+					NsonMapper mapper, void *user_data) {
 	struct ThreadInfo *threads;
 	int i;
 	size_t len;
@@ -233,7 +236,8 @@ nson_map_thread_ext(NsonThreadMapSettings *settings, Nson *nson, NsonMapper mapp
 			map_thread_wrapper(&threads[i]);
 			rv = threads[i].rv;
 		} else {
-			pthread_create(&threads[i].thread, NULL, map_thread_wrapper, &threads[i]);
+			pthread_create(&threads[i].thread, NULL, map_thread_wrapper,
+						   &threads[i]);
 		}
 	}
 
@@ -257,14 +261,14 @@ nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
 
 	len = nson_arr_len(nson);
 
-	if(settings.threads <= 1 || len <= 1) {
+	if (settings.threads <= 1 || len <= 1) {
 		return nson_map(nson, mapper, user_data);
-	} else if(settings.threads > len) {
+	} else if (settings.threads > len) {
 		settings.threads = len;
 		settings.chunk_size = 1;
 	} else {
 		settings.chunk_size = len / settings.threads;
-		if(settings.chunk_size > 32)
+		if (settings.chunk_size > 32)
 			settings.chunk_size = 32;
 	}
 

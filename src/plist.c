@@ -1,40 +1,45 @@
 /*
  * BSD 2-Clause License
- * 
+ *
  * Copyright (c) 2018, Enno Boland
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "internal.h"
 #include "nson.h"
 
 #include <assert.h>
-#include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <string.h>
 
-#define SKIP_SPACES do { for(; i < len && doc[i] && strchr("\n\f\r\t\v ", doc[i]); i++); } while(0)
+#define SKIP_SPACES                                                            \
+	do {                                                                       \
+		for (; i < len && doc[i] && strchr("\n\f\r\t\v ", doc[i]); i++)        \
+			;                                                                  \
+	} while (0)
 
 static int
 parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
@@ -46,9 +51,9 @@ parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 	(*dest_buf) = __nson_buf_new(len);
 	dest = __nson_buf_unwrap(*dest_buf);
 
-	for(chunk_start = src;
-			(chunk_end = memchr(chunk_start, '&', len - (chunk_start - src)));
-			dest++) {
+	for (chunk_start = src;
+		 (chunk_end = memchr(chunk_start, '&', len - (chunk_start - src)));
+		 dest++) {
 		chunk_len = chunk_end - chunk_start;
 
 		memcpy(dest, chunk_start, chunk_len);
@@ -57,20 +62,20 @@ parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 
 		if (chunk_start[0] == '#') {
 			chunk_start++;
-			chunk_start += __nson_parse_dev(&val, chunk_start, len - (chunk_start - src));
+			chunk_start +=
+				__nson_parse_dev(&val, chunk_start, len - (chunk_start - src));
 			if (chunk_start[0] == ';') {
 				chunk_start += __nson_to_utf8(dest, val, 3);
-			}
-			else {
+			} else {
 				*dest = '&';
 			}
-		} else if(strncmp("lt;", chunk_start, 3) == 0) {
+		} else if (strncmp("lt;", chunk_start, 3) == 0) {
 			chunk_start += 3;
 			*dest = '<';
-		} else if(strncmp("gt;", chunk_start, 3) == 0) {
+		} else if (strncmp("gt;", chunk_start, 3) == 0) {
 			chunk_start += 3;
 			*dest = '>';
-		} else if(strncmp("amp;", chunk_start, 4) == 0) {
+		} else if (strncmp("amp;", chunk_start, 4) == 0) {
 			chunk_start += 4;
 			*dest = '&';
 		} else {
@@ -101,13 +106,13 @@ skip_tag(const char *tag, const char *p, const size_t len) {
 		return 0;
 	p += tag_len;
 
-	if(*p == '>')
+	if (*p == '>')
 		return p - begin + 1;
-	else if(*p != ' ')
+	else if (*p != ' ')
 		return 0;
 
 	p = memchr(p, '>', len - (p - begin));
-	if(!p)
+	if (!p)
 		return -1;
 	return p - begin + 1;
 }
@@ -118,14 +123,14 @@ measure_string_len(const char *str, const char *end_tag, size_t len) {
 	const char *p = str;
 
 	for (rv = 0; rv == 0;) {
-		if(!(p = memchr(p, '<', len - (p - str)))) {
+		if (!(p = memchr(p, '<', len - (p - str)))) {
 			return -1;
 		}
 		p++;
-		if ((p - str) >= len){
+		if ((p - str) >= len) {
 			return -1;
 		}
-		if(*p != '/') {
+		if (*p != '/') {
 			continue;
 		}
 		p++;
@@ -147,8 +152,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 	NsonBuf *buf;
 	Nson old_top;
 	Nson *stack_top;
-	Nson stack = { { { 0 } } }, tmp = { { { 0 } } };
-
+	Nson stack = {{{0}}}, tmp = {{{0}}};
 
 	rv = skip_tag("<?xml", &doc[i], len - i);
 	if (rv <= 0) {
@@ -182,9 +186,9 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			goto err;
 		}
 		i++;
-		switch(doc[i]) {
+		switch (doc[i]) {
 		case 'a':
-			if((rv = skip_tag("array", &doc[i], len - i)) <= 0) {
+			if ((rv = skip_tag("array", &doc[i], len - i)) <= 0) {
 				break;
 			}
 			nson_init(&tmp, NSON_ARR);
@@ -193,12 +197,12 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			i += rv;
 			break;
 		case 'd':
-			if((rv = skip_tag("dict", &doc[i], len - i)) > 0) {
+			if ((rv = skip_tag("dict", &doc[i], len - i)) > 0) {
 				nson_init(&tmp, NSON_ARR);
 				nson_arr_push(&stack, &tmp);
 				stack_top = nson_arr_last(&stack);
 				i += rv;
-			} else if((rv = skip_tag("data", &doc[i], len - i)) > 0) {
+			} else if ((rv = skip_tag("data", &doc[i], len - i)) > 0) {
 				i += rv;
 				rv = measure_string_len(&doc[i], "data", len - i);
 				if (rv < 0) {
@@ -220,7 +224,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 		case 'k':
 			string_tag = "key";
 		case 's':
-			if((rv = skip_tag(string_tag, &doc[i], len - i)) <= 0) {
+			if ((rv = skip_tag(string_tag, &doc[i], len - i)) <= 0) {
 				break;
 			}
 			i += rv;
@@ -239,43 +243,43 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			string_tag = "string";
 			break;
 		case 'r':
-			if((rv = skip_tag("real", &doc[i], len - i)) <= 0) {
+			if ((rv = skip_tag("real", &doc[i], len - i)) <= 0) {
 				break;
 			}
 			i += rv;
 			rv = __nson_parse_number(&tmp, &doc[i], len - i);
-			if(rv < 0) {
+			if (rv < 0) {
 				break;
 			}
 			i += rv;
-			if(nson_type(&tmp) == NSON_INT) {
+			if (nson_type(&tmp) == NSON_INT) {
 				nson_real_wrap(&tmp, nson_real(&tmp));
 			}
 			nson_arr_push(stack_top, &tmp);
-			if((rv = skip_tag("</real", &doc[i], len - i)) <= 0) {
+			if ((rv = skip_tag("</real", &doc[i], len - i)) <= 0) {
 				break;
 			}
 			i += rv;
 			break;
 		case 'i':
-			if((rv = skip_tag("integer", &doc[i], len - i)) <= 0) {
+			if ((rv = skip_tag("integer", &doc[i], len - i)) <= 0) {
 				break;
 			}
 			i += rv;
 			rv = __nson_parse_dev(&i_val, &doc[i], len - i);
-			if(rv < 0) {
+			if (rv < 0) {
 				goto err;
 			}
 			i += rv;
 			nson_int_wrap(&tmp, i_val);
 			nson_arr_push(stack_top, &tmp);
-			if((rv = skip_tag("</integer", &doc[i], len - i)) <= 0) {
+			if ((rv = skip_tag("</integer", &doc[i], len - i)) <= 0) {
 				break;
 			}
 			i += rv;
 			break;
 		case 't':
-			if((rv = skip_tag("true/", &doc[i], len - i)) <= 0) {
+			if ((rv = skip_tag("true/", &doc[i], len - i)) <= 0) {
 				break;
 			}
 			nson_bool_wrap(&tmp, 1);
@@ -283,7 +287,7 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			i += rv;
 			break;
 		case 'f':
-			if((rv = skip_tag("false/", &doc[i], len - i)) <= 0) {
+			if ((rv = skip_tag("false/", &doc[i], len - i)) <= 0) {
 				break;
 			}
 			nson_bool_wrap(&tmp, 0);
@@ -295,20 +299,20 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 			if (i >= len) {
 				goto err;
 			}
-			switch(doc[i]) {
+			switch (doc[i]) {
 			case 'a':
-				if((rv = skip_tag("array", &doc[i], len - i)) <= 0) {
+				if ((rv = skip_tag("array", &doc[i], len - i)) <= 0) {
 					break;
 				}
-				if(nson_type(stack_top) != NSON_ARR) {
+				if (nson_type(stack_top) != NSON_ARR) {
 					goto err;
 				}
-				if(nson_arr_len(&stack) == 0) {
+				if (nson_arr_len(&stack) == 0) {
 					goto err;
 				}
 				nson_arr_pop(&old_top, &stack);
 				stack_top = nson_arr_last(&stack);
-				if(stack_top == NULL) {
+				if (stack_top == NULL) {
 					goto err;
 				}
 				nson_arr_push(stack_top, &old_top);
@@ -319,18 +323,18 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 				if (nson_obj_from_arr(stack_top) < 0) {
 					goto err;
 				}
-				if((rv = skip_tag("dict", &doc[i], len - i)) <= 0) {
+				if ((rv = skip_tag("dict", &doc[i], len - i)) <= 0) {
 					break;
 				}
-				if(nson_type(stack_top) != NSON_OBJ) {
+				if (nson_type(stack_top) != NSON_OBJ) {
 					goto err;
 				}
-				if(nson_arr_len(&stack) == 0) {
+				if (nson_arr_len(&stack) == 0) {
 					goto err;
 				}
 				nson_arr_pop(&old_top, &stack);
 				stack_top = nson_arr_last(&stack);
-				if(stack_top == NULL) {
+				if (stack_top == NULL) {
 					goto err;
 				}
 				nson_arr_push(stack_top, &old_top);
@@ -338,8 +342,8 @@ nson_parse_plist(Nson *nson, const char *doc, size_t len) {
 				break;
 			}
 		}
-	} while(nson_arr_len(&stack) > 1 && i < len);
-	if(nson_arr_len(&stack) != 1) {
+	} while (nson_arr_len(&stack) > 1 && i < len);
+	if (nson_arr_len(&stack) != 1) {
 		// Premature EOF
 		rv = -1;
 		goto err;
@@ -373,13 +377,13 @@ plist_escape(const Nson *nson, FILE *fd) {
 	char *escape = NULL;
 	const char *str = nson_data(nson);
 
-	if(str == NULL) {
+	if (str == NULL) {
 		return 0;
 	}
 
 	len = nson_data_len(nson);
-	for(; i < len; i++) {
-		switch(str[i]) {
+	for (; i < len; i++) {
+		switch (str[i]) {
 		case '<':
 			escape = "&lt;";
 			break;
@@ -392,28 +396,29 @@ plist_escape(const Nson *nson, FILE *fd) {
 		default:
 			escape = NULL;
 		}
-		if(escape) {
-			if(fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0) {
+		if (escape) {
+			if (fwrite(&str[last_write], sizeof(*str), i - last_write, fd) ==
+				0) {
 				return -1;
 			}
-			if(fputs(escape, fd) == 0) {
+			if (fputs(escape, fd) == 0) {
 				return -1;
 			}
-			last_write = i+1;
-		}
-		else if(iscntrl(str[i])) {
-			if(fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0) {
+			last_write = i + 1;
+		} else if (iscntrl(str[i])) {
+			if (fwrite(&str[last_write], sizeof(*str), i - last_write, fd) ==
+				0) {
 				return -1;
 			}
-			if(fprintf(fd, "&#%02x;", str[i]) == 0) {
+			if (fprintf(fd, "&#%02x;", str[i]) == 0) {
 				return -1;
 			}
-			last_write = i+1;
+			last_write = i + 1;
 		}
 	}
 
-	if(i != last_write &&
-			fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0) {
+	if (i != last_write &&
+		fwrite(&str[last_write], sizeof(*str), i - last_write, fd) == 0) {
 		return -1;
 	}
 
@@ -421,16 +426,17 @@ plist_escape(const Nson *nson, FILE *fd) {
 }
 
 static int
-plist_b64_enc(const Nson *nson, FILE* fd) {
+plist_b64_enc(const Nson *nson, FILE *fd) {
 	int rv = 0;
 	Nson tmp;
 
-	if(nson_clone(&tmp, nson)) {
+	if (nson_clone(&tmp, nson)) {
 		rv = -1;
 	}
-	if(nson_mapper_b64_enc(0, &tmp, NULL) < 0) {
+	if (nson_mapper_b64_enc(0, &tmp, NULL) < 0) {
 		rv = -1;
-	} else if(fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) == 0) {
+	} else if (fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) ==
+			   0) {
 		rv = -1;
 	}
 	nson_clean(&tmp);
@@ -438,7 +444,8 @@ plist_b64_enc(const Nson *nson, FILE* fd) {
 }
 
 int
-nson_plist_serialize(char **str, size_t *size, Nson *nson, enum NsonOptions options) {
+nson_plist_serialize(char **str, size_t *size, Nson *nson,
+					 enum NsonOptions options) {
 	int rv;
 	FILE *out = open_memstream(str, size);
 	if (out == NULL) {
@@ -460,51 +467,52 @@ nson_plist_write(FILE *out, const Nson *nson, enum NsonOptions options) {
 
 	if (0 == (options & NSON_SKIP_HEADER)) {
 		fputs("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-				"<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" "
-				"\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"
-				"<plist version=\"1.0\">", out);
+			  "<!DOCTYPE plist PUBLIC \"-//Apple Computer//DTD PLIST 1.0//EN\" "
+			  "\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"
+			  "<plist version=\"1.0\">",
+			  out);
 	}
-	switch(nson_type(nson)) {
-		case NSON_NIL:
-			return -1;
-			break;
-		case NSON_STR:
-			if(options & NSON_IS_KEY) {
-				fputs("<key>", out);
-				plist_escape(nson, out);
-				fputs("</key>", out);
-			} else {
-				fputs("<string>", out);
-				plist_escape(nson, out);
-				fputs("</string>", out);
-			}
-			break;
-		case NSON_BLOB:
-			fputs("<data>", out);
-			plist_b64_enc(nson, out);
-			fputs("</data>", out);
-			break;
-		case NSON_REAL:
-			fprintf(out, "<real>%f</real>", nson_real(nson));
-			break;
-		case NSON_INT:
-			fprintf(out, "<integer>%" PRId64 "</integer>", nson_int(nson));
-			break;
-		case NSON_BOOL:
-			fputs(nson_int(nson) ? "<true/>" : "<false/>", out);
-			break;
-		case NSON_ARR:
-			fputs("<array>", out);
-			rv = __nson_arr_serialize(out, nson, &info, options);
-			fputs("</array>", out);
-			break;
-		case NSON_OBJ:
-			fputs("<dict>", out);
-			rv = __nson_obj_serialize(out, nson, &info, options);
-			fputs("</dict>", out);
-			break;
-		default:
-			break;
+	switch (nson_type(nson)) {
+	case NSON_NIL:
+		return -1;
+		break;
+	case NSON_STR:
+		if (options & NSON_IS_KEY) {
+			fputs("<key>", out);
+			plist_escape(nson, out);
+			fputs("</key>", out);
+		} else {
+			fputs("<string>", out);
+			plist_escape(nson, out);
+			fputs("</string>", out);
+		}
+		break;
+	case NSON_BLOB:
+		fputs("<data>", out);
+		plist_b64_enc(nson, out);
+		fputs("</data>", out);
+		break;
+	case NSON_REAL:
+		fprintf(out, "<real>%f</real>", nson_real(nson));
+		break;
+	case NSON_INT:
+		fprintf(out, "<integer>%" PRId64 "</integer>", nson_int(nson));
+		break;
+	case NSON_BOOL:
+		fputs(nson_int(nson) ? "<true/>" : "<false/>", out);
+		break;
+	case NSON_ARR:
+		fputs("<array>", out);
+		rv = __nson_arr_serialize(out, nson, &info, options);
+		fputs("</array>", out);
+		break;
+	case NSON_OBJ:
+		fputs("<dict>", out);
+		rv = __nson_obj_serialize(out, nson, &info, options);
+		fputs("</dict>", out);
+		break;
+	default:
+		break;
 	}
 	if (0 == (options & NSON_SKIP_HEADER)) {
 		fputs("</plist>", out);

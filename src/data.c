@@ -1,43 +1,43 @@
 /*
  * BSD 2-Clause License
- * 
+ *
  * Copyright (c) 2018, Enno Boland
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "internal.h"
 
-#include <string.h>
 #include <assert.h>
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <assert.h>
-#include <limits.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 size_t
 nson_data_len(const Nson *nson) {
@@ -67,26 +67,26 @@ nson_move(Nson *nson, Nson *src) {
 
 static int
 nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
-	switch(nson_type(nson)) {
-		case NSON_ARR:
-			__nson_arr_clone(nson);
-			return nson_map(nson, nson_mapper_clone, nson);
-		case NSON_OBJ:
-			__nson_obj_clone(nson);
-			break;
-		case NSON_STR:
-		case NSON_BLOB:
-			__nson_buf_retain(nson->d.buf);
-			break;
-		case NSON_POINTER:
-			__nson_ptr_retain(nson->p.ref);
-			break;
-		case NSON_NIL:
-		case NSON_BOOL:
-		case NSON_INT:
-		case NSON_REAL:
-			// noop
-			break;
+	switch (nson_type(nson)) {
+	case NSON_ARR:
+		__nson_arr_clone(nson);
+		return nson_map(nson, nson_mapper_clone, nson);
+	case NSON_OBJ:
+		__nson_obj_clone(nson);
+		break;
+	case NSON_STR:
+	case NSON_BLOB:
+		__nson_buf_retain(nson->d.buf);
+		break;
+	case NSON_POINTER:
+		__nson_ptr_retain(nson->p.ref);
+		break;
+	case NSON_NIL:
+	case NSON_BOOL:
+	case NSON_INT:
+	case NSON_REAL:
+		// noop
+		break;
 	}
 	return 0;
 }
@@ -110,7 +110,7 @@ nson_init(Nson *nson, const enum NsonType info) {
 int
 __nson_init_buf(Nson *nson, NsonBuf *val, enum NsonType info) {
 	int rv = nson_init(nson, info);
-	if(rv < 0) {
+	if (rv < 0) {
 		return rv;
 	}
 
@@ -119,9 +119,10 @@ __nson_init_buf(Nson *nson, NsonBuf *val, enum NsonType info) {
 }
 
 int
-nson_init_data(Nson *nson, const char *val, const size_t len, enum NsonType info) {
+nson_init_data(Nson *nson, const char *val, const size_t len,
+			   enum NsonType info) {
 	int rv = nson_init(nson, info);
-	if(rv < 0)
+	if (rv < 0)
 		return rv;
 
 	nson->d.buf = __nson_buf_wrap(val, len);
@@ -146,7 +147,7 @@ nson_load(NsonParser parser, Nson *nson, const char *file) {
 	assert(nson);
 	assert(file);
 
-	if ((fd = open(file, O_RDONLY|O_CLOEXEC)) == -1)
+	if ((fd = open(file, O_RDONLY | O_CLOEXEC)) == -1)
 		return -1;
 
 	if (fstat(fd, &st) == -1) {
@@ -171,7 +172,7 @@ nson_load(NsonParser parser, Nson *nson, const char *file) {
 		need_guard = 1;
 
 	mf = mmap(NULL, need_guard ? mapsize + pgsize : mapsize,
-	    PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+			  PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 	(void)close(fd);
 	if (mf == MAP_FAILED) {
 		(void)munmap(mf, mapsize);

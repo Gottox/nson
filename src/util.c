@@ -16,14 +16,15 @@
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "internal.h"
@@ -33,7 +34,7 @@
 #define MUL_INT64(n, m, r) __builtin_mul_overflow(n, m, r)
 
 static const char base64_table[] =
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 off_t
 __nson_parse_dev(int64_t *dest, const char *src, size_t len) {
@@ -60,7 +61,7 @@ __nson_parse_dev(int64_t *dest, const char *src, size_t len) {
 	if (MUL_INT64(val, sign, &val)) {
 		return -1;
 	}
-	
+
 	*dest = val;
 
 	return i;
@@ -74,16 +75,32 @@ __nson_parse_hex(uint64_t *dest, const char *src, size_t len) {
 
 	for (i = 0; i < len; i++) {
 		switch (src[i]) {
-		case '0': case '1': case '2': case '3': case '4':
-		case '5': case '6': case '7': case '8': case '9':
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
 			c_val = src[i] - '0';
 			break;
-		case 'a': case 'b': case 'c':
-		case 'd': case 'e': case 'f':
+		case 'a':
+		case 'b':
+		case 'c':
+		case 'd':
+		case 'e':
+		case 'f':
 			c_val = src[i] - 'a' + 10;
 			break;
-		case 'A': case 'B': case 'C':
-		case 'D': case 'E': case 'F':
+		case 'A':
+		case 'B':
+		case 'C':
+		case 'D':
+		case 'E':
+		case 'F':
 			c_val = src[i] - 'A' + 10;
 			break;
 		default:
@@ -117,12 +134,12 @@ __nson_parse_b64(NsonBuf **dest_buf, const char *src, const size_t len) {
 
 	for (i = j = 0; i < len && src[i] != '='; i++) {
 		p = memchr(base64_table, src[i], 64);
-		if(p == NULL) {
+		if (p == NULL) {
 			goto err;
 		}
 		v = p - base64_table;
 
-		switch(i % 4) {
+		switch (i % 4) {
 		case 0:
 			dest[j] = v << 2;
 			break;
@@ -140,10 +157,11 @@ __nson_parse_b64(NsonBuf **dest_buf, const char *src, const size_t len) {
 		}
 	}
 
-	for(; i % 4 != 0 && i < len && src[i] == '='; i++);
+	for (; i % 4 != 0 && i < len && src[i] == '='; i++)
+		;
 
-	if(i % 4 != 0) {
-err:
+	if (i % 4 != 0) {
+	err:
 		__nson_buf_release(*dest_buf);
 		return -1;
 	}

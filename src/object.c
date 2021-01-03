@@ -1,8 +1,8 @@
 #include "internal.h"
 #include "nson.h"
-#include <string.h>
 #include <assert.h>
 #include <errno.h>
+#include <string.h>
 
 static int
 cmp_stable(const void *a, const void *b) {
@@ -28,11 +28,11 @@ mem_capacity(Nson *nson, const size_t size) {
 		return -1;
 	}
 	arr = reallocarray(arr, size, sizeof(*arr));
-	if(!arr) {
+	if (!arr) {
 		nson->o.len = old;
 		return -1;
 	}
-	if(size > old)
+	if (size > old)
 		memset(&arr[old], 0, sizeof(*arr) * (size - old));
 
 	nson->o.arr = arr;
@@ -54,16 +54,16 @@ search_key(const void *key, const void *elem) {
 
 static NsonObjectEntry *
 obj_search(Nson *object, const char *key) {
-  if (object->o.messy) {
-    obj_sort(object);
-  }
+	if (object->o.messy) {
+		obj_sort(object);
+	}
 
-  return bsearch(key, object->o.arr, object->o.len, sizeof *object->o.arr,
-                 search_key);
+	return bsearch(key, object->o.arr, object->o.len, sizeof *object->o.arr,
+				   search_key);
 }
 
 static NsonObjectEntry *
-obj_get(const Nson *object,  int index) {
+obj_get(const Nson *object, int index) {
 	if (index < nson_obj_size(object)) {
 		return &object->o.arr[index];
 	} else {
@@ -81,7 +81,8 @@ obj_last(Nson *object) {
 	}
 }
 
-int __nson_obj_clone(Nson *object) {
+int
+__nson_obj_clone(Nson *object) {
 	int rv = 0;
 	NsonObjectEntry *arr = object->o.arr;
 	size_t len = nson_arr_len(object);
@@ -99,10 +100,10 @@ int __nson_obj_clone(Nson *object) {
 
 Nson *
 nson_obj_get(Nson *object, const char *key) {
-  assert(nson_type(object) == NSON_OBJ);
-  NsonObjectEntry *result = obj_search(object, key);
-  if (result) {
-    return &result->value;
+	assert(nson_type(object) == NSON_OBJ);
+	NsonObjectEntry *result = obj_search(object, key);
+	if (result) {
+		return &result->value;
 	} else {
 		return NULL;
 	}
@@ -110,7 +111,7 @@ nson_obj_get(Nson *object, const char *key) {
 
 const char *
 nson_obj_get_key(Nson *object, int index) {
-  assert(nson_type(object) == NSON_OBJ);
+	assert(nson_type(object) == NSON_OBJ);
 	NsonObjectEntry *result = obj_get(object, index);
 	if (result) {
 		return nson_str(&result->key);
@@ -121,14 +122,14 @@ nson_obj_get_key(Nson *object, int index) {
 
 int
 nson_obj_put(Nson *object, const char *key, Nson *value) {
-  assert(nson_type(object) == NSON_OBJ);
+	assert(nson_type(object) == NSON_OBJ);
 	NsonObjectEntry *new_elem;
-	Nson obj_key = { 0 };
+	Nson obj_key = {0};
 
 	nson_init_str(&obj_key, key);
 
 	if (object->o.messy && nson_obj_size(object) > 0 &&
-			nson_cmp(&obj_last(object)->key, &obj_key) > 0) {
+		nson_cmp(&obj_last(object)->key, &obj_key) > 0) {
 		object->o.messy = 1;
 	}
 
@@ -186,8 +187,8 @@ nson_obj_from_arr(Nson *array) {
 
 int
 nson_obj_to_arr(Nson *object) {
-  assert(nson_type(object) == NSON_ARR);
-	
+	assert(nson_type(object) == NSON_ARR);
+
 	object->c.type = NSON_OBJ;
 	object->o.len = object->a.len / 2;
 	object->o.messy = true;
@@ -197,14 +198,15 @@ nson_obj_to_arr(Nson *object) {
 
 int
 __nson_obj_serialize(FILE *out, const Nson *object,
-		const NsonSerializerInfo *info, enum NsonOptions options) {
+					 const NsonSerializerInfo *info, enum NsonOptions options) {
 	int i;
 	size_t size = nson_obj_size(object);
 	NsonObjectEntry *entry;
 
 	for (i = 0; i < size; i++) {
 		entry = obj_get(object, i);
-		info->serializer(out, &entry->key, options | NSON_IS_KEY | NSON_SKIP_HEADER);
+		info->serializer(out, &entry->key,
+						 options | NSON_IS_KEY | NSON_SKIP_HEADER);
 		fputs(info->key_value_seperator, out);
 		info->serializer(out, &entry->value, options | NSON_SKIP_HEADER);
 		if (i + 1 != size) {
