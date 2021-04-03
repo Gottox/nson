@@ -33,7 +33,7 @@
 #include <string.h>
 
 char *
-__nson_buf_unwrap(NsonBuf *buf) {
+__nson_buf(NsonBuf *buf) {
 	return buf->buf;
 }
 

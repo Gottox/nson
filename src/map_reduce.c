@@ -52,7 +52,7 @@ nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
 	const char *src = nson_data(nson);
 
 	dest_buf = __nson_buf_new((src_len + 3) / 4 * 3);
-	dest = __nson_buf_unwrap(dest_buf);
+	dest = __nson_buf(dest_buf);
 	if (!dest)
 		return -1;
 
@@ -108,7 +108,7 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 	const char *src = nson_data(nson);
 
 	dest_buf = __nson_buf_new((src_len + 2) / 3 * 4);
-	dest = __nson_buf_unwrap(dest_buf);
+	dest = __nson_buf(dest_buf);
 	if (!dest)
 		return -1;
 
@@ -164,6 +164,28 @@ nson_map(Nson *nson, NsonMapper mapper, void *user_data) {
 	for (i = 0; rv >= 0 && i < len; i++) {
 		rv = mapper(i, nson_arr_get(nson, i), user_data);
 	}
+	return rv;
+}
+
+int
+nson_filter(Nson *nson, NsonFilter filter, void *user_data) {
+	Nson dest = { 0 };
+	int rv = 0;
+	off_t i;
+	size_t len;
+	assert(nson_type(nson) == NSON_ARR);
+
+	nson_init_arr(&dest);
+	len = nson_arr_len(nson);
+	for (i = 0; rv >= 0 && i < len; i++) {
+		Nson *candidate = nson_arr_get(nson, i);
+		rv = filter(i, candidate, user_data);
+		if (rv != 0) {
+			nson_arr_push(&dest, candidate);
+		}
+	}
+	nson_clean(nson);
+	nson_move(nson, &dest);
 	return rv;
 }
 

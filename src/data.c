@@ -50,7 +50,7 @@ const char *
 nson_data(const Nson *nson) {
 	assert(nson_type(nson) == NSON_STR || nson_type(nson) == NSON_BLOB);
 
-	return __nson_buf_unwrap(nson->d.buf);
+	return __nson_buf(nson->d.buf);
 }
 
 enum NsonType

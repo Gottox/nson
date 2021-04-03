@@ -85,7 +85,7 @@ off_t __nson_parse_number(Nson *nson, const char *p, size_t len);
 
 off_t __nson_to_utf8(char *dest, const uint64_t chr, const size_t len);
 
-char *__nson_buf_unwrap(NsonBuf *buf);
+char *__nson_buf(NsonBuf *buf);
 
 size_t __nson_buf_siz(const NsonBuf *buf);
 

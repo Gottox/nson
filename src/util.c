@@ -130,7 +130,7 @@ __nson_parse_b64(NsonBuf **dest_buf, const char *src, const size_t len) {
 	(*dest_buf) = __nson_buf_new((len + 3) / 4 * 3);
 	if (*dest_buf == NULL)
 		return -1;
-	dest = __nson_buf_unwrap(*dest_buf);
+	dest = __nson_buf(*dest_buf);
 
 	for (i = j = 0; i < len && src[i] != '='; i++) {
 		p = memchr(base64_table, src[i], 64);

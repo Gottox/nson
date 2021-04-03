@@ -59,7 +59,7 @@ parse_json_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 	uint64_t utf_val;
 
 	(*dest_buf) = __nson_buf_new(len);
-	dest = __nson_buf_unwrap(*dest_buf);
+	dest = __nson_buf(*dest_buf);
 
 	for (chunk_start = src;
 		 (chunk_end = memchr(chunk_start, '\\', len - (chunk_start - src)));) {
@@ -108,9 +108,9 @@ parse_json_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 	chunk_len = src + len - chunk_start;
 	memcpy(dest, chunk_start, chunk_len);
 	dest += chunk_len;
-	__nson_buf_shrink(*dest_buf, dest - __nson_buf_unwrap(*dest_buf));
+	__nson_buf_shrink(*dest_buf, dest - __nson_buf(*dest_buf));
 
-	return dest - __nson_buf_unwrap(*dest_buf);
+	return dest - __nson_buf(*dest_buf);
 }
 
 static int
@@ -197,7 +197,7 @@ nson_parse_json(Nson *nson, const char *doc, size_t len) {
 
 	memset(nson, 0, sizeof(*nson));
 	nson_init(&tmp, NSON_ARR);
-	nson_init_array(&stack);
+	nson_init_arr(&stack);
 	nson_arr_push(&stack, &tmp);
 
 	/* UNUSED */

@@ -42,7 +42,7 @@ check_pointer_create() {
 	int pointer_target = 0;
 	Nson nson;
 	nson_ptr_wrap(&nson, &pointer_target, dtor);
-	assert(nson_ptr_unwrap(&nson) == &pointer_target);
+	assert(nson_ptr(&nson) == &pointer_target);
 	nson_clean(&nson);
 }
 
@@ -54,7 +54,7 @@ check_pointer_clone() {
 	nson_clone(&clone, &nson);
 
 	assert(nson.p.ref->count == 2);
-	assert(nson_ptr_unwrap(&nson) == &pointer_target);
+	assert(nson_ptr(&nson) == &pointer_target);
 	nson_clean(&nson);
 	nson_clean(&clone);
 }
@@ -65,7 +65,7 @@ check_pointer_free_dtor() {
 	char *pointer_target = strdup("foobar");
 
 	nson_ptr_wrap(&nson, pointer_target, free);
-	assert(nson_ptr_unwrap(&nson) == pointer_target);
+	assert(nson_ptr(&nson) == pointer_target);
 	nson_clean(&nson);
 }
 

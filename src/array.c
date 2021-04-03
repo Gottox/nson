@@ -86,7 +86,7 @@ __nson_arr_clone(Nson *array) {
 }
 
 int
-nson_init_array(Nson *array) {
+nson_init_arr(Nson *array) {
 	nson_init(array, NSON_ARR);
 	return 0;
 }

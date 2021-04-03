@@ -67,6 +67,11 @@ typedef int (*NsonReducer)(off_t index, union Nson *, const union Nson *, const 
 typedef int (*NsonMapper)(off_t index, union Nson *, void *);
 
 /**
+ * @brief function pointer that is used to map a Nson element
+ */
+typedef int (*NsonFilter)(off_t index, union Nson *, void *);
+
+/**
  * @brief type of an Nson Element
  */
 enum NsonType {
@@ -410,7 +415,7 @@ int nson_load_plist(Nson *nson, const char *file);
  */
 int nson_parse_plist(Nson *nson, const char *doc, size_t len);
 
-int nson_init_array(Nson *array);
+int nson_init_arr(Nson *array);
 size_t nson_arr_len(const Nson *array);
 Nson * nson_arr_get(const Nson *array, off_t index);
 int nson_arr_push(Nson *array, Nson *value);
@@ -433,6 +438,6 @@ int nson_plist_serialize(char **str, size_t *size, Nson *nson,
 		enum NsonOptions options);
 int nson_plist_write(FILE *out, const Nson *nson, enum NsonOptions options);
 int nson_ptr_wrap(Nson *nson, void *ptr, void (*dtor)(void *));
-void *nson_ptr_unwrap(Nson *nson);
+void *nson_ptr(Nson *nson);
 
 #endif /* !NSON_H */

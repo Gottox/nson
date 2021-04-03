@@ -33,6 +33,9 @@
 #include <errno.h>
 #include <string.h>
 
+static void
+noop_dtor(void *ptr) {}
+
 int
 nson_ptr_wrap(Nson *nson, void *ptr, void (*dtor)(void *)) {
 	int rv = nson_init(nson, NSON_POINTER);
@@ -44,7 +47,7 @@ nson_ptr_wrap(Nson *nson, void *ptr, void (*dtor)(void *)) {
 	if (NULL == nson->p.ref) {
 		return -1;
 	}
-	nson->p.ref->dtor = dtor;
+	nson->p.ref->dtor = dtor ? dtor : noop_dtor;
 	nson->p.ref->ptr = ptr;
 	nson->p.ref->count = 1;
 
@@ -52,7 +55,7 @@ nson_ptr_wrap(Nson *nson, void *ptr, void (*dtor)(void *)) {
 }
 
 void *
-nson_ptr_unwrap(Nson *nson) {
+nson_ptr(Nson *nson) {
 	return nson->p.ref->ptr;
 }
 
