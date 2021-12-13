@@ -55,7 +55,7 @@ nson_ptr_wrap(Nson *nson, void *ptr, void (*dtor)(void *)) {
 }
 
 void *
-nson_ptr(Nson *nson) {
+nson_ptr(const Nson *nson) {
 	return nson->p.ref->ptr;
 }
 

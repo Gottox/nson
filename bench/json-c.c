@@ -19,7 +19,8 @@
 #define BENCH_JSON "/dev/null"
 #endif
 
-void json_c() {
+void
+json_c() {
 	bool rv;
 	struct json_object *json;
 	void *doc = 0;

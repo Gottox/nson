@@ -1,39 +1,40 @@
 /*
  * BSD 2-Clause License
- * 
+ *
  * Copyright (c) 2018, Enno Boland
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "test.h"
 #include "common.h"
+#include "test.h"
 
 #include "../src/nson.h"
 
 static void
 check_decode_base64() {
-	Nson nson = { 0 };
+	Nson nson = {0};
 
 	nson_init_str(&nson, "SGVsbG8gV29ybGQ=");
 	nson_mapper_b64_dec(0, &nson, NULL);
@@ -57,7 +58,7 @@ check_decode_base64() {
 
 static void
 check_encode_base64() {
-	Nson nson = { 0 };
+	Nson nson = {0};
 
 	nson_init_str(&nson, "Hello World");
 	nson_mapper_b64_enc(0, &nson, NULL);
@@ -88,16 +89,16 @@ mult_mapper(off_t index, Nson *nson, void *user_data) {
 static void
 check_map_big() {
 	int i;
-	Nson nson = { 0 };
+	Nson nson = {0};
 	nson_init(&nson, NSON_ARR);
-	for(i = 0; i < 10240; i++) {
+	for (i = 0; i < 10240; i++) {
 		nson_arr_push_int(&nson, i);
 	}
 
 	nson_map(&nson, mult_mapper, NULL);
 
-	for(i = 0; i < 10240; i++) {
-		assert(i*2 == nson_int(nson_arr_get(&nson, i)));
+	for (i = 0; i < 10240; i++) {
+		assert(i * 2 == nson_int(nson_arr_get(&nson, i)));
 	}
 
 	nson_clean(&nson);
@@ -106,16 +107,16 @@ check_map_big() {
 static void
 check_map_thread_big() {
 	int i;
-	Nson nson = { 0 };
+	Nson nson = {0};
 	nson_init(&nson, NSON_ARR);
-	for(i = 0; i < 10240; i++) {
+	for (i = 0; i < 10240; i++) {
 		nson_arr_push_int(&nson, i);
 	}
 
 	nson_map_thread(&nson, mult_mapper, NULL);
 
-	for(i = 0; i < 10240; i++) {
-		assert(i*2 == nson_int(nson_arr_get(&nson, i)));
+	for (i = 0; i < 10240; i++) {
+		assert(i * 2 == nson_int(nson_arr_get(&nson, i)));
 	}
 
 	nson_clean(&nson);
@@ -123,10 +124,8 @@ check_map_thread_big() {
 
 static void
 check_map_thread() {
-	Nson nson = { 0 };
-	NSON(&nson, [
-		1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-	]);
+	Nson nson = {0};
+	NSON(&nson, [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]);
 
 	nson_map_thread(&nson, mult_mapper, NULL);
 
@@ -146,11 +145,9 @@ check_map_thread() {
 
 static void
 check_map_thread_two() {
-	Nson nson = { 0 };
+	Nson nson = {0};
 
-	NSON(&nson, [
-		23, 42
-	]);
+	NSON(&nson, [ 23, 42 ]);
 
 	nson_map_thread(&nson, mult_mapper, NULL);
 

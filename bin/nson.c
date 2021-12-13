@@ -5,21 +5,20 @@
  * Distributed under terms of the MIT license.
  */
 
-#include <stdlib.h>
-#include <getopt.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <getopt.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "../src/nson.h"
 
 static struct option long_options[] = {
-	{ "out-format", required_argument, 0, 'o' },
-	{ "in-format", required_argument, 0, 'i' }
-};
+		{"out-format", required_argument, 0, 'o'},
+		{"in-format", required_argument, 0, 'i'}};
 
 /*static struct {
 	const char *suffix;
@@ -40,10 +39,10 @@ usage(char *prog) {
 int
 main(int argc, char *argv[]) {
 	int c, i, fd;
-	char *formats[2] = { NULL, NULL };
+	char *formats[2] = {NULL, NULL};
 
-	for(; (c = getopt_long(argc, argv, "o:i:", long_options, NULL)) != -1; ) {
-		switch(c) {
+	for (; (c = getopt_long(argc, argv, "o:i:", long_options, NULL)) != -1;) {
+		switch (c) {
 		case 'o':
 			formats[1] = optarg;
 			break;

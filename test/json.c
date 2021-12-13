@@ -1,33 +1,34 @@
 /*
  * BSD 2-Clause License
- * 
+ *
  * Copyright (c) 2018, Enno Boland
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "test.h"
 #include "common.h"
+#include "test.h"
 
 #include "../src/nson.h"
 #include <errno.h>
@@ -35,7 +36,7 @@
 static void
 parse_true() {
 	int rv;
-	Nson nson = { 0 };
+	Nson nson = {0};
 
 	rv = NSON(&nson, true);
 	assert(rv >= 0);
@@ -48,7 +49,7 @@ parse_true() {
 static void
 parse_double() {
 	int rv;
-	Nson nson = { 0 };
+	Nson nson = {0};
 
 	rv = NSON(&nson, 5.2);
 	assert(rv >= 0);
@@ -62,7 +63,7 @@ parse_double() {
 static void
 parse_number() {
 	int rv;
-	Nson nson = { 0 };
+	Nson nson = {0};
 
 	rv = NSON(&nson, 5);
 	assert(rv >= 0);
@@ -75,7 +76,7 @@ parse_number() {
 static void
 parse_empty_string() {
 	int rv;
-	Nson nson = { 0 };
+	Nson nson = {0};
 
 	rv = NSON(&nson, "");
 	assert(rv >= 0);
@@ -114,7 +115,7 @@ object_with_one_element() {
 	int rv;
 	Nson nson;
 
-	rv = NSON(&nson, {"a": "b"});
+	rv = NSON(&nson, {"a" : "b"});
 	assert(rv >= 0);
 
 	assert(nson_obj_size(&nson) == 1);
@@ -131,7 +132,7 @@ object_with_multiple_elements() {
 	int rv;
 	Nson nson;
 
-	rv = NSON(&nson, {"a": 1, "b": 2});
+	rv = NSON(&nson, {"a" : 1, "b" : 2});
 	assert(rv >= 0);
 
 	assert(nson_obj_size(&nson) == 2);
@@ -152,7 +153,7 @@ access_str_as_arr() {
 	int rv;
 	Nson nson;
 
-	rv = NSON(&nson, {"a": ""});
+	rv = NSON(&nson, {"a" : ""});
 	assert(rv >= 0);
 
 	assert(nson_obj_size(&nson) == 1);
@@ -316,7 +317,8 @@ utf8_FFFF() {
 	(void)rv;
 }
 
-void stringify_utf8() {
+void
+stringify_utf8() {
 	int rv;
 	char *str;
 	size_t size;
@@ -333,7 +335,8 @@ void stringify_utf8() {
 	(void)rv;
 }
 
-void stringify_nullbyte() {
+void
+stringify_nullbyte() {
 	int rv;
 	char *str;
 	size_t size;
@@ -396,7 +399,7 @@ stringify_object() {
 	char *str;
 	size_t size;
 
-	rv = NSON(&nson, { "a": 1 });
+	rv = NSON(&nson, {"a" : 1});
 
 	assert(rv >= 0);
 	rv = nson_json_serialize(&str, &size, &nson, 0);
@@ -409,7 +412,8 @@ stringify_object() {
 	(void)rv;
 }
 
-void stringify_data() {
+void
+stringify_data() {
 	int rv;
 	Nson nson;
 	char *str;
@@ -444,26 +448,15 @@ fuzz_parse_leak() {
 	nson_clean(&nson);
 }
 
-INPUT_CHECK(
-		fuzz_parse_leak2, json,
-		"{ [[[}}}}"
-		)
+INPUT_CHECK(fuzz_parse_leak2, json, "{ [[[}}}}")
 
-INPUT_CHECK(
-		fuzz_parse_crash_string, json,
-		"\"\\\" "
-		)
+INPUT_CHECK(fuzz_parse_crash_string, json, "\"\\\" ")
 
-INPUT_CHECK(
-		fuzz_parse_crash2, json,
-		"\"0L~\\\\\\\"\\"
-		)
+INPUT_CHECK(fuzz_parse_crash2, json, "\"0L~\\\\\\\"\\")
 
-INPUT_CHECK(
-		fuzz_parse_deadlock, json,
-		"{{99999999999999999999999999T]]]"
-		)
+INPUT_CHECK(fuzz_parse_deadlock, json, "{{99999999999999999999999999T]]]")
 
+INPUT_CHECK(fuzz_parse_crash_closing_bracket, json, {']'})
 
 DEFINE
 TEST(parse_true);
@@ -497,6 +490,8 @@ TEST(fuzz_parse_crash);
 TEST(fuzz_parse_leak);
 TEST(fuzz_parse_leak2);
 TEST(fuzz_parse_crash_string);
+TEST(fuzz_parse_crash_closing_bracket);
 TEST(fuzz_parse_crash2);
 TEST(fuzz_parse_deadlock);
+TEST(fuzz_parse_crash);
 DEFINE_END

@@ -19,7 +19,8 @@
 #define BENCH_JSON "/dev/null"
 #endif
 
-void jansson() {
+void
+jansson() {
 	bool rv;
 	struct json_t *json;
 	json_error_t error;

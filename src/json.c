@@ -347,8 +347,9 @@ json_b64_enc(const Nson *nson, FILE *fd) {
 		rv = -1;
 	} else if (fputc('"', fd) < 0) {
 		rv = -1;
-	} else if (fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) ==
-			   0) {
+	} else if (
+			fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) ==
+			0) {
 		rv = -1;
 	} else if (fputc('"', fd) < 0) {
 		rv = -1;
@@ -358,8 +359,8 @@ json_b64_enc(const Nson *nson, FILE *fd) {
 }
 
 int
-nson_json_serialize(char **str, size_t *size, Nson *nson,
-					enum NsonOptions options) {
+nson_json_serialize(
+		char **str, size_t *size, Nson *nson, enum NsonOptions options) {
 	int rv;
 	FILE *out = open_memstream(str, size);
 	if (out == NULL) {
@@ -374,9 +375,9 @@ int
 nson_json_write(FILE *out, const Nson *nson, enum NsonOptions options) {
 	int rv = 0;
 	static const NsonSerializerInfo info = {
-		.serializer = nson_json_write,
-		.seperator = ",",
-		.key_value_seperator = ":",
+			.serializer = nson_json_write,
+			.seperator = ",",
+			.key_value_seperator = ":",
 	};
 
 	switch (nson_type(nson)) {

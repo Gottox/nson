@@ -1,29 +1,30 @@
 /*
  * BSD 2-Clause License
- * 
+ *
  * Copyright (c) 2018, Enno Boland
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 /**
@@ -40,10 +41,10 @@
 
 #define _GNU_SOURCE
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define NSON(n, ...) nson_parse_json(n, #__VA_ARGS__, strlen(#__VA_ARGS__))
 
@@ -59,7 +60,8 @@ typedef int (*NsonParser)(union Nson *, const char *, size_t);
 /**
  * @brief function pointer that is used to map a Nson element
  */
-typedef int (*NsonReducer)(off_t index, union Nson *, const union Nson *, const void *);
+typedef int (*NsonReducer)(
+		off_t index, union Nson *, const union Nson *, const void *);
 
 /**
  * @brief function pointer that is used to map a Nson element
@@ -91,7 +93,7 @@ enum NsonType {
 };
 
 enum NsonOptions {
-	NSON_IS_KEY      = 1 << 1,
+	NSON_IS_KEY = 1 << 1,
 	NSON_SKIP_HEADER = 1 << 2,
 };
 
@@ -118,7 +120,7 @@ typedef struct NsonArray {
 	struct NsonCommon c;
 	union Nson *arr;
 	size_t len;
-} NsonArray ;
+} NsonArray;
 
 /**
  * @brief Data that are used to reference ranges of NSON fields.
@@ -128,7 +130,7 @@ typedef struct NsonObject {
 	struct NsonObjectEntry *arr;
 	bool messy;
 	size_t len;
-} NsonObject ;
+} NsonObject;
 
 /**
  * @brief Data that are used to store a single floating point value.
@@ -153,7 +155,6 @@ typedef struct NsonPointer {
 	struct NsonCommon c;
 	struct NsonPointerRef *ref;
 } NsonPointer;
-
 
 /**
  * @brief Data Container
@@ -281,8 +282,7 @@ int nson_clone(Nson *nson, const Nson *src);
  * @brief
  * @return
  */
-int nson_arr_insert(Nson *nson, const char *key,
-		Nson* val);
+int nson_arr_insert(Nson *nson, const char *key, Nson *val);
 
 /**
  * @brief
@@ -294,7 +294,8 @@ int nson_init(Nson *nson, const enum NsonType info);
  * @brief
  * @return
  */
-int nson_init_data(Nson *nson, const char *val, const size_t len,
+int nson_init_data(
+		Nson *nson, const char *val, const size_t len,
 		const enum NsonType type);
 
 /**
@@ -353,13 +354,17 @@ int nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data);
  * @brief
  * @return
  */
-int nson_map_thread_ext(NsonThreadMapSettings *settings, Nson *nson, NsonMapper mapper, void *user_data);
+int nson_map_thread_ext(
+		NsonThreadMapSettings *settings, Nson *nson, NsonMapper mapper,
+		void *user_data);
 
 /**
  * @brief
  * @return
  */
-int nson_reduce(Nson *dest, const Nson *nson, NsonReducer reducer, const void *user_data);
+int nson_reduce(
+		Nson *dest, const Nson *nson, NsonReducer reducer,
+		const void *user_data);
 
 /**
  * @brief
@@ -417,27 +422,27 @@ int nson_parse_plist(Nson *nson, const char *doc, size_t len);
 
 int nson_init_arr(Nson *array);
 size_t nson_arr_len(const Nson *array);
-Nson * nson_arr_get(const Nson *array, off_t index);
+Nson *nson_arr_get(const Nson *array, off_t index);
 int nson_arr_push(Nson *array, Nson *value);
 int nson_arr_pop(Nson *last, Nson *array);
 int nson_arr_concat(Nson *array_1, Nson *array_2);
-Nson * nson_arr_last(Nson *array);
+Nson *nson_arr_last(Nson *array);
 int nson_arr_push_int(Nson *array, int value);
 
-Nson * nson_obj_get(Nson *object, const char *key);
+Nson *nson_obj_get(Nson *object, const char *key);
 int nson_obj_put(Nson *object, const char *key, Nson *value);
 size_t nson_obj_size(const Nson *object);
 const char *nson_obj_get_key(Nson *object, int index);
 int nson_obj_from_arr(Nson *object);
 
-int nson_json_serialize(char **str, size_t *size, Nson *nson,
-		enum NsonOptions options);
+int nson_json_serialize(
+		char **str, size_t *size, Nson *nson, enum NsonOptions options);
 int nson_json_write(FILE *out, const Nson *nson, enum NsonOptions options);
 
-int nson_plist_serialize(char **str, size_t *size, Nson *nson,
-		enum NsonOptions options);
+int nson_plist_serialize(
+		char **str, size_t *size, Nson *nson, enum NsonOptions options);
 int nson_plist_write(FILE *out, const Nson *nson, enum NsonOptions options);
 int nson_ptr_wrap(Nson *nson, void *ptr, void (*dtor)(void *));
-void *nson_ptr(Nson *nson);
+void *nson_ptr(const Nson *nson);
 
 #endif /* !NSON_H */

@@ -7,8 +7,8 @@
 
 #define _GNU_SOURCE
 
-#include "../test/test.h"
 #include "../src/internal.h"
+#include "../test/test.h"
 #include "mmap.h"
 #include <assert.h>
 #include <ctype.h>
@@ -21,22 +21,24 @@
 #define BENCH_JSON "/dev/null"
 #endif
 
-#define SKIP_SPACES for(; *p && strchr("\n\f\r\t\v ", *p); p++);
+#define SKIP_SPACES \
+	for (; *p && strchr("\n\f\r\t\v ", *p); p++) \
+		;
 
 inline static int
 skip_tag(const char *tag, const char *p, const size_t len) {
 	const char *begin = p;
-	if(strncmp(p, tag, strlen(tag)) != 0)
+	if (strncmp(p, tag, strlen(tag)) != 0)
 		return 0;
 	p += strlen(tag);
 
-	if(*p == '>')
+	if (*p == '>')
 		return p - begin + 1;
-	else if(*p != ' ')
+	else if (*p != ' ')
 		return 0;
 
 	p = memchr(p, '>', len - (p - begin));
-	if(!p)
+	if (!p)
 		return -1;
 	return p - begin + 1;
 }
@@ -67,79 +69,85 @@ parse_plist(const char *doc) {
 
 	SKIP_SPACES;
 	do {
-		switch(*p) {
+		switch (*p) {
 		case '\0':
 			goto err;
 		case '<':
 			p++;
 			string_tag = "string";
-			switch(*p) {
+			switch (*p) {
+			case 'd':
+				if ((rv = skip_tag("dict", p, len - (doc - p))) <= 0)
+					break;
+				stack_size++;
+				p += rv;
+				break;
+			case 'a':
+				if ((rv = skip_tag("array", p, len - (doc - p))) <= 0)
+					break;
+				stack_size++;
+				p += rv;
+				break;
+			case '/':
+				p++;
+				switch (*p) {
 				case 'd':
-					if((rv = skip_tag("dict", p, len - (doc - p))) <= 0)
+					if ((rv = skip_tag("dict", p, len - (doc - p))) <= 0)
 						break;
-					stack_size++;
+					stack_size--;
 					p += rv;
 					break;
 				case 'a':
-					if((rv = skip_tag("array", p, len - (doc - p))) <= 0)
+					if ((rv = skip_tag("array", p, len - (doc - p))) <= 0)
 						break;
-					stack_size++;
+					stack_size--;
 					p += rv;
 					break;
-				case '/':
+				}
+			case 'k':
+				string_tag = "key";
+			case 's':
+				if ((rv = skip_tag(string_tag, p, len - (doc - p))) <= 0)
+					break;
+				p += rv;
+				for (rv = 0; rv == 0;) {
+					if (!(p = memchr(p, '<', len - (doc - p))))
+						goto err;
 					p++;
-					switch(*p) {
-						case 'd':
-							if((rv = skip_tag("dict", p, len - (doc - p))) <= 0)
-								break;
-							stack_size--;
-							p += rv;
-							break;
-						case 'a':
-							if((rv = skip_tag("array", p, len - (doc - p))) <= 0)
-								break;
-							stack_size--;
-							p += rv;
-							break;
-					}
-				case 'k':
-					string_tag = "key";
-				case 's':
-					if((rv = skip_tag(string_tag, p, len - (doc - p))) <= 0)
+					if (*p != '/')
 						break;
-					p += rv;
-					for(rv = 0; rv == 0;) {
-						if(!(p = memchr(p, '<', len - (doc - p))))
-							goto err;
-						p++;
-						if(*p != '/')
-							break;
-						p++;
-						if((rv = skip_tag(string_tag, p, len - (doc - p))) > 0)
-							p += rv;
-					}
-				case 'r':
-					if((rv = skip_tag("real", p, len - (doc - p))) <= 0)
-						break;
-					p += rv;
-					for(; (*p >= '0' && *p <= '9') || *p == '.' || *p == '+' || *p == '-' || *p == 'e'; p++);
+					p++;
+					if ((rv = skip_tag(string_tag, p, len - (doc - p))) > 0)
+						p += rv;
+				}
+			case 'r':
+				if ((rv = skip_tag("real", p, len - (doc - p))) <= 0)
 					break;
-				case 'i':
-					if((rv = skip_tag("integer", p, len - (doc - p))) <= 0)
-						break;
-					p += rv;
-					for(; (*p >= '0' && *p <= '9') || *p == '.' || *p == '+' || *p == '-'; p++);
+				p += rv;
+				for (; (*p >= '0' && *p <= '9') || *p == '.' || *p == '+' ||
+					 *p == '-' || *p == 'e';
+					 p++)
+					;
+				break;
+			case 'i':
+				if ((rv = skip_tag("integer", p, len - (doc - p))) <= 0)
 					break;
+				p += rv;
+				for (; (*p >= '0' && *p <= '9') || *p == '.' || *p == '+' ||
+					 *p == '-';
+					 p++)
+					;
+				break;
 			}
 			break;
 		default:
 			p++;
 			break;
 		}
-	} while(stack_size > 1);
+	} while (stack_size > 1);
 	SKIP_SPACES;
 	rv = skip_tag("</plist", p, len - (doc - p));
-	if(rv > 0)
+	if (rv > 0)
 		p += rv;
 	SKIP_SPACES;
 	return p - doc;
@@ -154,7 +162,7 @@ parse_json(const char *doc, const size_t len) {
 	do {
 		if (!p)
 			return 0;
-		switch(*p) {
+		switch (*p) {
 		case '\0':
 			goto err;
 		case '[':
@@ -172,10 +180,10 @@ parse_json(const char *doc, const size_t len) {
 			p++;
 			break;
 		case '"':
-			for(++p; (p = memchr(p, '"', p + len - doc)); p++) {
-				if(p[-1] != '\\')
+			for (++p; (p = memchr(p, '"', p + len - doc)); p++) {
+				if (p[-1] != '\\')
 					break;
-				else if(p[-2] == '\\')
+				else if (p[-2] == '\\')
 					break;
 			}
 			p++;
@@ -199,28 +207,33 @@ parse_json(const char *doc, const size_t len) {
 		case '7':
 		case '8':
 		case '9':
-			for(; (*p >= '0' && *p <= '9') || *p == '.' || *p == '+' || *p == '-' || *p == 'e'; p++);
+			for (; (*p >= '0' && *p <= '9') || *p == '.' || *p == '+' ||
+				 *p == '-' || *p == 'e';
+				 p++)
+				;
 			break;
 		default:
-			if(strncmp(p, "null", 4) == 0) {
+			if (strncmp(p, "null", 4) == 0) {
 				p += 4;
-			} else if(strncmp(p, "true", 4) == 0) {
+			} else if (strncmp(p, "true", 4) == 0) {
 				p += 4;
-			} else if(strncmp(p, "false", 5) == 0) {
+			} else if (strncmp(p, "false", 5) == 0) {
 				p += 5;
 			} else {
 				goto err;
 			}
 		}
-	} while(stack_size > 1);
+	} while (stack_size > 1);
 
-	for(; p && isspace(*p); p++);
+	for (; p && isspace(*p); p++)
+		;
 	return p - doc;
 err:
 	return -1;
 }
 
-void naiv_plist() {
+void
+naiv_plist() {
 	int rv;
 	char *doc = 0;
 	size_t len, f_len = 0;
@@ -234,7 +247,8 @@ void naiv_plist() {
 	(void)rv;
 }
 
-void naiv_json() {
+void
+naiv_json() {
 	size_t rv;
 	char *doc = 0;
 	size_t len, f_len = 0, parsed;

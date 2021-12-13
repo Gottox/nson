@@ -1,15 +1,12 @@
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/mman.h>
 #include <stdbool.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 static bool
-mmap_file(const char *file, void **mmf, size_t *mmflen, size_t *filelen)
-{
+mmap_file(const char *file, void **mmf, size_t *mmflen, size_t *filelen) {
 	struct stat st;
 	size_t pgsize = (size_t)sysconf(_SC_PAGESIZE);
 	size_t pgmask = pgsize - 1, mapsize;
@@ -19,7 +16,7 @@ mmap_file(const char *file, void **mmf, size_t *mmflen, size_t *filelen)
 
 	assert(file);
 
-	if ((fd = open(file, O_RDONLY|O_CLOEXEC)) == -1)
+	if ((fd = open(file, O_RDONLY | O_CLOEXEC)) == -1)
 		return false;
 
 	if (fstat(fd, &st) == -1) {
@@ -43,8 +40,9 @@ mmap_file(const char *file, void **mmf, size_t *mmflen, size_t *filelen)
 	if ((st.st_size & pgmask) == 0)
 		need_guard = true;
 
-	mf = mmap(NULL, need_guard ? mapsize + pgsize : mapsize,
-	    PROT_READ, MAP_PRIVATE, fd, 0);
+	mf =
+			mmap(NULL, need_guard ? mapsize + pgsize : mapsize, PROT_READ,
+				 MAP_PRIVATE, fd, 0);
 	(void)close(fd);
 	if (mf == MAP_FAILED) {
 		(void)munmap(mf, mapsize);

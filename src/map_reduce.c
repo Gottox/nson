@@ -38,7 +38,7 @@
 #include <unistd.h>
 
 static const char base64_table[] =
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 int
 nson_mapper_b64_dec(off_t index, Nson *nson, void *user_data) {
@@ -140,8 +140,9 @@ nson_mapper_b64_enc(off_t index, Nson *nson, void *user_data) {
 }
 
 int
-nson_reduce(Nson *dest, const Nson *nson, NsonReducer reducer,
-			const void *user_data) {
+nson_reduce(
+		Nson *dest, const Nson *nson, NsonReducer reducer,
+		const void *user_data) {
 	int rv = 0;
 	off_t i;
 	size_t len;
@@ -169,7 +170,7 @@ nson_map(Nson *nson, NsonMapper mapper, void *user_data) {
 
 int
 nson_filter(Nson *nson, NsonFilter filter, void *user_data) {
-	Nson dest = { 0 };
+	Nson dest = {0};
 	int rv = 0;
 	off_t i;
 	size_t len;
@@ -228,8 +229,9 @@ map_thread_wrapper(void *arg) {
 }
 
 int
-nson_map_thread_ext(NsonThreadMapSettings *settings, Nson *nson,
-					NsonMapper mapper, void *user_data) {
+nson_map_thread_ext(
+		NsonThreadMapSettings *settings, Nson *nson, NsonMapper mapper,
+		void *user_data) {
 	struct ThreadInfo *threads;
 	int i;
 	size_t len;
@@ -258,8 +260,8 @@ nson_map_thread_ext(NsonThreadMapSettings *settings, Nson *nson,
 			map_thread_wrapper(&threads[i]);
 			rv = threads[i].rv;
 		} else {
-			pthread_create(&threads[i].thread, NULL, map_thread_wrapper,
-						   &threads[i]);
+			pthread_create(
+					&threads[i].thread, NULL, map_thread_wrapper, &threads[i]);
 		}
 	}
 
@@ -276,8 +278,8 @@ int
 nson_map_thread(Nson *nson, NsonMapper mapper, void *user_data) {
 	int len;
 	NsonThreadMapSettings settings = {
-		.threads = 0,
-		.chunk_size = 0,
+			.threads = 0,
+			.chunk_size = 0,
 	};
 	settings.threads = get_nprocs();
 

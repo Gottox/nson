@@ -58,17 +58,9 @@ obj_search(Nson *object, const char *key) {
 		obj_sort(object);
 	}
 
-	return bsearch(key, object->o.arr, object->o.len, sizeof *object->o.arr,
-				   search_key);
-}
-
-static NsonObjectEntry *
-obj_get(const Nson *object, int index) {
-	if (index < nson_obj_size(object)) {
-		return &object->o.arr[index];
-	} else {
-		return NULL;
-	}
+	return bsearch(
+			key, object->o.arr, object->o.len, sizeof *object->o.arr,
+			search_key);
 }
 
 static NsonObjectEntry *
@@ -78,6 +70,15 @@ obj_last(Nson *object) {
 		return NULL;
 	} else {
 		return &object->o.arr[len - 1];
+	}
+}
+
+NsonObjectEntry *
+__nson_obj_get_entry(const Nson *object, int index) {
+	if (index < nson_obj_size(object)) {
+		return &object->o.arr[index];
+	} else {
+		return NULL;
 	}
 }
 
@@ -112,7 +113,7 @@ nson_obj_get(Nson *object, const char *key) {
 const char *
 nson_obj_get_key(Nson *object, int index) {
 	assert(nson_type(object) == NSON_OBJ);
-	NsonObjectEntry *result = obj_get(object, index);
+	NsonObjectEntry *result = __nson_obj_get_entry(object, index);
 	if (result) {
 		return nson_str(&result->key);
 	} else {
@@ -156,7 +157,7 @@ __nson_obj_clean(Nson *object) {
 	size_t len = nson_obj_size(object);
 
 	for (i = 0; i < len; i++) {
-		entry = obj_get(object, i);
+		entry = __nson_obj_get_entry(object, i);
 		rv |= nson_clean(&entry->key);
 		rv |= nson_clean(&entry->value);
 	}
@@ -197,16 +198,17 @@ nson_obj_to_arr(Nson *object) {
 }
 
 int
-__nson_obj_serialize(FILE *out, const Nson *object,
-					 const NsonSerializerInfo *info, enum NsonOptions options) {
+__nson_obj_serialize(
+		FILE *out, const Nson *object, const NsonSerializerInfo *info,
+		enum NsonOptions options) {
 	int i;
 	size_t size = nson_obj_size(object);
 	NsonObjectEntry *entry;
 
 	for (i = 0; i < size; i++) {
-		entry = obj_get(object, i);
-		info->serializer(out, &entry->key,
-						 options | NSON_IS_KEY | NSON_SKIP_HEADER);
+		entry = __nson_obj_get_entry(object, i);
+		info->serializer(
+				out, &entry->key, options | NSON_IS_KEY | NSON_SKIP_HEADER);
 		fputs(info->key_value_seperator, out);
 		info->serializer(out, &entry->value, options | NSON_SKIP_HEADER);
 		if (i + 1 != size) {

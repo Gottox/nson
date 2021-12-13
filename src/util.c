@@ -34,7 +34,7 @@
 #define MUL_INT64(n, m, r) __builtin_mul_overflow(n, m, r)
 
 static const char base64_table[] =
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 off_t
 __nson_parse_dev(int64_t *dest, const char *src, size_t len) {

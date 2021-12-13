@@ -35,10 +35,10 @@
 #include <inttypes.h>
 #include <string.h>
 
-#define SKIP_SPACES                                                            \
-	do {                                                                       \
-		for (; i < len && doc[i] && strchr("\n\f\r\t\v ", doc[i]); i++)        \
-			;                                                                  \
+#define SKIP_SPACES \
+	do { \
+		for (; i < len && doc[i] && strchr("\n\f\r\t\v ", doc[i]); i++) \
+			; \
 	} while (0)
 
 static int
@@ -62,8 +62,8 @@ parse_string(NsonBuf **dest_buf, const char *src, const size_t len) {
 
 		if (chunk_start[0] == '#') {
 			chunk_start++;
-			chunk_start +=
-				__nson_parse_dev(&val, chunk_start, len - (chunk_start - src));
+			chunk_start += __nson_parse_dev(
+					&val, chunk_start, len - (chunk_start - src));
 			if (chunk_start[0] == ';') {
 				chunk_start += __nson_to_utf8(dest, val, 3);
 			} else {
@@ -435,8 +435,9 @@ plist_b64_enc(const Nson *nson, FILE *fd) {
 	}
 	if (nson_mapper_b64_enc(0, &tmp, NULL) < 0) {
 		rv = -1;
-	} else if (fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) ==
-			   0) {
+	} else if (
+			fwrite(nson_data(&tmp), sizeof(char), nson_data_len(&tmp), fd) ==
+			0) {
 		rv = -1;
 	}
 	nson_clean(&tmp);
@@ -444,8 +445,8 @@ plist_b64_enc(const Nson *nson, FILE *fd) {
 }
 
 int
-nson_plist_serialize(char **str, size_t *size, Nson *nson,
-					 enum NsonOptions options) {
+nson_plist_serialize(
+		char **str, size_t *size, Nson *nson, enum NsonOptions options) {
 	int rv;
 	FILE *out = open_memstream(str, size);
 	if (out == NULL) {
@@ -460,9 +461,9 @@ int
 nson_plist_write(FILE *out, const Nson *nson, enum NsonOptions options) {
 	int rv = 0;
 	static const NsonSerializerInfo info = {
-		.serializer = nson_plist_write,
-		.seperator = "",
-		.key_value_seperator = "",
+			.serializer = nson_plist_write,
+			.seperator = "",
+			.key_value_seperator = "",
 	};
 
 	if (0 == (options & NSON_SKIP_HEADER)) {

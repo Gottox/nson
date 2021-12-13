@@ -1,39 +1,40 @@
 /*
  * BSD 2-Clause License
- * 
+ *
  * Copyright (c) 2018, Enno Boland
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
- * 
+ *
  * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #include "../src/internal.h"
 
-#include "test.h"
 #include "common.h"
+#include "test.h"
 
 static void
 create_array() {
-	Nson nson = { 0 };
+	Nson nson = {0};
 	nson_init(&nson, NSON_ARR);
 	assert(nson_type(&nson) == NSON_ARR);
 	assert(nson_arr_len(&nson) == 0);
@@ -41,20 +42,20 @@ create_array() {
 
 static void
 add_int_to_array() {
-	Nson nson = { 0 };
+	Nson nson = {0};
 	nson_init(&nson, NSON_ARR);
 	assert(nson_type(&nson) == NSON_ARR);
 	assert(nson_arr_len(&nson) == 0);
 
-	//nson_arr_push_int(&nson, 42);
-	//assert(nson_type(nson_arr_get(&nson, 0)) == NSON_INT);
+	// nson_arr_push_int(&nson, 42);
+	// assert(nson_type(nson_arr_get(&nson, 0)) == NSON_INT);
 
 	nson_clean(&nson);
 }
 
 static void
 check_messy_array() {
-	Nson nson = { 0 }, val = { 0 };
+	Nson nson = {0}, val = {0};
 	nson_init(&nson, NSON_ARR);
 
 	nson_int_wrap(&val, 5);
@@ -74,7 +75,7 @@ check_messy_array() {
 
 static void
 check_messy_object() {
-	Nson nson = { 0 }, val = { 0 };
+	Nson nson = {0}, val = {0};
 	nson_init(&nson, NSON_OBJ);
 
 	nson_int_wrap(&val, 6);
@@ -94,7 +95,7 @@ check_messy_object() {
 
 static void
 clone_array() {
-	Nson nson = { 0 }, clone = { 0 };
+	Nson nson = {0}, clone = {0};
 	NSON(&nson, [ 1, 2 ]);
 
 	nson_clone(&clone, &nson);
@@ -109,9 +110,9 @@ clone_array() {
 static void
 sort_array() {
 	int rv;
-	Nson nson = { 0 };
+	Nson nson = {0};
 
-	rv = NSON(&nson, [5,4,3,2,1]);
+	rv = NSON(&nson, [ 5, 4, 3, 2, 1 ]);
 	assert(rv >= 0);
 
 	assert(nson_arr_sort(&nson) >= 0);
@@ -129,14 +130,14 @@ sort_array() {
 static void
 sort_object() {
 	int rv;
-	Nson nson = { 0 };
+	Nson nson = {0};
 
 	rv = NSON(&nson, {
-			"e":"five",
-			"d":"four",
-			"c":"three",
-			"b":"two",
-			"a":"one"
+		"e" : "five",
+		"d" : "four",
+		"c" : "three",
+		"b" : "two",
+		"a" : "one"
 	});
 	assert(rv >= 0);
 
@@ -163,12 +164,12 @@ static void
 walk_array_empty() {
 	int rv;
 	off_t index = -1;
-	Nson nson = { 0 };
-	NsonStack stack = { 0 };
+	Nson nson = {0};
+	NsonStack stack = {0};
 	Nson *item;
 	Nson *stack_top;
 
-	rv = NSON(&nson, [ ]);
+	rv = NSON(&nson, []);
 	assert(rv >= 0);
 
 	item = stack_top = &nson;
@@ -190,14 +191,12 @@ static void
 walk_array_tree() {
 	int rv;
 	off_t index = -1;
-	Nson nson = { 0 };
-	NsonStack stack = { 0 };
+	Nson nson = {0};
+	NsonStack stack = {0};
 	Nson *item;
 	Nson *stack_top;
 
-	rv = NSON(&nson, [
-			1, [ 2 ], 3, [ 4 ], 5
-	]);
+	rv = NSON(&nson, [ 1, [2], 3, [4], 5 ]);
 	assert(rv >= 0);
 
 	assert(rv >= 0);
@@ -270,8 +269,8 @@ walk_array_tree() {
 static void
 issue_nullref() {
 	int rv;
-	Nson nson = { { { 0 } } };
-	Nson item_stack = { { { 0 } } };
+	Nson nson = {{{0}}};
+	Nson item_stack = {{{0}}};
 	Nson *item;
 
 	char *src = strdup("[\"1\"]");
@@ -297,12 +296,8 @@ issue_concat_array() {
 	char *str;
 	size_t len;
 
-	rv = NSON(&nson_1, [
-			1, 2, 3, 4, 5
-	]);
-	rv = NSON(&nson_2, [
-			6, 7, 8, 9, 10
-	]);
+	rv = NSON(&nson_1, [ 1, 2, 3, 4, 5 ]);
+	rv = NSON(&nson_2, [ 6, 7, 8, 9, 10 ]);
 
 	rv = nson_arr_concat(&nson_1, &nson_2);
 
@@ -310,6 +305,30 @@ issue_concat_array() {
 	puts(str);
 
 	assert(strcmp("[1,2,3,4,5,6,7,8,9,10]", str) == 0);
+
+	nson_clean(&nson_1);
+	nson_clean(&nson_1);
+	free(str);
+	(void)rv;
+}
+
+static void
+issue_concat_empty() {
+	Nson nson_1 = {0};
+	Nson nson_2 = {0};
+	int rv = 0;
+	char *str;
+	size_t len;
+
+	rv = NSON(&nson_1, []);
+	rv = NSON(&nson_2, []);
+
+	rv = nson_arr_concat(&nson_1, &nson_2);
+
+	nson_json_serialize(&str, &len, &nson_1, 0);
+	puts(str);
+
+	assert(strcmp("[]", str) == 0);
 
 	nson_clean(&nson_1);
 	nson_clean(&nson_1);
@@ -329,4 +348,5 @@ TEST(walk_array_empty);
 TEST(walk_array_tree);
 TEST(issue_nullref);
 TEST(issue_concat_array);
+TEST(issue_concat_empty);
 DEFINE_END

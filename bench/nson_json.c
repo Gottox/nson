@@ -8,14 +8,15 @@
 #include "../test/test.h"
 
 #include "../src/nson.h"
-Nson nson = { 0 };
+Nson nson = {0};
 
 // Make linter happy:
 #ifndef BENCH_JSON
 #define BENCH_JSON "/dev/null"
 #endif
 
-void bench_nson_json() {
+void
+bench_nson_json() {
 	int rv;
 
 	rv = nson_load_json(&nson, BENCH_JSON);
@@ -24,7 +25,8 @@ void bench_nson_json() {
 	(void)rv;
 }
 
-void bench_nson_to_json() {
+void
+bench_nson_to_json() {
 	int rv;
 	char *str;
 	size_t size;

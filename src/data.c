@@ -73,6 +73,11 @@ nson_mapper_clone(off_t index, Nson *nson, void *user_data) {
 		return nson_map(nson, nson_mapper_clone, nson);
 	case NSON_OBJ:
 		__nson_obj_clone(nson);
+		for (int i = 0, len = nson_obj_size(nson); i < len; i++) {
+			NsonObjectEntry *entry = __nson_obj_get_entry(nson, i);
+			__nson_buf_retain(entry->key.d.buf);
+			nson_mapper_clone(0, &entry->value, NULL);
+		}
 		break;
 	case NSON_STR:
 	case NSON_BLOB:
@@ -119,8 +124,8 @@ __nson_init_buf(Nson *nson, NsonBuf *val, enum NsonType info) {
 }
 
 int
-nson_init_data(Nson *nson, const char *val, const size_t len,
-			   enum NsonType info) {
+nson_init_data(
+		Nson *nson, const char *val, const size_t len, enum NsonType info) {
 	int rv = nson_init(nson, info);
 	if (rv < 0)
 		return rv;
@@ -171,8 +176,9 @@ nson_load(NsonParser parser, Nson *nson, const char *file) {
 	if (((st.st_size + 2) & pgmask) == 0)
 		need_guard = 1;
 
-	mf = mmap(NULL, need_guard ? mapsize + pgsize : mapsize,
-			  PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+	mf =
+			mmap(NULL, need_guard ? mapsize + pgsize : mapsize,
+				 PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
 	(void)close(fd);
 	if (mf == MAP_FAILED) {
 		(void)munmap(mf, mapsize);

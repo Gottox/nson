@@ -218,8 +218,9 @@ __nson_arr_clean(Nson *nson) {
 }
 
 int
-__nson_arr_serialize(FILE *out, const Nson *array,
-					 const NsonSerializerInfo *info, enum NsonOptions options) {
+__nson_arr_serialize(
+		FILE *out, const Nson *array, const NsonSerializerInfo *info,
+		enum NsonOptions options) {
 	int i;
 	size_t size = nson_arr_len(array);
 	Nson *element;
